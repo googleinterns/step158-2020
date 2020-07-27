@@ -109,7 +109,7 @@
                     <executable>ng</executable>
                     <arguments>
                         <argument>build</argument>
-                        <argument>--base-href=/</argument>
+                        <argument>--base-href=/ng/</argument>
                     </arguments>
                 </configuration>
                 <goals>

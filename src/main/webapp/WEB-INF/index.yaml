@@ -1,0 +1,14 @@
+#gcloud datastore indexes create ~/step/portfolio/src/main/webapp/WEB-INF/index.yaml
+
+indexes:
+
+- kind: Comment
+  properties:
+  - name: uid
+  - name: iso8601
+    direction: desc
+
+- kind: Comment
+  properties:
+  - name: uid
+  - name: iso8601
