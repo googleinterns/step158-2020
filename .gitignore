@@ -1,14 +1,1 @@
 /target
-/src/main/webapp/favicon.ico
-/src/main/webapp/index.html
-/src/main/webapp/main.js
-/src/main/webapp/main.js.map
-/src/main/webapp/polyfills.js
-/src/main/webapp/polyfills.js.map
-/src/main/webapp/runtime.js
-/src/main/webapp/runtime.js.map
-/src/main/webapp/styles.js
-/src/main/webapp/styles.js.map
-/src/main/webapp/vendor.js
-/src/main/webapp/vendor.js.map
-/src/main/ngapp/accio/node_modules/__ngcc_entry_points__.json
