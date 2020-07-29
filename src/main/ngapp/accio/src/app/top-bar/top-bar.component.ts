@@ -12,4 +12,8 @@ export class TopBarComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  loggedIn = false;
+  toggleButton() {
+    this.loggedIn = !this.loggedIn;
+  }
 }
