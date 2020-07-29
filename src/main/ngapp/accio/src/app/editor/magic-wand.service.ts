@@ -17,11 +17,11 @@ export class MagicWandService {
     // Use a set for mask; mainly do iter and set operations on masks
     const mask: Set<number> = new Set();
     // Represent [R,G,B,A] attributes of initial pixel
-    const originalPixel: Array<number> = dataArrayToRGBA(imgData, xCoord, yCoord);
+    const originalPixel: Array<number> = this.dataArrayToRGBA(imgData, xCoord, yCoord);
 
     visit.push([xCoord, yCoord]);
     // Convert [x,y] format coord to 1-D equivalent of imgData.data (DataArray)
-    let indexAsDataArray: number = coordToDataArrayIndicies(xCoord, yCoord, imgData.width)[0];
+    let indexAsDataArray: number = this.coordToDataArrayIndicies(xCoord, yCoord, imgData.width)[0];
     visited.add(indexAsDataArray);
     let visitSize: number = 1;
 
@@ -34,7 +34,7 @@ export class MagicWandService {
       let y: number = coord[1];
 
       // Operational part of while-loop
-      mask.add(coordToDataArrayIndicies(x, y, imgData.width)[0]);
+      mask.add(this.coordToDataArrayIndicies(x, y, imgData.width)[0]);
 
       // Loop part of while-loop
 
@@ -76,13 +76,13 @@ export class MagicWandService {
   /** Judge current pixel's RGBA against original pixel's RGBA to see if it
    *  can still be part of the mask (using tolerance criteria)
    */
-  private getIsStillMask(originalPixel: Array<number>, imgData: ImageData,
+  getIsStillMask(originalPixel: Array<number>, imgData: ImageData,
                          pixelCoord: Array<number>, tolerance: number,
                          visited: Set<number>): boolean {
     let isStillMask: boolean = true;
 
     // Preface; check if pixel is valid (indexing errs and repeat values)
-    let isValid: boolean = getIsValid(imgData, pixelCoord, visited);
+    let isValid: boolean = this.getIsValid(imgData, pixelCoord, visited);
     if (!isValid) {
       // Automatically not in mask b/c failed vailidity test
       return !isStillMask;
@@ -91,7 +91,7 @@ export class MagicWandService {
     // Get array of attributes of current pixel
     let curX: number = pixelCoord[0];
     let curY: number = pixelCoord[1];
-    let curPixel: Array<number> = dataArrayToRGBA(imgData, curX, curY);
+    let curPixel: Array<number> = this.dataArrayToRGBA(imgData, curX, curY);
 
     // All attributes of the pixel (R,G,B, and A) must be within tolerance level
     for (let i = 0; i < 4; i++) {
@@ -106,4 +106,30 @@ export class MagicWandService {
     return isStillMask;
   }
 
+  // Check if @pixelCoord is in bounds and makes sure it's not a repeat coord
+  getIsValid(imgData: ImageData, pixelCoord: Array<number>, visited: Set<number>): boolean {
+    let curX: number = pixelCoord[0];
+    let curY: number = pixelCoord[1];
+
+    // Unpack imgData for readability
+    let data: Uint8ClampedArray = imgData.data;
+    let imgWidth: number = imgData.width;
+    let imgHeight: number = imgData.height;
+
+    let isValid: boolean = true;
+    // Check bounds of indexing
+    let yOutOfBounds: boolean = curY < 0 || curY > imgHeight - 1;
+    let xOutOfBounds: boolean = curX < 0 || curX > imgWidth - 1;
+    if (yOutOfBounds || xOutOfBounds) {
+      return !isValid;
+    }
+    // Do not push repeat coords to heap
+    let indexAsDataArray: number = this.coordToDataArrayIndicies(curX, curY, imgWidth)[0];
+    if (visited.has(indexAsDataArray)) {
+      return !isValid;
+    }
+    visited.add(indexAsDataArray);
+
+    return isValid;
+  }
 }
