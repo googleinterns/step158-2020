@@ -1,0 +1,74 @@
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class MagicWandService {
+  /** Return set of coordinates(formatted as a 1-D array).
+   *  Coordinates correspond to pixels considered part of the mask.
+   */
+  /* tslint:disable */
+  floodfill(imgData: ImageData, xCoord: number, yCoord: number, tolerance: number): Set<number> {
+    // Use basic queue to immitate recursive approach of the stack
+    // possible TODO: set array size after mvp to optimize heap memory access
+    const visit: Array<Array<number>> = new Array();
+    const visited: Set<number> = new Set();
+    // Use a set for mask; mainly do iter and set operations on masks
+    const mask: Set<number> = new Set();
+    // Represent [R,G,B,A] attributes of initial pixel
+    const originalPixel: Array<number> = dataArrayToRGBA(imgData, xCoord, yCoord);
+
+    visit.push([xCoord, yCoord]);
+    // Convert [x,y] format coord to 1-D equivalent of imgData.data (DataArray)
+    let indexAsDataArray: number = coordToDataArrayIndicies(xCoord, yCoord, imgData.width)[0];
+    visited.add(indexAsDataArray);
+    let visitSize: number = 1;
+
+    // Loop until no more adjacent pixel's within tolerance level
+    while(visitSize != 0) {
+      let coord: Array<number> = visit.pop();
+      visitSize -= 1;
+      // Unpack coord
+      let x: number = coord[0];
+      let y: number = coord[1];
+
+      // Operational part of while-loop
+      mask.add(coordToDataArrayIndicies(x, y, imgData.width)[0]);
+
+      // Loop part of while-loop
+
+      // Get coords of adjacent pixels
+      let leftPixelCoord: Array<number> = [x - 1, y];
+      let rightPixelCoord: Array<number> = [x + 1, y];
+      let upPixelCoord: Array<number> = [x, y - 1];
+      let downPixelCoord: Array<number> = [x, y + 1];
+      // Add coords of adjacent pixels to the heap
+      let isStillMask: boolean = getIsStillMask(originalPixel, imgData, leftPixelCoord, tolerance, visited);
+      // Check left pixel
+      if (isStillMask) {
+        visit.push(leftPixelCoord);
+        visitSize += 1;
+      }
+      isStillMask = getIsStillMask(originalPixel, imgData, rightPixelCoord, tolerance, visited);
+      // Check right pixel
+      if (isStillMask) {
+        visit.push(rightPixelCoord);
+        visitSize += 1;
+      }
+      isStillMask = getIsStillMask(originalPixel, imgData, upPixelCoord, tolerance, visited);
+      // Check up pixel
+      if (isStillMask) {
+        visit.push(upPixelCoord);
+        visitSize += 1;
+      }
+      isStillMask = getIsStillMask(originalPixel, imgData, downPixelCoord, tolerance, visited);
+      // Check down pixel
+      if (isStillMask) {
+        visit.push(downPixelCoord);
+        visitSize += 1;
+      }
+    }  // end of while loop
+
+    return mask;
+  }
+}
