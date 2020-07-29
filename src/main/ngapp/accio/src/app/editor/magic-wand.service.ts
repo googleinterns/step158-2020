@@ -132,4 +132,22 @@ export class MagicWandService {
 
     return isValid;
   }
+
+  // Return pixel attributes of @imgData at [@xCoord, @yCoord] as Array<number>
+  dataArrayToRGBA(imgData: ImageData, xCoord: number, yCoord: number): Array<number> {
+    // Unpack imgData for readability
+    let data: Uint8ClampedArray = imgData.data;
+    let imgWidth: number = imgData.width;
+    let imgHeight: number = imgData.height;
+
+    // Pixel attributes in imgData are organized adjacently in a 1-D array
+    let pixelIndex: number = (xCoord + (imgWidth * yCoord)) * 4;
+    let red: number = data[pixelIndex];
+    let green: number = data[pixelIndex + 1];
+    let blue: number = data[pixelIndex + 2];
+    let alpha: number = data[pixelIndex + 3];
+    // Store original pixel's attributes
+    let pixel: Array<number> = [red, green, blue, alpha];
+    return pixel;
+  }
 }
