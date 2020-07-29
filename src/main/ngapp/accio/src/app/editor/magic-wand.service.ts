@@ -150,4 +150,10 @@ export class MagicWandService {
     let pixel: Array<number> = [red, green, blue, alpha];
     return pixel;
   }
+
+  // Convert coord [@x, @y] to indexing style of imageData.data
+  coordToDataArrayIndicies(x: number, y: number, width: number): Array<number> {
+    let red: number = (x + (y * width)) * 4;
+    return [red, red + 1, red + 2, red + 3];
+  }
 }
