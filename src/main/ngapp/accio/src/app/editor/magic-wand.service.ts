@@ -44,25 +44,25 @@ export class MagicWandService {
       let upPixelCoord: Array<number> = [x, y - 1];
       let downPixelCoord: Array<number> = [x, y + 1];
       // Add coords of adjacent pixels to the heap
-      let isStillMask: boolean = getIsStillMask(originalPixel, imgData, leftPixelCoord, tolerance, visited);
+      let isStillMask: boolean = this.getIsStillMask(originalPixel, imgData, leftPixelCoord, tolerance, visited);
       // Check left pixel
       if (isStillMask) {
         visit.push(leftPixelCoord);
         visitSize += 1;
       }
-      isStillMask = getIsStillMask(originalPixel, imgData, rightPixelCoord, tolerance, visited);
+      isStillMask = this.getIsStillMask(originalPixel, imgData, rightPixelCoord, tolerance, visited);
       // Check right pixel
       if (isStillMask) {
         visit.push(rightPixelCoord);
         visitSize += 1;
       }
-      isStillMask = getIsStillMask(originalPixel, imgData, upPixelCoord, tolerance, visited);
+      isStillMask = this.getIsStillMask(originalPixel, imgData, upPixelCoord, tolerance, visited);
       // Check up pixel
       if (isStillMask) {
         visit.push(upPixelCoord);
         visitSize += 1;
       }
-      isStillMask = getIsStillMask(originalPixel, imgData, downPixelCoord, tolerance, visited);
+      isStillMask = this.getIsStillMask(originalPixel, imgData, downPixelCoord, tolerance, visited);
       // Check down pixel
       if (isStillMask) {
         visit.push(downPixelCoord);
