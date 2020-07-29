@@ -8,7 +8,8 @@ export class MagicWandService {
    *  Coordinates correspond to pixels considered part of the mask.
    */
   /* tslint:disable */
-  floodfill(imgData: ImageData, xCoord: number, yCoord: number, tolerance: number): Set<number> {
+  floodfill(imgData: ImageData, xCoord: number, yCoord: number,
+            tolerance: number): Set<number> {
     // Use basic queue to immitate recursive approach of the stack
     // possible TODO: set array size after mvp to optimize heap memory access
     const visit: Array<Array<number>> = new Array();
@@ -71,4 +72,38 @@ export class MagicWandService {
 
     return mask;
   }
+
+  /** Judge current pixel's RGBA against original pixel's RGBA to see if it
+   *  can still be part of the mask (using tolerance criteria)
+   */
+  private getIsStillMask(originalPixel: Array<number>, imgData: ImageData,
+                         pixelCoord: Array<number>, tolerance: number,
+                         visited: Set<number>): boolean {
+    let isStillMask: boolean = true;
+
+    // Preface; check if pixel is valid (indexing errs and repeat values)
+    let isValid: boolean = getIsValid(imgData, pixelCoord, visited);
+    if (!isValid) {
+      // Automatically not in mask b/c failed vailidity test
+      return !isStillMask;
+    }
+
+    // Get array of attributes of current pixel
+    let curX: number = pixelCoord[0];
+    let curY: number = pixelCoord[1];
+    let curPixel: Array<number> = dataArrayToRGBA(imgData, curX, curY);
+
+    // All attributes of the pixel (R,G,B, and A) must be within tolerance level
+    for (let i = 0; i < 4; i++) {
+      let upperTolerance: boolean = curPixel[i] > originalPixel[i] + tolerance;
+      let lowerTolerance: boolean = curPixel[i] < originalPixel[i] - tolerance;
+      let failsTolerance: boolean = upperTolerance || lowerTolerance;
+      if (failsTolerance) {
+        return !isStillMask;
+      }
+    }
+
+    return isStillMask;
+  }
+
 }
