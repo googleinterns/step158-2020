@@ -6,14 +6,24 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./top-bar.component.css']
 })
 export class TopBarComponent implements OnInit {
-
   constructor() { }
 
-  ngOnInit(): void {
-  }
+  userSignedIn = false;
+  ngOnInit(): void {}
 
-  loggedIn = false;
-  toggleButton() {
-    this.loggedIn = !this.loggedIn;
+  // this needs to be fixed. 
+
+  toggleButton(): string {
+    if (!this.userSignedIn) { 
+      console.log('User Signed in');
+      this.userSignedIn = true;
+      return signIn;
+    }
+    console.log('User Signed out');
+    this.userSignedIn = false;
+    return signOut;
   }
 }
+
+export const signIn = 'Sign In';
+export const signOut = 'Sign Out';
