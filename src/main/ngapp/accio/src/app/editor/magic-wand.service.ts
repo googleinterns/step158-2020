@@ -23,12 +23,10 @@ export class MagicWandService {
     // Convert [x,y] format coord to 1-D equivalent of imgData.data (DataArray)
     let indexAsDataArray: number = this.coordToDataArrayIndices(xCoord, yCoord, imgData.width)[0];
     visited.add(indexAsDataArray);
-    let visitSize: number = 1;
 
     // Loop until no more adjacent pixel's within tolerance level
-    while(visitSize != 0) {
+    while(visit.length != 0) {
       let coord: Array<number> = visit.pop();
-      visitSize -= 1;
       // Unpack coord
       let x: number = coord[0];
       let y: number = coord[1];
@@ -48,25 +46,21 @@ export class MagicWandService {
       // Check left pixel
       if (isStillMask) {
         visit.push(leftPixelCoord);
-        visitSize += 1;
       }
       isStillMask = this.getIsMask(originalPixel, imgData, rightPixelCoord, tolerance, visited);
       // Check right pixel
       if (isStillMask) {
         visit.push(rightPixelCoord);
-        visitSize += 1;
       }
       isStillMask = this.getIsMask(originalPixel, imgData, upPixelCoord, tolerance, visited);
       // Check up pixel
       if (isStillMask) {
         visit.push(upPixelCoord);
-        visitSize += 1;
       }
       isStillMask = this.getIsMask(originalPixel, imgData, downPixelCoord, tolerance, visited);
       // Check down pixel
       if (isStillMask) {
         visit.push(downPixelCoord);
-        visitSize += 1;
       }
     }  // end of while loop
 
@@ -78,15 +72,14 @@ export class MagicWandService {
    * see if it can still be part of the mask (using tolerance criteria).
    */
   getIsMask(originalPixel: Array<number>, imgData: ImageData,
-            pixelCoord: Array<number>, tolerance: number,
-            visited: Set<number>): boolean {
-    let isStillMask: boolean = true;
+    pixelCoord: Array<number>, tolerance: number,
+    visited: Set<number>): boolean {
 
     // Preface; check if pixel is valid (indexing errs and repeat values)
     let isValid: boolean = this.getIsValid(imgData.width, imgData.height, pixelCoord, visited);
     if (!isValid) {
       // Automatically not in mask b/c failed vailidity test
-      return !isStillMask;
+      return false;
     }
 
     // Get array of attributes of current pixel
@@ -100,11 +93,11 @@ export class MagicWandService {
       let lowerTolerance: boolean = curPixel[i] < originalPixel[i] - tolerance;
       let failsTolerance: boolean = upperTolerance || lowerTolerance;
       if (failsTolerance) {
-        return !isStillMask;
+        return false;
       }
     }
 
-    return isStillMask;
+    return true;
   }
 
   // Check if @pixelCoord is in bounds and makes sure it's not a repeat coord
@@ -112,21 +105,20 @@ export class MagicWandService {
     let curX: number = pixelCoord[0];
     let curY: number = pixelCoord[1];
 
-    let isValid: boolean = true;
     // Check bounds of indexing
     let yOutOfBounds: boolean = curY < 0 || curY > imgHeight - 1;
     let xOutOfBounds: boolean = curX < 0 || curX > imgWidth - 1;
     if (yOutOfBounds || xOutOfBounds) {
-      return !isValid;
+      return false;
     }
     // Do not push repeat coords to heap
     let indexAsDataArray: number = this.coordToDataArrayIndices(curX, curY, imgWidth)[0];
     if (visited.has(indexAsDataArray)) {
-      return !isValid;
+      return false;
     }
     visited.add(indexAsDataArray);
 
-    return isValid;
+    return true;
   }
 
   // Return pixel attributes of @imgData at [@xCoord, @yCoord] as Array<number>
