@@ -91,8 +91,7 @@ export class MagicWandService {
     for (let i = 0; i < 4; i++) {
       let upperTolerance: boolean = curPixel[i] > originalPixel[i] + tolerance;
       let lowerTolerance: boolean = curPixel[i] < originalPixel[i] - tolerance;
-      let failsTolerance: boolean = upperTolerance || lowerTolerance;
-      if (failsTolerance) {
+      if (upperTolerance || lowerTolerance) {
         return false;
       }
     }
