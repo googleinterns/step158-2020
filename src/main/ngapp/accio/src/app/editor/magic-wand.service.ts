@@ -21,7 +21,7 @@ export class MagicWandService {
 
     visit.push([xCoord, yCoord]);
     // Convert [x,y] format coord to 1-D equivalent of imgData.data (DataArray)
-    let indexAsDataArray: number = this.coordToDataArrayIndicies(xCoord, yCoord, imgData.width)[0];
+    let indexAsDataArray: number = this.coordToDataArrayIndices(xCoord, yCoord, imgData.width)[0];
     visited.add(indexAsDataArray);
     let visitSize: number = 1;
 
@@ -34,7 +34,7 @@ export class MagicWandService {
       let y: number = coord[1];
 
       // Operational part of while-loop
-      mask.add(this.coordToDataArrayIndicies(x, y, imgData.width)[0]);
+      mask.add(this.coordToDataArrayIndices(x, y, imgData.width)[0]);
 
       // Loop part of while-loop
 
@@ -119,7 +119,7 @@ export class MagicWandService {
       return !isValid;
     }
     // Do not push repeat coords to heap
-    let indexAsDataArray: number = this.coordToDataArrayIndicies(curX, curY, imgWidth)[0];
+    let indexAsDataArray: number = this.coordToDataArrayIndices(curX, curY, imgWidth)[0];
     if (visited.has(indexAsDataArray)) {
       return !isValid;
     }
@@ -145,8 +145,8 @@ export class MagicWandService {
     return pixel;
   }
 
-  // Convert coord [@x, @y] to indexing style of imageData.data
-  coordToDataArrayIndicies(x: number, y: number, width: number): Array<number> {
+  // Convert coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
+  coordToDataArrayIndices(x: number, y: number, width: number): Array<number> {
     let red: number = (x + (y * width)) * 4;
     return [red, red + 1, red + 2, red + 3];
   }
