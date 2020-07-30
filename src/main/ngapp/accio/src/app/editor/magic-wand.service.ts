@@ -44,25 +44,25 @@ export class MagicWandService {
       let upPixelCoord: Array<number> = [x, y - 1];
       let downPixelCoord: Array<number> = [x, y + 1];
       // Add coords of adjacent pixels to the heap
-      let isStillMask: boolean = this.getIsStillMask(originalPixel, imgData, leftPixelCoord, tolerance, visited);
+      let isStillMask: boolean = this.getIsMask(originalPixel, imgData, leftPixelCoord, tolerance, visited);
       // Check left pixel
       if (isStillMask) {
         visit.push(leftPixelCoord);
         visitSize += 1;
       }
-      isStillMask = this.getIsStillMask(originalPixel, imgData, rightPixelCoord, tolerance, visited);
+      isStillMask = this.getIsMask(originalPixel, imgData, rightPixelCoord, tolerance, visited);
       // Check right pixel
       if (isStillMask) {
         visit.push(rightPixelCoord);
         visitSize += 1;
       }
-      isStillMask = this.getIsStillMask(originalPixel, imgData, upPixelCoord, tolerance, visited);
+      isStillMask = this.getIsMask(originalPixel, imgData, upPixelCoord, tolerance, visited);
       // Check up pixel
       if (isStillMask) {
         visit.push(upPixelCoord);
         visitSize += 1;
       }
-      isStillMask = this.getIsStillMask(originalPixel, imgData, downPixelCoord, tolerance, visited);
+      isStillMask = this.getIsMask(originalPixel, imgData, downPixelCoord, tolerance, visited);
       // Check down pixel
       if (isStillMask) {
         visit.push(downPixelCoord);
@@ -73,12 +73,13 @@ export class MagicWandService {
     return mask;
   }
 
-  /** Judge current pixel's RGBA against original pixel's RGBA to see if it
-   *  can still be part of the mask (using tolerance criteria)
+  /**First check that @pixelCoord is within range of the image bounds.
+   * Then, judge current pixel's RGBA against original pixel's RGBA to
+   * see if it can still be part of the mask (using tolerance criteria).
    */
-  getIsStillMask(originalPixel: Array<number>, imgData: ImageData,
-                         pixelCoord: Array<number>, tolerance: number,
-                         visited: Set<number>): boolean {
+  getIsMask(originalPixel: Array<number>, imgData: ImageData,
+            pixelCoord: Array<number>, tolerance: number,
+            visited: Set<number>): boolean {
     let isStillMask: boolean = true;
 
     // Preface; check if pixel is valid (indexing errs and repeat values)
