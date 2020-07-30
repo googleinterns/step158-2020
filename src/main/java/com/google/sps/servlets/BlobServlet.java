@@ -38,46 +38,43 @@ public class BlobServlet extends HttpServlet {
       throws IOException {
     UserService userService = UserServiceFactory.getUserService();
 
+    // Must be logged in
     if (!userService.isUserLoggedIn()) {
       response.sendRedirect("/imgupload.html");
       return;
     }
 
+    // Must be an owner or editor
     String projId = request.getParameter("proj-id");
     String uid = userService.getCurrentUser().getUserId();
 
-    Query queryOwner = new Query("Project");
-    Query queryEditor = new Query("Project");
+    Query projQuery = new Query("Project");
 
-    Filter ownerFilter = new CompositeFilter(
+    Filter ownEditFilter = new CompositeFilter(
         CompositeFilterOperator.AND,
         Arrays.asList(
             new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
-            new FilterPredicate("owners", FilterOperator.EQUAL, uid)));
+            new CompositeFilter(
+                CompositeFilterOperator.OR,
+                Arrays.<Filter>asList(
+                    new FilterPredicate("owners", FilterOperator.EQUAL, uid),
+                    new FilterPredicate("editors", FilterOperator.EQUAL,
+                                        uid)))));
 
-    Filter editorFilter = new CompositeFilter(
-        CompositeFilterOperator.AND,
-        Arrays.asList(
-            new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
-            new FilterPredicate("editors", FilterOperator.EQUAL, uid)));
-
-    queryOwner.setFilter(ownerFilter);
-    queryEditor.setFilter(editorFilter);
+    projQuery.setFilter(ownEditFilter);
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    PreparedQuery ownThisProject = datastore.prepare(queryOwner);
-    PreparedQuery editThisProject = datastore.prepare(queryEditor);
+    PreparedQuery accessibleProjects = datastore.prepare(projQuery);
 
-    Boolean isOwner = false;
-
-    if (ownThisProject.countEntities() != 0) {
-      isOwner = true;
-    } else {
-      if (editThisProject.countEntities() == 0) {
-        response.sendRedirect("/imgupload.html");
-        return;
-      }
+    // Only owners and editors of given project can modify or create
+    if (accessibleProjects.countEntities() == 0) {
+      response.sendRedirect("/imgupload.html");
+      return;
     }
+    
+    String ownersString =
+        (String)accessibleProjects.asSingleEntity().getProperty("owners");
+    Boolean isOwner = ownersString.contains(uid);
 
     String parentImg = request.getParameter("parent-img");
 
@@ -124,7 +121,7 @@ public class BlobServlet extends HttpServlet {
     // Get the name entered by the user
     String name = request.getParameter("name");
 
-    Entity imageEntity = new Entity("Image"/*, userEntity.getKey()*/);
+    Entity imageEntity = new Entity("Image" /*, userEntity.getKey()*/);
     // imageEntity.setProperty("blobkey", blobKey.getKeyString());
     imageEntity.setProperty("name", name);
     datastore.put(imageEntity);
