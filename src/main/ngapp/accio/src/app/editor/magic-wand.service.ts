@@ -125,9 +125,11 @@ export class MagicWandService {
   }
 
   // Checks if pixel has been visited already
-  notVisited(imgWidth:number, curX: number, curY: number, visited: Set<number>): boolean {
+  notVisited(imgWidth:number, curX: number, curY: number,
+    visited: Set<number>): boolean {
     // Do not push repeat coords to heap
-    let indexAsDataArray: number = this.coordToDataArrayIndices(curX, curY, imgWidth)[0];
+    let indexAsDataArray: number =
+      this.coordToDataArrayIndices(curX, curY, imgWidth)[0];
     if (visited.has(indexAsDataArray)) {
       return false;
     }
@@ -137,20 +139,21 @@ export class MagicWandService {
 
 
   // Return pixel attributes of @imgData at [@xCoord, @yCoord] as [R, G, B, A]
-  dataArrayToRGBA(imgData: ImageData, xCoord: number, yCoord: number): Array<number> {
+  dataArrayToRGBA(imgData: ImageData, xCoord: number, yCoord: number):
+    Array<number> {
     // Unpack imgData for readability
     let data: Uint8ClampedArray = imgData.data;
     let imgWidth: number = imgData.width;
 
     // Pixel attributes in imgData are organized adjacently in a 1-D array
-    let pixelIndex: number = (xCoord + (imgWidth * yCoord)) * 4;
-    let red: number = data[pixelIndex];
-    let green: number = data[pixelIndex + 1];
-    let blue: number = data[pixelIndex + 2];
-    let alpha: number = data[pixelIndex + 3];
+    let pixelIndex: Array<number> =
+      this.coordToDataArrayIndices(xCoord, yCoord, imgWidth);
+    let red: number = data[pixelIndex[0]];
+    let green: number = data[pixelIndex[1]];
+    let blue: number = data[pixelIndex[2]];
+    let alpha: number = data[pixelIndex[3]];
     // Store original pixel's attributes
-    let pixel: Array<number> = [red, green, blue, alpha];
-    return pixel;
+    return [red, green, blue, alpha];
   }
 
   // Convert coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
