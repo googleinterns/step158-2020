@@ -129,9 +129,9 @@ export class MagicWandService {
   notVisited(imgWidth:number, curX: number, curY: number,
     visited: Set<number>): boolean {
     // Do not push repeat coords to heap
-    let indexAsDataArray: number =
+    let index: number =
       this.coordToDataArrayIndices(curX, curY, imgWidth)[0];
-    if (visited.has(indexAsDataArray)) {
+    if (visited.has(index)) {
       return false;
     }
 
