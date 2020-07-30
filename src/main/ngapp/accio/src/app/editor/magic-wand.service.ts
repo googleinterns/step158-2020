@@ -121,7 +121,7 @@ export class MagicWandService {
     return true;
   }
 
-  // Return pixel attributes of @imgData at [@xCoord, @yCoord] as Array<number>
+  // Return pixel attributes of @imgData at [@xCoord, @yCoord] as [R, G, B, A]
   dataArrayToRGBA(imgData: ImageData, xCoord: number, yCoord: number): Array<number> {
     // Unpack imgData for readability
     let data: Uint8ClampedArray = imgData.data;
