@@ -138,7 +138,6 @@ export class MagicWandService {
     // Unpack imgData for readability
     let data: Uint8ClampedArray = imgData.data;
     let imgWidth: number = imgData.width;
-    let imgHeight: number = imgData.height;
 
     // Pixel attributes in imgData are organized adjacently in a 1-D array
     let pixelIndex: number = (xCoord + (imgWidth * yCoord)) * 4;
