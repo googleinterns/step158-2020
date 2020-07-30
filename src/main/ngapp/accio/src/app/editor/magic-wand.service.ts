@@ -105,13 +105,27 @@ export class MagicWandService {
   // Check if @pixelCoord is in bounds and makes sure it's not a repeat coord
   getIsValid(imgWidth: number, imgHeight: number, curX: number, curY: number,
     visited: Set<number>): boolean {
+    if (this.isInBounds(imgWidth, imgHeight, curX, curY) &&
+      this.notVisited(imgWidth, curX, curY, visited)) {
+      return true;
+    }
 
-    // Check bounds of indexing
+    return false;
+  }
+
+  // Check bounds of indexing for img dimensions
+  isInBounds(imgWidth: number, imgHeight: number, curX: number, curY: number): boolean {
     let yOutOfBounds: boolean = curY < 0 || curY > imgHeight - 1;
     let xOutOfBounds: boolean = curX < 0 || curX > imgWidth - 1;
     if (yOutOfBounds || xOutOfBounds) {
       return false;
     }
+
+    return true;
+  }
+
+  // Checks if pixel has been visited already
+  notVisited(imgWidth:number, curX: number, curY: number, visited: Set<number>): boolean {
     // Do not push repeat coords to heap
     let indexAsDataArray: number = this.coordToDataArrayIndices(curX, curY, imgWidth)[0];
     if (visited.has(indexAsDataArray)) {
@@ -120,6 +134,7 @@ export class MagicWandService {
 
     return true;
   }
+
 
   // Return pixel attributes of @imgData at [@xCoord, @yCoord] as [R, G, B, A]
   dataArrayToRGBA(imgData: ImageData, xCoord: number, yCoord: number): Array<number> {
