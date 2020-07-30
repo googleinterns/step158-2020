@@ -37,12 +37,14 @@ export class EditorComponent implements OnInit {
   // currently image stretches to fit canvas, will adjust so canvas
   //  changes based on the image.
   private draw() {
-    const x = this.canvas.nativeElement.width;
-    const y = this.canvas.nativeElement.height;
-
     this.image.src = this.url;
+
+    //adjust canvas to image width and height
+    this.canvas.nativeElement.width = this.image.width;
+    this.canvas.nativeElement.height = this.image.height;
+    
     this.image.onload = () => {
-      this.ctx.drawImage(this.image, 0, 0, x, y);
+      this.ctx.drawImage(this.image, 0, 0);
     }
   }
 }
