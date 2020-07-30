@@ -4,8 +4,9 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class MagicWandService {
-  /** Return set of coordinates(formatted as a 1-D array).
-   *  Coordinates correspond to pixels considered part of the mask.
+  /**4-Way floodfill (left, right, up, down):
+   * Return set of coordinates(formatted as a 1-D array).
+   * Coordinates correspond to pixels considered part of the mask.
    */
   /* tslint:disable */
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
