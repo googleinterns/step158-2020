@@ -146,6 +146,10 @@ export class MagicWandService {
   }
 
   // Convert coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
+  /**Returns [indexOfR, indexOfG, indexOfB, indexOfA]
+   * Important: Returns array of number representing indices.
+   * First element contains value of index for attribute: red and so on
+   * */
   coordToDataArrayIndices(x: number, y: number, width: number): Array<number> {
     let red: number = (x + (y * width)) * 4;
     return [red, red + 1, red + 2, red + 3];
