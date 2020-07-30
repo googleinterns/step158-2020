@@ -74,17 +74,20 @@ export class MagicWandService {
   getIsMask(originalPixel: Array<number>, imgData: ImageData,
     pixelCoord: Array<number>, tolerance: number,
     visited: Set<number>): boolean {
+    let curX: number = pixelCoord[0];
+    let curY: number = pixelCoord[1];
+    let imgWidth: number = imgData.width;
 
     // Preface; check if pixel is valid (indexing errs and repeat values)
-    let isValid: boolean = this.getIsValid(imgData.width, imgData.height, pixelCoord, visited);
+    let isValid: boolean = this.getIsValid(imgWidth, imgData.height, curX, curY, visited);
     if (!isValid) {
       // Automatically not in mask b/c failed vailidity test
       return false;
     }
 
+    visited.add(this.coordToDataArrayIndices(curX, curY, imgWidth)[0]);
+
     // Get array of attributes of current pixel
-    let curX: number = pixelCoord[0];
-    let curY: number = pixelCoord[1];
     let curPixel: Array<number> = this.dataArrayToRGBA(imgData, curX, curY);
 
     // All attributes of the pixel (R,G,B, and A) must be within tolerance level
@@ -100,9 +103,8 @@ export class MagicWandService {
   }
 
   // Check if @pixelCoord is in bounds and makes sure it's not a repeat coord
-  getIsValid(imgWidth: number, imgHeight: number, pixelCoord: Array<number>, visited: Set<number>): boolean {
-    let curX: number = pixelCoord[0];
-    let curY: number = pixelCoord[1];
+  getIsValid(imgWidth: number, imgHeight: number, curX: number, curY: number,
+    visited: Set<number>): boolean {
 
     // Check bounds of indexing
     let yOutOfBounds: boolean = curY < 0 || curY > imgHeight - 1;
@@ -115,7 +117,6 @@ export class MagicWandService {
     if (visited.has(indexAsDataArray)) {
       return false;
     }
-    visited.add(indexAsDataArray);
 
     return true;
   }
