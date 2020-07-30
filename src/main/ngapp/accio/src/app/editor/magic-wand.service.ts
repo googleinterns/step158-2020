@@ -82,7 +82,7 @@ export class MagicWandService {
     let isStillMask: boolean = true;
 
     // Preface; check if pixel is valid (indexing errs and repeat values)
-    let isValid: boolean = this.getIsValid(imgData, pixelCoord, visited);
+    let isValid: boolean = this.getIsValid(imgData.width, imgData.height, pixelCoord, visited);
     if (!isValid) {
       // Automatically not in mask b/c failed vailidity test
       return !isStillMask;
@@ -107,14 +107,9 @@ export class MagicWandService {
   }
 
   // Check if @pixelCoord is in bounds and makes sure it's not a repeat coord
-  getIsValid(imgData: ImageData, pixelCoord: Array<number>, visited: Set<number>): boolean {
+  getIsValid(imgWidth: number, imgHeight: number, pixelCoord: Array<number>, visited: Set<number>): boolean {
     let curX: number = pixelCoord[0];
     let curY: number = pixelCoord[1];
-
-    // Unpack imgData for readability
-    let data: Uint8ClampedArray = imgData.data;
-    let imgWidth: number = imgData.width;
-    let imgHeight: number = imgData.height;
 
     let isValid: boolean = true;
     // Check bounds of indexing
