@@ -11,8 +11,10 @@ export class MagicWandService {
   /* tslint:disable */
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
       tolerance: number): Set<number> {
-    // Use basic queue to imitate recursive approach of the stack
-    // possible TODO: set array size after mvp to optimize heap memory access
+    /**Store a queue of coords for pixels that we need to visit in "visit".
+     * Store already-visited pixels in "visited"
+     * as index formatted numbers (as opposed to coord format; for Set funcs)
+     * */
     const visit: Array<Array<number>> = new Array();
     const visited: Set<number> = new Set();
     // Use a set for mask; mainly do iter and set operations on masks
