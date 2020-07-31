@@ -14,21 +14,22 @@ export class TopBarComponent implements OnInit {
   userSignedIn = false;
   ngOnInit(): void {}
 
-  // this needs to be fixed. 
-
+  // TODO: Button on topbar stays as "Sign In" 
+  //       When looking at the browser console 
+  //       the log says 'signed out' immediately 
+  //       following 'signed in'
+  //  To fix once user API is integrated 
   toggleButton(): string {
     if (!this.userSignedIn) { 
       console.log('User Signed in');
       this.userSignedIn = true;
-      return signIn;
+      return SIGN_IN;
     }
-    else {
-      console.log('User Signed out');
-      this.userSignedIn = false;
-      return signOut;
-    }
+    console.log('User Signed out');
+    this.userSignedIn = false;
+    return SIGN_OUT;
   }
 }
 
-export const signIn = 'Sign In';
-export const signOut = 'Sign Out';
+export const SIGN_IN = 'Sign In';
+export const SIGN_OUT = 'Sign Out';

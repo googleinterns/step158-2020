@@ -3,6 +3,7 @@ import { ViewChild, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 //import { MagicWandService } from '..magic-wand.service';
 
+
 import { imageUrls } from '../images';
 
 @Component({
@@ -41,12 +42,12 @@ export class EditorComponent implements OnInit {
   //  Checks that route for editor URL is in bounds of array of Urls and is a number
   //  Redirects to gallery component if not, does not complete editor component
   private checkImageUrl(index: number) {
-    if (Number.isNaN(index) || index >= imageUrls.length) {    
+    if (Number.isNaN(index) || index >= imageUrls.length || index < 0) {    
+
       console.log('Index: ' + index + 'Not a number or greater than number of images, returning to Gallery');
       this.router.navigate(['/gallery']);
     }
   }
-
   // Draws the image user selects from gallery on Canvas
   // Currently, editor can require user to scroll to access
   //  the entire photo, need to make it so the editor is 
