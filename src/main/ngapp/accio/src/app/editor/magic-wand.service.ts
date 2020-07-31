@@ -25,7 +25,7 @@ export class MagicWandService {
     let indexAsDataArray: number = this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
     visited.add(indexAsDataArray);
 
-    // Loop until no more adjacent pixel's within tolerance level
+    // Loop until no more adjacent pixels within tolerance level
     while(visit.length != 0) {
       let coord: Array<number> = visit.pop();
       // Unpack coord
