@@ -102,10 +102,10 @@ export class MagicWandService {
   // Check bounds of indexing for img dimensions
   isInBounds(imgWidth: number, imgHeight: number, curX: number, curY: number):
       boolean {
-    const yOutOfBounds: boolean = curY < 0 || curY > imgHeight - 1;
-    const xOutOfBounds: boolean = curX < 0 || curX > imgWidth - 1;
+    let yInBounds: boolean = curY >= 0 && curY < imgHeight;
+    let xInBounds: boolean = curX >= 0 && curX < imgWidth;
 
-    return !(yOutOfBounds || xOutOfBounds);
+    return yInBounds && xInBounds;
   }
 
   // Checks if pixel has been visited already
