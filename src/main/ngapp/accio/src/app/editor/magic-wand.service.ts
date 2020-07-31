@@ -10,7 +10,7 @@ export class MagicWandService {
    */
   /* tslint:disable */
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
-            tolerance: number): Set<number> {
+      tolerance: number): Set<number> {
     // Use basic queue to immitate recursive approach of the stack
     // possible TODO: set array size after mvp to optimize heap memory access
     const visit: Array<Array<number>> = new Array();
@@ -22,7 +22,7 @@ export class MagicWandService {
 
     visit.push([xCoord, yCoord]);
     // Convert [x,y] format coord to 1-D equivalent of imgData.data (DataArray)
-    let indexAsDataArray: number = this.coordToDataArrayIndices(xCoord, yCoord, imgData.width)[0];
+    let indexAsDataArray: number = this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
     visited.add(indexAsDataArray);
 
     // Loop until no more adjacent pixel's within tolerance level
@@ -33,7 +33,7 @@ export class MagicWandService {
       let y: number = coord[1];
 
       // Operational part of while-loop
-      mask.add(this.coordToDataArrayIndices(x, y, imgData.width)[0]);
+      mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
 
       // Loop part of while-loop
 
@@ -73,8 +73,8 @@ export class MagicWandService {
    * see if it can still be part of the mask (using tolerance criteria).
    */
   getIsMask(originalPixel: Array<number>, imgData: ImageData,
-    pixelCoord: Array<number>, tolerance: number,
-    visited: Set<number>): boolean {
+      pixelCoord: Array<number>, tolerance: number,
+      visited: Set<number>): boolean {
     let curX: number = pixelCoord[0];
     let curY: number = pixelCoord[1];
     let imgWidth: number = imgData.width;
@@ -86,7 +86,7 @@ export class MagicWandService {
       return false;
     }
 
-    visited.add(this.coordToDataArrayIndices(curX, curY, imgWidth)[0]);
+    visited.add(this.coordToDataArrayIndex(curX, curY, imgWidth));
 
     // Get array of attributes of current pixel
     let curPixel: Array<number> = this.dataArrayToRGBA(imgData, curX, curY);
@@ -105,9 +105,9 @@ export class MagicWandService {
 
   // Check if @pixelCoord is in bounds and makes sure it's not a repeat coord
   getIsValid(imgWidth: number, imgHeight: number, curX: number, curY: number,
-    visited: Set<number>): boolean {
+      visited: Set<number>): boolean {
     if (this.isInBounds(imgWidth, imgHeight, curX, curY) &&
-      this.notVisited(imgWidth, curX, curY, visited)) {
+        this.notVisited(imgWidth, curX, curY, visited)) {
       return true;
     }
 
@@ -124,10 +124,10 @@ export class MagicWandService {
 
   // Checks if pixel has been visited already
   notVisited(imgWidth:number, curX: number, curY: number,
-    visited: Set<number>): boolean {
+      visited: Set<number>): boolean {
     // Do not push repeat coords to heap
     let index: number =
-      this.coordToDataArrayIndices(curX, curY, imgWidth)[0];
+        this.coordToDataArrayIndex(curX, curY, imgWidth);
 
     return !visited.has(index);
   }
@@ -135,18 +135,18 @@ export class MagicWandService {
 
   // Return pixel attributes of @imgData at [@xCoord, @yCoord] as [R, G, B, A]
   dataArrayToRGBA(imgData: ImageData, xCoord: number, yCoord: number):
-    Array<number> {
+      Array<number> {
     // Unpack imgData for readability
     let data: Uint8ClampedArray = imgData.data;
     let imgWidth: number = imgData.width;
 
     // Pixel attributes in imgData are organized adjacently in a 1-D array
-    let pixelIndex: Array<number> =
-      this.coordToDataArrayIndices(xCoord, yCoord, imgWidth);
-    let red: number = data[pixelIndex[0]];
-    let green: number = data[pixelIndex[1]];
-    let blue: number = data[pixelIndex[2]];
-    let alpha: number = data[pixelIndex[3]];
+    let pixelIndex: number =
+        this.coordToDataArrayIndex(xCoord, yCoord, imgWidth);
+    let red: number = data[pixelIndex];
+    let green: number = data[pixelIndex + 1];
+    let blue: number = data[pixelIndex + 2];
+    let alpha: number = data[pixelIndex + 3];
     // Store original pixel's attributes
     return [red, green, blue, alpha];
   }
@@ -156,8 +156,8 @@ export class MagicWandService {
    * Important: Returns array of number representing indices.
    * First element contains value of index for attribute: red and so on
    * */
-  coordToDataArrayIndices(x: number, y: number, width: number): Array<number> {
-    let red: number = (x + (y * width)) * 4;
-    return [red, red + 1, red + 2, red + 3];
+  coordToDataArrayIndex(x: number, y: number, width: number): number {
+    let pixelStart: number = (x + (y * width)) * 4;
+    return pixelStart
   }
 }
