@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -66,6 +67,19 @@ public class BlobServlet extends HttpServlet {
       throw new IOException("Image name must be provided.");
     }
 
+    String projId = request.getParameter("proj-id");
+    Key projKey = KeyFactory.stringToKey(projId);
+    Entity projEntity = new Entity("Project");
+    try {
+      projEntity = datastore.get(projKey);
+    } catch (Exception e) {
+      response.sendRedirect("/");
+      return;
+    }
+    String uid = userService.getCurrentUser().getUserId();
+    Key assetParentKey = projKey;
+    Entity imgEntity = new Entity("Image", projKey);
+
     // Must be an owner or editor
     Query projQuery = new Query("Project");
 
@@ -90,19 +104,6 @@ public class BlobServlet extends HttpServlet {
     }
 
     // Asset to update must already exist
-    String projId = request.getParameter("proj-id");
-    Key projKey = KeyFactory.stringToKey(projId);
-    Entity projEntity = new Entity("Project");
-    try {
-      projEntity = datastore.get(projKey);
-    } catch (Exception e) {
-      response.sendRedirect("/");
-      return;
-    }
-    String uid = userService.getCurrentUser().getUserId();
-    Key assetParentKey = projKey;
-    Entity imgEntity = new Entity("Image", projKey);
-
     if (isMask) {
       Query imgQuery = new Query("Image").setAncestor(projKey);
       Filter imgFilter =
