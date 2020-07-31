@@ -8,6 +8,7 @@ import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.CompositeFilter;
@@ -20,6 +21,7 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -37,6 +39,7 @@ public class BlobServlet extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     UserService userService = UserServiceFactory.getUserService();
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
@@ -47,6 +50,37 @@ public class BlobServlet extends HttpServlet {
     String mode = request.getParameter("mode");
     if (mode == null || (mode != "create" && mode != "update")) {
       throw new Exception("Invalid mode.");
+    }
+
+    // Check if working with image or mask
+    String parentImg = request.getParameter("parent-img");
+    Boolean isMask = false;
+    if (parentImg != null) {
+      isMask = true;
+    }
+
+    // Get the image name entered by the user
+    String imgName = request.getParameter("img-name");
+
+    // Asset to update must already exist
+    Key imgKey = new Key();
+    if (mode == "update") {
+      if (imgName == null) {
+        throw new Exception("Image name must be provided.");
+      }
+
+      Query imgQuery =
+          new Query("Image").setAncestor(KeyFactory.stringToKey(projId));
+      Filter imgFilter =
+          new FilterPredicate("name", FilterOperator.EQUAL, imgName);
+      imgQuery.setFilter(imgFilter);
+      PreparedQuery existingImg = datastore.prepare(imgQuery);
+
+      if (existingImg.countEntities() == 0) {
+        throw new Exception(
+            "No asset with that name exists to update for this project.");
+      }
+      imgKey = existingImg.asSingleEntity().getKey();
     }
 
     // Must be an owner or editor
@@ -67,8 +101,6 @@ public class BlobServlet extends HttpServlet {
                                         uid)))));
 
     projQuery.setFilter(ownEditFilter);
-
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery accessibleProjects = datastore.prepare(projQuery);
 
     // Only owners and editors of given project can modify or create
@@ -83,12 +115,6 @@ public class BlobServlet extends HttpServlet {
     Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
     if (delete && !isOwner) {
       throw new Exception("Only owners can delete assets.");
-    }
-
-    String parentImg = request.getParameter("parent-img");
-    Boolean isMask = false;
-    if (parentImg != null) {
-      isMask = true;
     }
 
     if (mode == "create" && !isOwner && !isMask) {
@@ -112,6 +138,10 @@ public class BlobServlet extends HttpServlet {
       } else { // no image upload, update code
         // delete, labels, new-name
       }
+    } else {
+      if (mode == "update" && !isMask) {
+        throw new Exception();
+      }
     }
 
     // Check validity of blob key
@@ -124,17 +154,23 @@ public class BlobServlet extends HttpServlet {
       throw new Exception("Blobkeys invalid or file not supported.");
     }
 
+    if (!isMask) {
+      Entity imageEntity = new Entity("Image", projId);
+      imageEntity.setProperty("blobkey", blobKey.getKeyString());
+      imageEntity.setProperty("name", imgName);
+      String now = Instant.now().toString();
+      imageEntity.setProperty("utc", now);
+      datastore.put(imageEntity);
+    } else {
+      Query projQuery = new Query("Project");
 
-
-    // Get the name entered by the user
-    String imgName = request.getParameter("img-name");
-
-
-
-    Entity imageEntity = new Entity("Image" /*, userEntity.getKey()*/);
-    // imageEntity.setProperty("blobkey", blobKey.getKeyString());
-    imageEntity.setProperty("name", name);
-    datastore.put(imageEntity);
+      Entity imageEntity = new Entity("Mask", );
+      imageEntity.setProperty("blobkey", blobKey.getKeyString());
+      imageEntity.setProperty("name", imgName);
+      String now = Instant.now().toString();
+      imageEntity.setProperty("utc", now);
+      datastore.put(imageEntity);
+    }
 
     response.sendRedirect("/imgupload.html");
   }
