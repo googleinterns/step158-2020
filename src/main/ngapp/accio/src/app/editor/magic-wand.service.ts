@@ -42,30 +42,14 @@ export class MagicWandService {
       // Loop part of while-loop
 
       // Get coords of adjacent pixels
-      let leftPixelCoord: Array<number> = [x - 1, y];
-      let rightPixelCoord: Array<number> = [x + 1, y];
-      let upPixelCoord: Array<number> = [x, y - 1];
-      let downPixelCoord: Array<number> = [x, y + 1];
+      let neighbors: Array<Array<number>> =
+          [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
       // Add coords of adjacent pixels to the heap
-      let isStillMask: boolean = this.getIsMask(originalPixel, imgData, leftPixelCoord, tolerance, visited);
-      // Check left pixel
-      if (isStillMask) {
-        visit.push(leftPixelCoord);
-      }
-      isStillMask = this.getIsMask(originalPixel, imgData, rightPixelCoord, tolerance, visited);
-      // Check right pixel
-      if (isStillMask) {
-        visit.push(rightPixelCoord);
-      }
-      isStillMask = this.getIsMask(originalPixel, imgData, upPixelCoord, tolerance, visited);
-      // Check up pixel
-      if (isStillMask) {
-        visit.push(upPixelCoord);
-      }
-      isStillMask = this.getIsMask(originalPixel, imgData, downPixelCoord, tolerance, visited);
-      // Check down pixel
-      if (isStillMask) {
-        visit.push(downPixelCoord);
+      for (let neighborPixel of neighbors) {
+        if (this.getIsMask(originalPixel, imgData, neighborPixel, tolerance,
+            visited)) {
+          visit.push(neighborPixel);
+        }
       }
     }  // end of while loop
 
