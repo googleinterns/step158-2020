@@ -46,8 +46,15 @@ export class MagicWandService {
           [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
       // Add coords of adjacent pixels to the heap
       for (const neighborPixel of neighbors) {
-        if (this.getIsMask(originalPixel, imgData, neighborPixel, tolerance,
-            visited)) {
+        const x: number = neighborPixel[0];
+        const y: number = neighborPixel[1];
+        // Check if coord is in bounds and has not been visited first
+        if (!this.getIsValid(imgData.width, imgData.height, x, y, visited)) {
+          continue;
+        }
+        // Visit the pixel and check if it should be part of the mask
+        visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
+        if (this.getIsMask(originalPixel, imgData, neighborPixel, tolerance)) {
           visit.push(neighborPixel);
         }
       }
@@ -56,26 +63,13 @@ export class MagicWandService {
     return mask;
   }
 
-  /**First check that @pixelCoord is within range of the image bounds.
-   * Then, judge current pixel's RGBA against original pixel's RGBA to
+  /**Judge current pixel's RGBA against original pixel's RGBA to
    * see if it can still be part of the mask (using tolerance criteria).
    */
   getIsMask(originalPixel: Array<number>, imgData: ImageData,
-      pixelCoord: Array<number>, tolerance: number,
-      visited: Set<number>): boolean {
+      pixelCoord: Array<number>, tolerance: number): boolean {
     const curX: number = pixelCoord[0];
     const curY: number = pixelCoord[1];
-    const imgWidth: number = imgData.width;
-
-    // Preface; check if pixel is valid (indexing errs and repeat values)
-    const isValid: boolean =
-        this.getIsValid(imgWidth, imgData.height, curX, curY, visited);
-    if (!isValid) {
-      // Automatically not in mask b/c failed validity test
-      return false;
-    }
-
-    visited.add(this.coordToDataArrayIndex(curX, curY, imgWidth));
 
     // Get array of attributes of current pixel
     const curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);

@@ -68,7 +68,7 @@ describe('MagicWandService', () => {
     const imgData: ImageData = makeTestImage(
         11, 4, [120, 117, 108, 255], new Set<number>([24]));
     expect(service.getIsMask(
-        [131, 117, 108, 255], imgData, [6, 0], 10, new Set<number>())).toEqual(
+        [131, 117, 108, 255], imgData, [6, 0], 10)).toEqual(
         false);
   });
   it('Test method: getIsMask() >> valid', () => {
@@ -76,7 +76,7 @@ describe('MagicWandService', () => {
     const imgData: ImageData = makeTestImage(
         11, 4, [120, 117, 108, 255], new Set<number>([24]));
     expect(service.getIsMask(
-        [130, 117, 108, 255], imgData, [6, 0], 10, new Set<number>())).toEqual(
+        [130, 117, 108, 255], imgData, [6, 0], 10)).toEqual(
         true);
   });
   it('Test method: floodfill() >> no adjacent pixels in mask', () => {
