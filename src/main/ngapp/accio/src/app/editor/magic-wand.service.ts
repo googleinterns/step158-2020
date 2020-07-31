@@ -12,8 +12,8 @@ export class MagicWandService {
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
       tolerance: number): Set<number> {
     /**Store a queue of coords for pixels that we need to visit in "visit".
-     * Store already-visited pixels in "visited"
-     * as index formatted numbers (as opposed to coord format; for Set funcs)
+     * Store already-visited pixels in "visited"as index formatted numbers
+     * (as opposed to coord format; for Set funcs).
      * */
     const visit: Array<Array<number>> = new Array();
     const visited: Set<number> = new Set();
