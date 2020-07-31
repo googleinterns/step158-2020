@@ -118,11 +118,8 @@ export class MagicWandService {
   isInBounds(imgWidth: number, imgHeight: number, curX: number, curY: number): boolean {
     let yOutOfBounds: boolean = curY < 0 || curY > imgHeight - 1;
     let xOutOfBounds: boolean = curX < 0 || curX > imgWidth - 1;
-    if (yOutOfBounds || xOutOfBounds) {
-      return false;
-    }
 
-    return true;
+    return !(yOutOfBounds || xOutOfBounds);
   }
 
   // Checks if pixel has been visited already
@@ -131,11 +128,8 @@ export class MagicWandService {
     // Do not push repeat coords to heap
     let index: number =
       this.coordToDataArrayIndices(curX, curY, imgWidth)[0];
-    if (visited.has(index)) {
-      return false;
-    }
 
-    return true;
+    return !visited.has(index);
   }
 
 
