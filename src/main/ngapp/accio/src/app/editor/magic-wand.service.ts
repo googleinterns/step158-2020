@@ -71,7 +71,7 @@ export class MagicWandService {
     let isValid: boolean =
         this.getIsValid(imgWidth, imgData.height, curX, curY, visited);
     if (!isValid) {
-      // Automatically not in mask b/c failed vailidity test
+      // Automatically not in mask b/c failed validity test
       return false;
     }
 
