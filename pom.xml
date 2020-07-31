@@ -59,7 +59,8 @@
         <version>2.2.0</version>
         <configuration>
           <deploy.projectId>accio-step-2020</deploy.projectId>
-          <deploy.version>1</deploy.version>
+          <deploy.stopPreviousVersion>false</deploy.stopPreviousVersion>
+          <deploy.version>GCLOUD_CONFIG</deploy.version>
         </configuration>
       </plugin>
     <plugin>
