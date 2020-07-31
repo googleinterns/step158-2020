@@ -11,7 +11,7 @@ export class MagicWandService {
   /* tslint:disable */
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
       tolerance: number): Set<number> {
-    // Use basic queue to immitate recursive approach of the stack
+    // Use basic queue to imitate recursive approach of the stack
     // possible TODO: set array size after mvp to optimize heap memory access
     const visit: Array<Array<number>> = new Array();
     const visited: Set<number> = new Set();
