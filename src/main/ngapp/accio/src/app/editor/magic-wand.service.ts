@@ -12,7 +12,7 @@ export class MagicWandService {
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
       tolerance: number): Set<number> {
     /**Store a queue of coords for pixels that we need to visit in "visit".
-     * Store already-visited pixels in "visited"as index formatted numbers
+     * Store already-visited pixels in "visited" as index formatted numbers
      * (as opposed to coord format; for Set funcs).
      * */
     const visit: Array<Array<number>> = new Array();
@@ -20,11 +20,13 @@ export class MagicWandService {
     // Use a set for mask; mainly do iter and set operations on masks
     const mask: Set<number> = new Set();
     // Represent [R,G,B,A] attributes of initial pixel
-    const originalPixel: Array<number> = this.dataArrayToRgba(imgData, xCoord, yCoord);
+    const originalPixel: Array<number> =
+        this.dataArrayToRgba(imgData, xCoord, yCoord);
 
     visit.push([xCoord, yCoord]);
     // Convert [x,y] format coord to 1-D equivalent of imgData.data (DataArray)
-    let indexAsDataArray: number = this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
+    let indexAsDataArray: number =
+        this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
     visited.add(indexAsDataArray);
 
     // Loop until no more adjacent pixels within tolerance level
@@ -82,7 +84,8 @@ export class MagicWandService {
     let imgWidth: number = imgData.width;
 
     // Preface; check if pixel is valid (indexing errs and repeat values)
-    let isValid: boolean = this.getIsValid(imgWidth, imgData.height, curX, curY, visited);
+    let isValid: boolean =
+        this.getIsValid(imgWidth, imgData.height, curX, curY, visited);
     if (!isValid) {
       // Automatically not in mask b/c failed vailidity test
       return false;
@@ -117,7 +120,8 @@ export class MagicWandService {
   }
 
   // Check bounds of indexing for img dimensions
-  isInBounds(imgWidth: number, imgHeight: number, curX: number, curY: number): boolean {
+  isInBounds(imgWidth: number, imgHeight: number, curX: number, curY: number):
+      boolean {
     let yOutOfBounds: boolean = curY < 0 || curY > imgHeight - 1;
     let xOutOfBounds: boolean = curX < 0 || curX > imgWidth - 1;
 
