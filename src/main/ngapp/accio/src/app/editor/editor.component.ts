@@ -34,8 +34,9 @@ export class EditorComponent implements OnInit {
   }  
   
   // Draws the image user selects from gallery on Canvas
-  // currently image stretches to fit canvas, will adjust so canvas
-  //  changes based on the image.
+  // Currently, editor can require user to scroll to access
+  //  the entire photo, need to make it so the editor is 
+  //  fixed to screen size
   private draw() {
     this.image.src = this.url;
 
