@@ -14,7 +14,7 @@ export class MagicWandService {
     /**Store a queue of coords for pixels that we need to visit in "visit".
      * Store already-visited pixels in "visited" as index formatted numbers
      * (as opposed to coord format; for Set funcs).
-     * */
+     */
     const visit: Array<Array<number>> = new Array();
     const visited: Set<number> = new Set();
     // Use a set for mask; mainly do iter and set operations on masks
@@ -142,10 +142,11 @@ export class MagicWandService {
   }
 
   // Convert coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
-  /**Returns [indexOfR, indexOfG, indexOfB, indexOfA]
+  /**Returns index of start of pixel at @x, @y
+   * (which represents the red attribute of that pixel)
    * Important: Returns array of number representing indices.
    * First element contains value of index for attribute: red and so on
-   * */
+   */
   coordToDataArrayIndex(x: number, y: number, width: number): number {
     return (x + (y * width)) * 4;
   }
