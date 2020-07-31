@@ -25,16 +25,16 @@ export class MagicWandService {
 
     visit.push([xCoord, yCoord]);
     // Convert [x,y] format coord to 1-D equivalent of imgData.data (DataArray)
-    let indexAsDataArray: number =
+    const indexAsDataArray: number =
         this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
     visited.add(indexAsDataArray);
 
     // Loop until no more adjacent pixels within tolerance level
-    while(visit.length != 0) {
-      let coord: Array<number> = visit.pop();
+    while (visit.length !== 0) {
+      const coord: Array<number> = visit.pop();
       // Unpack coord
-      let x: number = coord[0];
-      let y: number = coord[1];
+      const x: number = coord[0];
+      const y: number = coord[1];
 
       // Operational part of while-loop
       mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
@@ -42,10 +42,10 @@ export class MagicWandService {
       // Loop part of while-loop
 
       // Get coords of adjacent pixels
-      let neighbors: Array<Array<number>> =
+      const neighbors: Array<Array<number>> =
           [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
       // Add coords of adjacent pixels to the heap
-      for (let neighborPixel of neighbors) {
+      for (const neighborPixel of neighbors) {
         if (this.getIsMask(originalPixel, imgData, neighborPixel, tolerance,
             visited)) {
           visit.push(neighborPixel);
@@ -63,12 +63,12 @@ export class MagicWandService {
   getIsMask(originalPixel: Array<number>, imgData: ImageData,
       pixelCoord: Array<number>, tolerance: number,
       visited: Set<number>): boolean {
-    let curX: number = pixelCoord[0];
-    let curY: number = pixelCoord[1];
-    let imgWidth: number = imgData.width;
+    const curX: number = pixelCoord[0];
+    const curY: number = pixelCoord[1];
+    const imgWidth: number = imgData.width;
 
     // Preface; check if pixel is valid (indexing errs and repeat values)
-    let isValid: boolean =
+    const isValid: boolean =
         this.getIsValid(imgWidth, imgData.height, curX, curY, visited);
     if (!isValid) {
       // Automatically not in mask b/c failed validity test
@@ -78,12 +78,12 @@ export class MagicWandService {
     visited.add(this.coordToDataArrayIndex(curX, curY, imgWidth));
 
     // Get array of attributes of current pixel
-    let curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);
+    const curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);
 
     // All attributes of the pixel (R,G,B, and A) must be within tolerance level
     for (let i = 0; i < 4; i++) {
-      let upperTolerance: boolean = curPixel[i] > originalPixel[i] + tolerance;
-      let lowerTolerance: boolean = curPixel[i] < originalPixel[i] - tolerance;
+      const upperTolerance: boolean = curPixel[i] > originalPixel[i] + tolerance;
+      const lowerTolerance: boolean = curPixel[i] < originalPixel[i] - tolerance;
       if (upperTolerance || lowerTolerance) {
         return false;
       }
@@ -102,17 +102,17 @@ export class MagicWandService {
   // Check bounds of indexing for img dimensions
   isInBounds(imgWidth: number, imgHeight: number, curX: number, curY: number):
       boolean {
-    let yOutOfBounds: boolean = curY < 0 || curY > imgHeight - 1;
-    let xOutOfBounds: boolean = curX < 0 || curX > imgWidth - 1;
+    const yOutOfBounds: boolean = curY < 0 || curY > imgHeight - 1;
+    const xOutOfBounds: boolean = curX < 0 || curX > imgWidth - 1;
 
     return !(yOutOfBounds || xOutOfBounds);
   }
 
   // Checks if pixel has been visited already
-  notVisited(imgWidth:number, curX: number, curY: number,
+  notVisited(imgWidth: number, curX: number, curY: number,
       visited: Set<number>): boolean {
     // Do not push repeat coords to heap
-    let index: number =
+    const index: number =
         this.coordToDataArrayIndex(curX, curY, imgWidth);
 
     return !visited.has(index);
@@ -123,16 +123,16 @@ export class MagicWandService {
   dataArrayToRgba(imgData: ImageData, xCoord: number, yCoord: number):
       Array<number> {
     // Unpack imgData for readability
-    let data: Uint8ClampedArray = imgData.data;
-    let imgWidth: number = imgData.width;
+    const data: Uint8ClampedArray = imgData.data;
+    const imgWidth: number = imgData.width;
 
     // Pixel attributes in imgData are organized adjacently in a 1-D array
-    let pixelIndex: number =
+    const pixelIndex: number =
         this.coordToDataArrayIndex(xCoord, yCoord, imgWidth);
-    let red: number = data[pixelIndex];
-    let green: number = data[pixelIndex + 1];
-    let blue: number = data[pixelIndex + 2];
-    let alpha: number = data[pixelIndex + 3];
+    const red: number = data[pixelIndex];
+    const green: number = data[pixelIndex + 1];
+    const blue: number = data[pixelIndex + 2];
+    const alpha: number = data[pixelIndex + 3];
     // Store original pixel's attributes
     return [red, green, blue, alpha];
   }
