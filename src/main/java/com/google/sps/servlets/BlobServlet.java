@@ -62,6 +62,9 @@ public class BlobServlet extends HttpServlet {
 
     // Get the image name entered by the user
     String imgName = request.getParameter("img-name");
+    if (imgName == null) {
+      throw new IOException("Image name must be provided.");
+    }
 
     // Asset to update must already exist
     String projId = request.getParameter("proj-id");
@@ -76,21 +79,23 @@ public class BlobServlet extends HttpServlet {
     String uid = userService.getCurrentUser().getUserId();
     Key assetParentKey = projKey;
     Entity imgEntity = new Entity("Image", projKey);
-    if (mode == "update") {
-      if (imgName == null) {
-        throw new IOException("Image name must be provided.");
-      }
-      if (isMask) {
-        Query imgQuery = new Query("Image").setAncestor(projKey);
-        Filter imgFilter =
-            new FilterPredicate("name", FilterOperator.EQUAL, parentImg);
-        imgQuery.setFilter(imgFilter);
-        PreparedQuery existingImg = datastore.prepare(imgQuery);
 
-        if (existingImg.countEntities() == 0) {
-          throw new IOException(
-              "No parent image with that name exists for this project or this project does not exist.");
-        }
+    if (isMask) {
+      Query imgQuery = new Query("Image").setAncestor(projKey);
+      Filter imgFilter =
+          new FilterPredicate("name", FilterOperator.EQUAL, parentImg);
+      imgQuery.setFilter(imgFilter);
+      PreparedQuery existingImg = datastore.prepare(imgQuery);
+
+      if (existingImg.countEntities() == 0) {
+        throw new IOException(
+            "No parent image with that name exists for this project or this project does not exist.");
+      }
+      if (mode == "create") {
+        Key parentEntityKey =
+            existingImg.asSingleEntity().getKey(); // create, mask
+        imgEntity = new Entity("Mask", parentEntityKey);
+      } else {
         assetParentKey = existingImg.asSingleEntity().getKey();
 
         Query maskQuery = new Query("Mask").setAncestor(assetParentKey);
@@ -104,34 +109,19 @@ public class BlobServlet extends HttpServlet {
               "No mask with that name exists to update for this project.");
         }
         imgEntity = existingMask.asSingleEntity();
-      } else {
-        Query imgQuery = new Query("Image").setAncestor(projKey);
-        Filter imgFilter =
-            new FilterPredicate("name", FilterOperator.EQUAL, imgName);
-        imgQuery.setFilter(imgFilter);
-        PreparedQuery existingImg = datastore.prepare(imgQuery);
-
-        if (existingImg.countEntities() == 0) {
-          throw new IOException(
-              "No image with that name exists to update for this project or this project does not exist.");
-        }
-        imgEntity = existingImg.asSingleEntity();
       }
-    } else {
-      if (isMask) {
-        Query imgQuery = new Query("Image").setAncestor(projKey);
-        Filter imgFilter =
-            new FilterPredicate("name", FilterOperator.EQUAL, parentImg);
-        imgQuery.setFilter(imgFilter);
-        PreparedQuery existingImg = datastore.prepare(imgQuery);
+    } else if (mode == "update") {
+      Query imgQuery = new Query("Image").setAncestor(projKey);
+      Filter imgFilter =
+          new FilterPredicate("name", FilterOperator.EQUAL, imgName);
+      imgQuery.setFilter(imgFilter);
+      PreparedQuery existingImg = datastore.prepare(imgQuery);
 
-        if (existingImg.countEntities() == 0) {
-          throw new IOException(
-              "No parent image with that name exists for this project or this project does not exist.");
-        }
-        Key parentEntityKey = existingImg.asSingleEntity().getKey();
-        imgEntity = new Entity("Mask", parentEntityKey);
+      if (existingImg.countEntities() == 0) {
+        throw new IOException(
+            "No image with that name exists to update for this project or this project does not exist.");
       }
+      imgEntity = existingImg.asSingleEntity();
     }
 
     // Must be an owner or editor
