@@ -6,14 +6,27 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./top-bar.component.css']
 })
 export class TopBarComponent implements OnInit {
-
   constructor() { }
 
-  ngOnInit(): void {
-  }
+  userSignedIn = false;
+  ngOnInit(): void {}
 
-  loggedIn = false;
-  toggleButton() {
-    this.loggedIn = !this.loggedIn;
+  // TODO: Button on topbar stays as "Sign In" 
+  //       When looking at the browser console 
+  //       the log says 'signed out' immediately 
+  //       following 'signed in'
+  //  To fix once user API is integrated 
+  toggleButton(): string {
+    if (!this.userSignedIn) { 
+      console.log('User Signed in');
+      this.userSignedIn = true;
+      return SIGN_IN;
+    }
+    console.log('User Signed out');
+    this.userSignedIn = false;
+    return SIGN_OUT;
   }
 }
+
+export const SIGN_IN = 'Sign In';
+export const SIGN_OUT = 'Sign Out';

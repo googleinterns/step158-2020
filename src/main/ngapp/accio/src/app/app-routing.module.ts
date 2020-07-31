@@ -6,7 +6,7 @@ import { HomeComponent } from './home/home.component';
 
 const routes: Routes = [
   { path: 'gallery', component: GalleryComponent },
-  { path: 'editor', component: EditorComponent },
+  { path: 'editor/:imgUrl', component: EditorComponent },
   { path: 'home', component: HomeComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' }
 ];
