@@ -18,7 +18,7 @@ export class MagicWandService {
     // Use a set for mask; mainly do iter and set operations on masks
     const mask: Set<number> = new Set();
     // Represent [R,G,B,A] attributes of initial pixel
-    const originalPixel: Array<number> = this.dataArrayToRGBA(imgData, xCoord, yCoord);
+    const originalPixel: Array<number> = this.dataArrayToRgba(imgData, xCoord, yCoord);
 
     visit.push([xCoord, yCoord]);
     // Convert [x,y] format coord to 1-D equivalent of imgData.data (DataArray)
@@ -89,7 +89,7 @@ export class MagicWandService {
     visited.add(this.coordToDataArrayIndex(curX, curY, imgWidth));
 
     // Get array of attributes of current pixel
-    let curPixel: Array<number> = this.dataArrayToRGBA(imgData, curX, curY);
+    let curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);
 
     // All attributes of the pixel (R,G,B, and A) must be within tolerance level
     for (let i = 0; i < 4; i++) {
@@ -134,7 +134,7 @@ export class MagicWandService {
 
 
   // Return pixel attributes of @imgData at [@xCoord, @yCoord] as [R, G, B, A]
-  dataArrayToRGBA(imgData: ImageData, xCoord: number, yCoord: number):
+  dataArrayToRgba(imgData: ImageData, xCoord: number, yCoord: number):
       Array<number> {
     // Unpack imgData for readability
     let data: Uint8ClampedArray = imgData.data;
