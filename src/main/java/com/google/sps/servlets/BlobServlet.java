@@ -12,7 +12,6 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.CompositeFilter;
-import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
@@ -63,30 +62,58 @@ public class BlobServlet extends HttpServlet {
     String imgName = request.getParameter("img-name");
 
     // Asset to update must already exist
+    String projId = request.getParameter("proj-id");
+    Key projKey = KeyFactory.stringToKey(projId);
+    Entity projEntity = datastore.get(projKey);
+    String uid = userService.getCurrentUser().getUserId();
     Key imgKey = new Key();
+    Entity imgEntity = new Entity();
     if (mode == "update") {
       if (imgName == null) {
         throw new Exception("Image name must be provided.");
       }
+      if (isMask) {
+        Query imgQuery = new Query("Image").setAncestor(projKey);
+        Filter imgFilter =
+            new FilterPredicate("name", FilterOperator.EQUAL, parentImg);
+        imgQuery.setFilter(imgFilter);
+        PreparedQuery existingImg = datastore.prepare(imgQuery);
 
-      Query imgQuery =
-          new Query("Image").setAncestor(KeyFactory.stringToKey(projId));
-      Filter imgFilter =
-          new FilterPredicate("name", FilterOperator.EQUAL, imgName);
-      imgQuery.setFilter(imgFilter);
-      PreparedQuery existingImg = datastore.prepare(imgQuery);
+        if (existingImg.countEntities() == 0) {
+          throw new Exception(
+              "No parent image with that name exists for this project.");
+        }
+        Key parentImgKey = existingImg.asSingleEntity().getKey();
 
-      if (existingImg.countEntities() == 0) {
-        throw new Exception(
-            "No asset with that name exists to update for this project.");
+        Query maskQuery = new Query("Mask").setAncestor(parentImgKey);
+        Filter maskFilter =
+            new FilterPredicate("name", FilterOperator.EQUAL, imgName);
+        imgQuery.setFilter(maskFilter);
+        PreparedQuery existingMask = datastore.prepare(maskQuery);
+
+        if (existingMask.countEntities() == 0) {
+          throw new Exception(
+              "No mask with that name exists to update for this project.");
+        }
+        imgEntity = existingMask.asSingleEntity();
+        imgKey = existingMask.asSingleEntity().getKey();
+      } else {
+        Query imgQuery = new Query("Image").setAncestor(projKey);
+        Filter imgFilter =
+            new FilterPredicate("name", FilterOperator.EQUAL, imgName);
+        imgQuery.setFilter(imgFilter);
+        PreparedQuery existingImg = datastore.prepare(imgQuery);
+
+        if (existingImg.countEntities() == 0) {
+          throw new Exception(
+              "No image with that name exists to update for this project.");
+        }
+        imgEntity = existingImg.asSingleEntity();
+        imgKey = existingImg.asSingleEntity().getKey();
       }
-      imgKey = existingImg.asSingleEntity().getKey();
     }
 
     // Must be an owner or editor
-    String projId = request.getParameter("proj-id");
-    String uid = userService.getCurrentUser().getUserId();
-
     Query projQuery = new Query("Project");
 
     Filter ownEditFilter = new CompositeFilter(
@@ -128,39 +155,59 @@ public class BlobServlet extends HttpServlet {
     List<BlobKey> blobKeys = blobs.get("image");
 
     // User submitted form without selecting a file
-    if (blobKeys == null || blobKeys.isEmpty()) {
-        if (mode == "create") {
+    Boolean hasNonEmptyImage = !(blobKeys == null || blobKeys.isEmpty());
+    if (!hasNonEmptyImage) {
+      if (mode == "create") {
         throw new Exception("User submitted form without selecting a file.");
-        }
+      }
     } else if (mode == "update" && !isMask) {
-        blobstoreService.delete(blobKeys.get(0));
-        throw new Exception("No upload allowed for base image update.");
+      blobstoreService.delete(blobKeys.get(0));
+      throw new Exception("No upload allowed for base image update.");
     }
-    
+
+    String labels = request.getParameter("labels");
+    String newName = request.getParameter("new-name");
+    String now = Instant.now().toString();
+    projEntity.setProperty("utc", now);
     if (mode == "update") {
-     // no image upload, update image and mask except for a new mask replacing a new mask
-        Gson gson = new Gson();
-        Collection<String> existingLabels = ;
-        
-        // delete, labels, new-name
-        if ()
-    }    
-    
-    update
-        yes image
-            image X
-            mask  Dont want to update until checking image... maybe update properties in first block and only put after image checked and also added
-        no image
-            image
-            mask
-    create
-        yes image
-            image
-            mask
-        no image
-            image X
-            mask  X
-        
+      if (delete) {
+        datastore.delete(imgKey);
+        response.sendRedirect("/");
+        return;
+      } else {
+        if (labels != null) {
+          // TODO
+          // parse csv
+          // decode previous labels
+          // combine
+          // setproperty
+        }
+
+        if (newName != null) {
+          // TODO
+          // parse name
+          // query database for this name, if duplicate found, simply append
+          // time
+        }
+        imgEntity.setProperty("utc", now);
+      }
+      if (!hasNonEmptyImage) {
+        datastore.put(Arrays.asList(imgEntity, projEntity));
+        response.sendRedirect("/");
+        return;
+      }
+    } else { // mode == "create"
+      if (isMask) {
+        imgEntity = new Entity("Mask", imgKey);
+      } else {
+        imgEntity = new Entity("Image", projKey);
+      }
+      // TODO
+      // check for name collisions first
+      imgEntity.setProperty("name", imgName);
+      imgEntity.setProperty("utc", now);
+    }
+
     ArrayList<String> validExtensions = new ArrayList<String>(
         (isMask) ? Arrays.asList("png")
                  : Arrays.asList("png", "jpg", "jpeg", "jfif", "pjpeg", "pjp",
@@ -176,29 +223,10 @@ public class BlobServlet extends HttpServlet {
       throw new Exception("Blobkeys invalid or file not supported.");
     }
 
-    if (!isMask) { //create image
-      Entity imageEntity = new Entity("Image", projId);
-      imageEntity.setProperty("blobkey", blobKey.getKeyString());
-      imageEntity.setProperty("name", imgName);
-      String now = Instant.now().toString();
-      imageEntity.setProperty("utc", now);
-      datastore.put(imageEntity);
-    } else { //update mask including image, etc; create mask entity
-        if (mode == "create") {
-        } else {
+    imgEntity.setProperty("blobkey", blobKey.getKeyString());
+    datastore.put(Arrays.asList(imgEntity, projEntity));
 
-        }
-      Query projQuery = new Query("Project");
-
-      Entity imageEntity = new Entity("Mask", );
-      imageEntity.setProperty("blobkey", blobKey.getKeyString());
-      imageEntity.setProperty("name", imgName);
-      String now = Instant.now().toString();
-      imageEntity.setProperty("utc", now);
-      datastore.put(imageEntity);
-    }
-
-    response.sendRedirect("/imgupload.html");
+    response.sendRedirect("/");
   }
 
   @Override
