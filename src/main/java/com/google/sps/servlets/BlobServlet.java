@@ -40,8 +40,13 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/imgupload.html");
-      return;
+      throw new Exception("User must be logged in.");
+    }
+
+    // Mode is a required parameter
+    String mode = request.getParameter("mode");
+    if (mode == null || (mode != "create" && mode != "update")) {
+      throw new Exception("Invalid mode.");
     }
 
     // Must be an owner or editor
@@ -68,19 +73,26 @@ public class BlobServlet extends HttpServlet {
 
     // Only owners and editors of given project can modify or create
     if (accessibleProjects.countEntities() == 0) {
-      response.sendRedirect("/imgupload.html");
-      return;
+      throw new Exception("User does not have permission to edit the project.");
     }
-    
+
     String ownersString =
         (String)accessibleProjects.asSingleEntity().getProperty("owners");
     Boolean isOwner = ownersString.contains(uid);
 
-    String parentImg = request.getParameter("parent-img");
+    Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
+    if (delete && !isOwner) {
+      throw new Exception("Only owners can delete assets.");
+    }
 
+    String parentImg = request.getParameter("parent-img");
     Boolean isMask = false;
     if (parentImg != null) {
       isMask = true;
+    }
+
+    if (mode == "create" && !isOwner && !isMask) {
+      throw new Exception("Only owners can add new images.");
     }
 
     ArrayList<String> validExtensions = new ArrayList<String>(
@@ -95,31 +107,29 @@ public class BlobServlet extends HttpServlet {
 
     // User submitted form without selecting a file
     if (blobKeys == null || blobKeys.isEmpty()) {
-      response.sendRedirect("/imgupload.html");
-      return;
-    }
-
-    // Check validity of each blob key
-    Iterator<BlobKey> itr = blobKeys.iterator();
-    while (itr.hasNext()) {
-      BlobKey blobKey = itr.next();
-      BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
-      String[] splitFilename = blobInfo.getFilename().split(".");
-      String extension = splitFilename[splitFilename.length - 1].toLowerCase();
-      if (blobInfo.getSize() == 0 || !validExtensions.contains(extension)) {
-        blobstoreService.delete(blobKey);
-        itr.remove();
+      if (mode == "create") {
+        throw new Exception("User submitted form without selecting a file.");
+      } else { // no image upload, update code
+        // delete, labels, new-name
       }
     }
 
-    // None of the keys were valid
-    if (blobKeys.isEmpty()) {
-      response.sendRedirect("/imgupload.html");
-      return;
+    // Check validity of blob key
+    BlobKey blobKey = blobKeys.get(0);
+    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+    String[] splitFilename = blobInfo.getFilename().split(".");
+    String extension = splitFilename[splitFilename.length - 1].toLowerCase();
+    if (blobInfo.getSize() == 0 || !validExtensions.contains(extension)) {
+      blobstoreService.delete(blobKey);
+      throw new Exception("Blobkeys invalid or file not supported.");
     }
 
+
+
     // Get the name entered by the user
-    String name = request.getParameter("name");
+    String imgName = request.getParameter("img-name");
+
+
 
     Entity imageEntity = new Entity("Image" /*, userEntity.getKey()*/);
     // imageEntity.setProperty("blobkey", blobKey.getKeyString());
