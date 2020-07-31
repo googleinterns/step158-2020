@@ -147,7 +147,6 @@ export class MagicWandService {
    * First element contains value of index for attribute: red and so on
    * */
   coordToDataArrayIndex(x: number, y: number, width: number): number {
-    let pixelStart: number = (x + (y * width)) * 4;
-    return pixelStart
+    return (x + (y * width)) * 4;
   }
 }
