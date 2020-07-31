@@ -20,13 +20,13 @@ export class TopBarComponent implements OnInit {
     if (!this.userSignedIn) { 
       console.log('User Signed in');
       this.userSignedIn = true;
-      return signIn;
+      return SIGN_IN;
     }
     console.log('User Signed out');
     this.userSignedIn = false;
-    return signOut;
+    return SIGN_OUT;
   }
 }
 
-export const signIn = 'Sign In';
-export const signOut = 'Sign Out';
+export const SIGN_IN = 'Sign In';
+export const SIGN_OUT = 'Sign Out';
