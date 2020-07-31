@@ -108,6 +108,7 @@ public class BlobServlet extends HttpServlet {
       throw new Exception("User does not have permission to edit the project.");
     }
 
+    // Owners have additional permissions
     String ownersString =
         (String)accessibleProjects.asSingleEntity().getProperty("owners");
     Boolean isOwner = ownersString.contains(uid);
@@ -121,11 +122,6 @@ public class BlobServlet extends HttpServlet {
       throw new Exception("Only owners can add new images.");
     }
 
-    ArrayList<String> validExtensions = new ArrayList<String>(
-        (isMask) ? Arrays.asList("png")
-                 : Arrays.asList("png", "jpg", "jpeg", "jfif", "pjpeg", "pjp",
-                                 "gif", "bmp", "ico", "cur", "svg", "webp"));
-
     BlobstoreService blobstoreService =
         BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
@@ -133,16 +129,42 @@ public class BlobServlet extends HttpServlet {
 
     // User submitted form without selecting a file
     if (blobKeys == null || blobKeys.isEmpty()) {
-      if (mode == "create") {
+        if (mode == "create") {
         throw new Exception("User submitted form without selecting a file.");
-      } else { // no image upload, update code
-        // delete, labels, new-name
-      }
-    } else {
-      if (mode == "update" && !isMask) {
-        throw new Exception();
-      }
+        }
+    } else if (mode == "update" && !isMask) {
+        blobstoreService.delete(blobKeys.get(0));
+        throw new Exception("No upload allowed for base image update.");
     }
+    
+    if (mode == "update") {
+     // no image upload, update image and mask except for a new mask replacing a new mask
+        Gson gson = new Gson();
+        Collection<String> existingLabels = ;
+        
+        // delete, labels, new-name
+        if ()
+    }    
+    
+    update
+        yes image
+            image X
+            mask  Dont want to update until checking image... maybe update properties in first block and only put after image checked and also added
+        no image
+            image
+            mask
+    create
+        yes image
+            image
+            mask
+        no image
+            image X
+            mask  X
+        
+    ArrayList<String> validExtensions = new ArrayList<String>(
+        (isMask) ? Arrays.asList("png")
+                 : Arrays.asList("png", "jpg", "jpeg", "jfif", "pjpeg", "pjp",
+                                 "gif", "bmp", "ico", "cur", "svg", "webp"));
 
     // Check validity of blob key
     BlobKey blobKey = blobKeys.get(0);
@@ -154,14 +176,18 @@ public class BlobServlet extends HttpServlet {
       throw new Exception("Blobkeys invalid or file not supported.");
     }
 
-    if (!isMask) {
+    if (!isMask) { //create image
       Entity imageEntity = new Entity("Image", projId);
       imageEntity.setProperty("blobkey", blobKey.getKeyString());
       imageEntity.setProperty("name", imgName);
       String now = Instant.now().toString();
       imageEntity.setProperty("utc", now);
       datastore.put(imageEntity);
-    } else {
+    } else { //update mask including image, etc; create mask entity
+        if (mode == "create") {
+        } else {
+
+        }
       Query projQuery = new Query("Project");
 
       Entity imageEntity = new Entity("Mask", );
@@ -181,6 +207,8 @@ public class BlobServlet extends HttpServlet {
     response.setContentType("application/json");
 
     UserService userService = UserServiceFactory.getUserService();
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
     String uid = userService.getCurrentUser().getUserId();
 
     if (!userService.isUserLoggedIn()) {
@@ -193,7 +221,6 @@ public class BlobServlet extends HttpServlet {
 
     userQuery.setFilter(propertyFilter);
 
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery user = datastore.prepare(userQuery);
 
     Entity userEntity = user.asSingleEntity();
