@@ -66,6 +66,29 @@ public class BlobServlet extends HttpServlet {
       throw new IOException("Image name must be provided.");
     }
 
+    // Must be an owner or editor
+    Query projQuery = new Query("Project");
+
+    Filter ownEditFilter = new CompositeFilter(
+        CompositeFilterOperator.AND,
+        Arrays.asList(
+            new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
+            new CompositeFilter(
+                CompositeFilterOperator.OR,
+                Arrays.<Filter>asList(
+                    new FilterPredicate("owners", FilterOperator.EQUAL, uid),
+                    new FilterPredicate("editors", FilterOperator.EQUAL,
+                                        uid)))));
+
+    projQuery.setFilter(ownEditFilter);
+    PreparedQuery accessibleProjects = datastore.prepare(projQuery);
+
+    // Only owners and editors of given project can modify or create
+    if (accessibleProjects.countEntities() == 0) {
+      throw new IOException(
+          "User does not have permission to edit the project.");
+    }
+
     // Asset to update must already exist
     String projId = request.getParameter("proj-id");
     Key projKey = KeyFactory.stringToKey(projId);
@@ -93,7 +116,7 @@ public class BlobServlet extends HttpServlet {
       }
       if (mode == "create") {
         Key parentEntityKey =
-            existingImg.asSingleEntity().getKey(); // create, mask
+            existingImg.asSingleEntity().getKey();
         imgEntity = new Entity("Mask", parentEntityKey);
       } else {
         assetParentKey = existingImg.asSingleEntity().getKey();
@@ -122,29 +145,6 @@ public class BlobServlet extends HttpServlet {
             "No image with that name exists to update for this project or this project does not exist.");
       }
       imgEntity = existingImg.asSingleEntity();
-    }
-
-    // Must be an owner or editor
-    Query projQuery = new Query("Project");
-
-    Filter ownEditFilter = new CompositeFilter(
-        CompositeFilterOperator.AND,
-        Arrays.asList(
-            new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
-            new CompositeFilter(
-                CompositeFilterOperator.OR,
-                Arrays.<Filter>asList(
-                    new FilterPredicate("owners", FilterOperator.EQUAL, uid),
-                    new FilterPredicate("editors", FilterOperator.EQUAL,
-                                        uid)))));
-
-    projQuery.setFilter(ownEditFilter);
-    PreparedQuery accessibleProjects = datastore.prepare(projQuery);
-
-    // Only owners and editors of given project can modify or create
-    if (accessibleProjects.countEntities() == 0) {
-      throw new IOException(
-          "User does not have permission to edit the project.");
     }
 
     // Owners have additional permissions
@@ -236,7 +236,6 @@ public class BlobServlet extends HttpServlet {
     }
 
     datastore.put(Arrays.asList(imgEntity, projEntity));
-
     response.sendRedirect("/");
   }
 
