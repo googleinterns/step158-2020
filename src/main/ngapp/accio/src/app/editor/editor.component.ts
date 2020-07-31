@@ -39,7 +39,7 @@ export class EditorComponent implements OnInit {
   //  Checks that route for editor URL is in bounds of array of Urls and is a number
   //  Redirects to gallery component if not
   private checkImageUrl(index: number) {
-    if (Number.isNaN(index) || index >= imageUrls.length) {    
+    if (Number.isNaN(index) || index >= imageUrls.length || index < 0) {    
       console.log('Index: ' + index + 'Not a number or greater than number of images, returning to Gallery');
       this.router.navigate(['/gallery']);
     }
