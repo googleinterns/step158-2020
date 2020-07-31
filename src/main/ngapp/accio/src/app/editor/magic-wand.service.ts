@@ -95,12 +95,8 @@ export class MagicWandService {
   // Check if @pixelCoord is in bounds and makes sure it's not a repeat coord
   getIsValid(imgWidth: number, imgHeight: number, curX: number, curY: number,
       visited: Set<number>): boolean {
-    if (this.isInBounds(imgWidth, imgHeight, curX, curY) &&
-        this.notVisited(imgWidth, curX, curY, visited)) {
-      return true;
-    }
-
-    return false;
+    return this.isInBounds(imgWidth, imgHeight, curX, curY) &&
+        this.notVisited(imgWidth, curX, curY, visited);
   }
 
   // Check bounds of indexing for img dimensions
