@@ -43,7 +43,7 @@ public class ProjectServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.getWriter().println("a");
+      response.sendRedirect("/");
       return;
     }
 
@@ -51,6 +51,7 @@ public class ProjectServlet extends HttpServlet {
     String mode = request.getParameter("mode");
     if (isEmptyParameter(mode) || (!mode.toLowerCase().equals("create") &&
                                    !mode.toLowerCase().equals("update"))) {
+      response.sendRedirect("/");
       return;
     }
     Boolean isCreateMode = (mode.toLowerCase().equals("create"));
@@ -61,7 +62,8 @@ public class ProjectServlet extends HttpServlet {
     Entity projEntity = new Entity("Project");
     if (!isCreateMode) {
       // Need project ID to update a project
-      if (projId == null) {
+      if (isEmptyParameter(projId)) {
+        response.sendRedirect("/"); 
         return;
       }
       // Must be an owner
@@ -77,6 +79,7 @@ public class ProjectServlet extends HttpServlet {
       PreparedQuery accessibleProjects = datastore.prepare(projQuery);
 
       if (accessibleProjects.countEntities() == 0) {
+        response.sendRedirect("/");  
         return;
       }
       projEntity = accessibleProjects.asSingleEntity();
@@ -84,6 +87,7 @@ public class ProjectServlet extends HttpServlet {
       Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
       if (delete) {
         datastore.delete(projEntity.getKey());
+        response.sendRedirect("/");
         return;
       }
     }
@@ -96,7 +100,7 @@ public class ProjectServlet extends HttpServlet {
       projEntity.setProperty("name", projName);
     } else {
       if (isCreateMode) {
-        projEntity.setProperty("name", "Untitled" + now);
+        projEntity.setProperty("name", "Untitled-" + now);
       }
       // Don't do anything if updating and no name provided
     }
@@ -118,37 +122,28 @@ public class ProjectServlet extends HttpServlet {
     // just current user if update, owners = current user + any people in param
     // if param null, change nothing
     if (isCreateMode || !isEmptyParameter(ownersString)) {
-      ArrayList<String> listOwnerIds = new ArrayList<String>();
+      ArrayList<String> listOwnerEmails = new ArrayList<String>();
       listOwnerIds.add(uid);
       if (!isEmptyParameter(ownersString)) {
-        ArrayList<String> listOwnerEmails = new ArrayList(
-            Arrays.asList(ownersString.toLowerCase().split("\\s*,\\s*")));
-
-        for (String ownerEmail : listOwnerEmails) {
-          listOwnerIds.add(new User(ownerEmail, "gmail.com").getUserId());
-        }
+        listOwnerEmails = new ArrayList(Arrays.asList(ownersString.toLowerCase().split("\\s*,\\s*")));
       }
       LinkedHashSet<String> hashUniqueIds =
-          new LinkedHashSet<String>(listOwnerIds);
-      ArrayList<String> listUniqueOwnerIds =
+          new LinkedHashSet<String>(listOwnerEmails);
+      ArrayList<String> listUniqueOwnerEmails =
           new ArrayList<String>(hashUniqueIds);
-      projEntity.setProperty("owners", listUniqueOwnerIds);
+      projEntity.setProperty("owners", listUniqueOwnerEmails);
     }
 
     // if editors non null, editors = param
     if (!isEmptyParameter(editorsString)) {
-      ArrayList<String> listEditorIds = new ArrayList<String>();
       ArrayList<String> listEditorEmails = new ArrayList(
           Arrays.asList(editorsString.toLowerCase().split("\\s*,\\s*")));
 
-      for (String editorEmail : listEditorEmails) {
-        listEditorIds.add(new User(editorEmail, "gmail.com").getUserId());
-      }
-      LinkedHashSet<String> hashUniqueIds =
-          new LinkedHashSet<String>(listEditorIds);
-      ArrayList<String> listUniqueEditorIds =
-          new ArrayList<String>(hashUniqueIds);
-      projEntity.setProperty("editors", listUniqueEditorIds);
+      LinkedHashSet<String> hashUniqueEmails =
+          new LinkedHashSet<String>(listEditorEmails);
+      ArrayList<String> listUniqueEditorEmails =
+          new ArrayList<String>(hashUniqueEmails);
+      projEntity.setProperty("editors", listUniqueEditorEmails);
     }
 
     if (isCreateMode) {
@@ -166,12 +161,15 @@ public class ProjectServlet extends HttpServlet {
     response.setContentType("application/json");
 
     UserService userService = UserServiceFactory.getUserService();
-    String uid = userService.getCurrentUser().getUserId();
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
+    // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/imgmanip.html");
+      response.sendRedirect("/");
       return;
     }
+
+    
 
     /*
     Optional parameters
