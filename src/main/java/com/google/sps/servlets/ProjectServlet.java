@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -44,6 +45,7 @@ public class ProjectServlet extends HttpServlet {
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
       response.sendRedirect("/");
+      // response.getWriter().println("a");
       return;
     }
 
@@ -52,18 +54,20 @@ public class ProjectServlet extends HttpServlet {
     if (isEmptyParameter(mode) || (!mode.toLowerCase().equals("create") &&
                                    !mode.toLowerCase().equals("update"))) {
       response.sendRedirect("/");
+      // response.getWriter().println("b");
       return;
     }
     Boolean isCreateMode = (mode.toLowerCase().equals("create"));
 
-    String uid = userService.getCurrentUser().getUserId();
+    String uEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
 
     Entity projEntity = new Entity("Project");
     if (!isCreateMode) {
       // Need project ID to update a project
       if (isEmptyParameter(projId)) {
-        response.sendRedirect("/"); 
+        response.sendRedirect("/");
+        // response.getWriter().println("c");
         return;
       }
       // Must be an owner
@@ -73,13 +77,14 @@ public class ProjectServlet extends HttpServlet {
           CompositeFilterOperator.AND,
           Arrays.<Filter>asList(
               new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
-              new FilterPredicate("owners", FilterOperator.EQUAL, uid)));
+              new FilterPredicate("owners", FilterOperator.EQUAL, uEmail)));
 
       projQuery.setFilter(ownEditFilter);
       PreparedQuery accessibleProjects = datastore.prepare(projQuery);
 
       if (accessibleProjects.countEntities() == 0) {
-        response.sendRedirect("/");  
+        response.sendRedirect("/");
+        // response.getWriter().println("d");
         return;
       }
       projEntity = accessibleProjects.asSingleEntity();
@@ -123,15 +128,21 @@ public class ProjectServlet extends HttpServlet {
     // if param null, change nothing
     if (isCreateMode || !isEmptyParameter(ownersString)) {
       ArrayList<String> listOwnerEmails = new ArrayList<String>();
-      listOwnerIds.add(uid);
+      listOwnerEmails.add(uEmail);
       if (!isEmptyParameter(ownersString)) {
-        listOwnerEmails = new ArrayList(Arrays.asList(ownersString.toLowerCase().split("\\s*,\\s*")));
+        listOwnerEmails = new ArrayList(
+            Arrays.asList(ownersString.toLowerCase().split("\\s*,\\s*")));
       }
       LinkedHashSet<String> hashUniqueIds =
           new LinkedHashSet<String>(listOwnerEmails);
-      ArrayList<String> listUniqueOwnerEmails =
-          new ArrayList<String>(hashUniqueIds);
-      projEntity.setProperty("owners", listUniqueOwnerEmails);
+      List<String> listUniqueOwnerEmails = new ArrayList<String>(hashUniqueIds);
+      projEntity.setIndexedProperty("owners", listUniqueOwnerEmails);
+
+      /*String projKey = KeyFactory.keyToString(datastore.put(projEntity));
+      com.google.cloud.datastore.Entity a =
+      com.google.cloud.datastore.Entity.newBuilder(com.google.cloud.datastore.Key.fromUrlSafe(projKey)).set("owners",
+      "a", "b").build(); Datastore datastore2 =
+      DatastoreOptions.getDefaultInstance().getService(); datastore2.put(a);*/
     }
 
     // if editors non null, editors = param
@@ -168,8 +179,6 @@ public class ProjectServlet extends HttpServlet {
       response.sendRedirect("/");
       return;
     }
-
-    
 
     /*
     Optional parameters
