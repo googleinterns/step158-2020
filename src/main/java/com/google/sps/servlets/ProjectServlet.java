@@ -12,6 +12,7 @@ import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -29,6 +31,10 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/projects")
 public class ProjectServlet extends HttpServlet {
 
+  private Boolean isEmptyParameter(String param) {
+    return param == null || param.isEmpty();
+  }
+
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
@@ -37,29 +43,26 @@ public class ProjectServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/");
+      response.getWriter().println("a");
       return;
     }
 
     // Mode is a required parameter
-    String mode = request.getParameter("mode").toLowerCase();
-    if (mode == null || (mode != "create" && mode != "update")) {
-      response.sendRedirect("/");
+    String mode = request.getParameter("mode");
+    if (isEmptyParameter(mode) || (!mode.toLowerCase().equals("create") &&
+                                   !mode.toLowerCase().equals("update"))) {
       return;
     }
-    Boolean isCreateMode = (mode == "create");
+    Boolean isCreateMode = (mode.toLowerCase().equals("create"));
 
     String uid = userService.getCurrentUser().getUserId();
     String projId = request.getParameter("proj-id");
 
     Entity projEntity = new Entity("Project");
-    if (isCreateMode) {
-      projEntity.setProperty("proj-id",
-                             KeyFactory.keyToString(projEntity.getKey()));
-    } else { // !isCreateMode
+    if (!isCreateMode) {
       // Need project ID to update a project
       if (projId == null) {
-        response.sendRedirect("/");
+        return;
       }
       // Must be an owner
       Query projQuery = new Query("Project");
@@ -74,7 +77,6 @@ public class ProjectServlet extends HttpServlet {
       PreparedQuery accessibleProjects = datastore.prepare(projQuery);
 
       if (accessibleProjects.countEntities() == 0) {
-        response.sendRedirect("/");
         return;
       }
       projEntity = accessibleProjects.asSingleEntity();
@@ -82,7 +84,6 @@ public class ProjectServlet extends HttpServlet {
       Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
       if (delete) {
         datastore.delete(projEntity.getKey());
-        response.sendRedirect("/");
         return;
       }
     }
@@ -91,18 +92,22 @@ public class ProjectServlet extends HttpServlet {
     projEntity.setProperty("utc", now);
 
     String projName = request.getParameter("proj-name");
-    if (projName != null) {
+    if (!isEmptyParameter(projName)) {
       projEntity.setProperty("name", projName);
-    } else { // projName == null
+    } else {
       if (isCreateMode) {
         projEntity.setProperty("name", "Untitled" + now);
       }
       // Don't do anything if updating and no name provided
     }
 
-    String visibility = request.getParameter("visibility").toLowerCase();
-    if (visibility != null &&
-        (visibility == "public" || visibility == "private")) {
+    String visibility = request.getParameter("visibility");
+    if (isEmptyParameter(visibility) && isCreateMode) {
+      visibility = "private";
+    }
+    if (!isEmptyParameter(visibility) &&
+        (visibility.toLowerCase().equals("public") ||
+         visibility.toLowerCase().equals("private"))) {
       projEntity.setProperty("visibility", visibility);
     }
 
@@ -112,69 +117,74 @@ public class ProjectServlet extends HttpServlet {
     // if create, owners = current user + any people in param, if param null,
     // just current user if update, owners = current user + any people in param
     // if param null, change nothing
-    if (isCreateMode || owners != null) {
+    if (isCreateMode || !isEmptyParameter(ownersString)) {
       ArrayList<String> listOwnerIds = new ArrayList<String>();
       listOwnerIds.add(uid);
-      if (owners != null) {
+      if (!isEmptyParameter(ownersString)) {
         ArrayList<String> listOwnerEmails = new ArrayList(
-            Arrays.asList(owners.toLowerCase().split("\\s*,\\s*")));
+            Arrays.asList(ownersString.toLowerCase().split("\\s*,\\s*")));
 
         for (String ownerEmail : listOwnerEmails) {
           listOwnerIds.add(new User(ownerEmail, "gmail.com").getUserId());
         }
       }
+      LinkedHashSet<String> hashUniqueIds =
+          new LinkedHashSet<String>(listOwnerIds);
+      ArrayList<String> listUniqueOwnerIds =
+          new ArrayList<String>(hashUniqueIds);
+      projEntity.setProperty("owners", listUniqueOwnerIds);
     }
-    LinkedHashSet<String> hashUniqueIds =
-        new LinkedHashSet<String>(listOwnerIds);
-    ArrayList<String> listUniqueOwnerIds = new ArrayList<String>(hashUniqueIds);
-    projEntity.setProperty("owners", listUniqueOwnerIds);
-  }
 
-  // if editors non null, editors = param
-  if (editors != null) {
-    ArrayList<String> listEditorIds = new ArrayList<String>();
-    ArrayList<String> listEditorEmails =
-        new ArrayList(Arrays.asList(editors.toLowerCase().split("\\s*,\\s*")));
+    // if editors non null, editors = param
+    if (!isEmptyParameter(editorsString)) {
+      ArrayList<String> listEditorIds = new ArrayList<String>();
+      ArrayList<String> listEditorEmails = new ArrayList(
+          Arrays.asList(editorsString.toLowerCase().split("\\s*,\\s*")));
 
-    for (String editorEmail : listEditorEmails) {
-      listEditorIds.add(new User(editorEmail, "gmail.com").getUserId());
+      for (String editorEmail : listEditorEmails) {
+        listEditorIds.add(new User(editorEmail, "gmail.com").getUserId());
+      }
+      LinkedHashSet<String> hashUniqueIds =
+          new LinkedHashSet<String>(listEditorIds);
+      ArrayList<String> listUniqueEditorIds =
+          new ArrayList<String>(hashUniqueIds);
+      projEntity.setProperty("editors", listUniqueEditorIds);
     }
-    LinkedHashSet<String> hashUniqueIds =
-        new LinkedHashSet<String>(listEditorIds);
-    ArrayList<String> listUniqueEditorIds =
-        new ArrayList<String>(hashUniqueIds);
-    projEntity.setProperty("editors", listUniqueEditorIds);
+
+    if (isCreateMode) {
+      projEntity.setProperty("proj-id",
+                             KeyFactory.keyToString(datastore.put(projEntity)));
+    }
+
+    datastore.put(projEntity);
+    response.sendRedirect("/");
   }
 
-  datastore.put(projEntity);
-  response.sendRedirect("/");
-}
+  @Override
+  public void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    response.setContentType("application/json");
 
-@Override
-public void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws IOException {
-  response.setContentType("application/json");
+    UserService userService = UserServiceFactory.getUserService();
+    String uid = userService.getCurrentUser().getUserId();
 
-  UserService userService = UserServiceFactory.getUserService();
-  String uid = userService.getCurrentUser().getUserId();
+    if (!userService.isUserLoggedIn()) {
+      response.sendRedirect("/imgmanip.html");
+      return;
+    }
 
-  if (!userService.isUserLoggedIn()) {
-    response.sendRedirect("/imgmanip.html");
-    return;
+    /*
+    Optional parameters
+    visibility	“public” or “private”
+    owned		Boolean
+    search-term
+    global		Boolean
+    proj-id
+    With no parameters, returns proj-ids for all public and private projects for
+    given User (visibility default “all”, owned default “false”, global default
+    “false”) global any + owned “true” == global ignored visibility any + global
+    “true” → information for all public projects, visibility ignored With just
+    proj-id, returns JSON of information about Project
+    */
   }
-
-  /*
-  Optional parameters
-  visibility	“public” or “private”
-  owned		Boolean
-  search-term
-  global		Boolean
-  proj-id
-  With no parameters, returns proj-ids for all public and private projects for
-  given User (visibility default “all”, owned default “false”, global default
-  “false”) global any + owned “true” == global ignored visibility any + global
-  “true” → information for all public projects, visibility ignored With just
-  proj-id, returns JSON of information about Project
-  */
-}
 }
