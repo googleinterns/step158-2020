@@ -32,17 +32,33 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/projects")
 public class ProjectServlet extends HttpServlet {
 
+  /**
+   * Determines if the given request parameter is empty
+   * @param     {String}    param   request parameter
+   * @return    {Boolean}
+   */
   private Boolean isEmptyParameter(String param) {
     return param == null || param.isEmpty();
   }
 
+  /**
+   * Removes duplicate values with a hash set
+   * @param     {ArrayList<String>} al   all values
+   * @return    {List<String>}
+   */
   List<String> withDuplicatesRemoved(ArrayList<String> al) {
-      LinkedHashSet<String> lhs = new LinkedHashSet<String>(al);
-      return new ArrayList<String>(lhs);
+    LinkedHashSet<String> lhs = new LinkedHashSet<String>(al);
+    return new ArrayList<String>(lhs);
   }
 
+  /**
+   * Parses comma-separated list of emails into array
+   * @param     {String}            emails   unseparated emails
+   * @return    {ArrayList<String>}
+   */
   ArrayList<String> parseEmails(String emails) {
-      return new ArrayList(Arrays.asList(emails.toLowerCase().split("\\s*,\\s*")));
+    return new ArrayList(
+        Arrays.asList(emails.toLowerCase().split("\\s*,\\s*")));
   }
 
   @Override
@@ -69,7 +85,10 @@ public class ProjectServlet extends HttpServlet {
     String uEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
 
+    // Will be either a new entity for creation or an existing entity for
+    // updating
     Entity projEntity = new Entity("Project");
+
     if (!isCreateMode) {
       // Need project ID to update a project
       if (isEmptyParameter(projId)) {
@@ -79,21 +98,23 @@ public class ProjectServlet extends HttpServlet {
       // Must be an owner
       Query projQuery = new Query("Project");
 
-      Filter ownEditFilter = new CompositeFilter(
+      Filter ownFilter = new CompositeFilter(
           CompositeFilterOperator.AND,
           Arrays.<Filter>asList(
               new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
               new FilterPredicate("owners", FilterOperator.EQUAL, uEmail)));
 
-      projQuery.setFilter(ownEditFilter);
+      projQuery.setFilter(ownFilter);
       PreparedQuery accessibleProjects = datastore.prepare(projQuery);
 
+      // No owned projects with given project ID for current User
       if (accessibleProjects.countEntities() == 0) {
         response.sendRedirect("/");
         return;
       }
       projEntity = accessibleProjects.asSingleEntity();
 
+      // Delete overrides all other updates
       Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
       if (delete) {
         datastore.delete(projEntity.getKey());
@@ -102,9 +123,12 @@ public class ProjectServlet extends HttpServlet {
       }
     }
 
+    // Last modified timestamp
     String now = Instant.now().toString();
     projEntity.setProperty("utc", now);
 
+    // Set the project name if provided
+    // If creating and nothing provided, set name to Untitled-{current UTC time}
     String projName = request.getParameter("proj-name");
     if (!isEmptyParameter(projName)) {
       projEntity.setProperty("name", projName);
@@ -115,6 +139,7 @@ public class ProjectServlet extends HttpServlet {
       // Don't do anything if updating and no name provided
     }
 
+    // Default visibility to private (only owners and editors can view)
     String visibility = request.getParameter("visibility");
     if (isEmptyParameter(visibility) && isCreateMode) {
       visibility = "private";
@@ -128,27 +153,31 @@ public class ProjectServlet extends HttpServlet {
     String ownersString = request.getParameter("owners");
     String editorsString = request.getParameter("editors");
 
-    // if create, owners = current user + any people in param, if param null,
-    // just current user if update, owners = current user + any people in param
-    // if param null, change nothing
+    // If creating:
+    //      owners are current User and any people in parameter
+    //      if no one provided, current User is the only owner
+    // if updating:
+    //      owners are current User and any people in parameter
+    //      if no one provided, change nothing
     if (isCreateMode || !isEmptyParameter(ownersString)) {
       ArrayList<String> listOwnerEmails = new ArrayList<String>();
       listOwnerEmails.add(uEmail);
       if (!isEmptyParameter(ownersString)) {
         listOwnerEmails = parseEmails(ownersString);
       }
-      projEntity.setIndexedProperty("owners", withDuplicatesRemoved(listOwnerEmails));
+      projEntity.setIndexedProperty("owners",
+                                    withDuplicatesRemoved(listOwnerEmails));
     }
 
-    // If editors is nonempty, unconditionally overwrite current editors in 
-    // Datastore with duplicates removed
+    // If anything provided for editors, overwrite current editors
     if (!isEmptyParameter(editorsString)) {
       ArrayList<String> listEditorEmails = parseEmails(editorsString);
-      projEntity.setIndexedProperty("editors", withDuplicatesRemoved(listEditorEmails));
+      projEntity.setIndexedProperty("editors",
+                                    withDuplicatesRemoved(listEditorEmails));
     }
 
     // Use URL-safe key as project ID
-    // No security risk: only information exposed are kind ("Project") 
+    // No security risk: only information exposed are kind ("Project")
     // and name/ID (autogenerated by Datastore)
     // Key is incomplete until upserted to Datastore
     if (isCreateMode) {
