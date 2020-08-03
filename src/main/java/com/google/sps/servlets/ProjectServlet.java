@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +30,10 @@ import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/projects")
 public class ProjectServlet extends HttpServlet {
+
+  private static final String ASCENDING_SORT = "asc";
+  private static final String PRIVATE = "private";
+  private static final String PUBLIC = "public";  
 
   /**
    * Determines if the given request parameter is empty
@@ -127,9 +130,10 @@ public class ProjectServlet extends HttpServlet {
     String now = Instant.now().toString();
     projEntity.setProperty("utc", now);
 
-    // Set the project name if provided
-    // If creating and nothing provided, set name to Untitled-{current UTC time}
     String projName = request.getParameter("proj-name");
+    
+    // Set the project name if provided
+    // If creating and nothing provided, set name to Untitled-{current UTC time} 
     if (!isEmptyParameter(projName)) {
       projEntity.setProperty("name", projName);
     } else {
@@ -203,18 +207,66 @@ public class ProjectServlet extends HttpServlet {
       return;
     }
 
+    String sort = request.getParameter("sort");
+    if (isEmptyParameter(sort)) {
+      sort = "dsc";
+    }
+
+    String uEmail = userService.getCurrentUser().getEmail();
+    String projId = request.getParameter("proj-id");
+
+    Query projQuery = new Query("Project").addSort(
+        "utc", sort.equals(ASCENDING_SORT) ? SortDirection.ASCENDING
+                                           : SortDirection.DESCENDING);
+
+    String role = request.getParameter("role");
+    String visibility = request.getParameter("visibility");
+    Filter ownFilter = new FilterPredicate("owners", FilterOperator.EQUAL, uEmail);
+    Filter editFilter = new FilterPredicate("editors", FilterOperator.EQUAL, uEmail);
+
+    String global = Boolean.parseBoolean(request.getParameter("global"));
+    if (global) {
+        visibility = PUBLIC;
+        role = "viewer";
+    }
+    if (isEmptyParameter(visibility) || (!visibility.toLowerCase().equals(PUBLIC) && !visibility.toLowerCase().equals(PRIVATE))) {
+        visibility = PRIVATE;
+    }
+
+    Filter visFilter = new FilterPredicate("visibility", FilterOperator.EQUAL, visibility);
+
+    if (role.toLowerCase().equals("owner") || isEmptyParameter(role)) {
+      projQuery.setFilter(ownFilter);
+    }
+    if (role.toLowerCase().equals("editor") || isEmptyParameter(role)) {
+      projQuery.setFilter(editFilter);
+    }
+
+    searchTerm = request.getParameter("search-term");
+    if (!isEmptyParameter(searchTerm)) {
+        Filter searchFilter = new FilterPredicate("name", FilterOperator.EQUAL, searchTerm.toLowerCase());
+    }
+
+    
+    PreparedQuery accessibleProjects = datastore.prepare(projQuery);
+
+
     /*
     Optional parameters
     visibility	“public” or “private”
-    owned		Boolean
+    role        "owner" or "editor"
     search-term
     global		Boolean
+    sort        "asc" or "dsc"
     proj-id
+
     With no parameters, returns proj-ids for all public and private projects for
-    given User (visibility default “all”, owned default “false”, global default
-    “false”) global any + owned “true” == global ignored visibility any + global
-    “true” → information for all public projects, visibility ignored With just
-    proj-id, returns JSON of information about Project
+    given User (visibility default “all”, role default both, global default
+    “false”) 
+    global any + role any == global ignored 
+    visibility any + global “true” → information for all public projects, visibility 
+    ignored 
+    With just proj-id, returns JSON of information about Project
     */
   }
 }
