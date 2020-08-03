@@ -33,7 +33,7 @@ public class ProjectServlet extends HttpServlet {
 
   private static final String ASCENDING_SORT = "asc";
   private static final String PRIVATE = "private";
-  private static final String PUBLIC = "public";  
+  private static final String PUBLIC = "public";
 
   /**
    * Determines if the given request parameter is empty
@@ -131,9 +131,9 @@ public class ProjectServlet extends HttpServlet {
     projEntity.setProperty("utc", now);
 
     String projName = request.getParameter("proj-name");
-    
+
     // Set the project name if provided
-    // If creating and nothing provided, set name to Untitled-{current UTC time} 
+    // If creating and nothing provided, set name to Untitled-{current UTC time}
     if (!isEmptyParameter(projName)) {
       projEntity.setProperty("name", projName);
     } else {
@@ -207,13 +207,17 @@ public class ProjectServlet extends HttpServlet {
       return;
     }
 
+    String uEmail = userService.getCurrentUser().getEmail();
+    String projId = request.getParameter("proj-id");
+
+    if (!isEmptyParameter(projId)) {
+      // check if editor or owner OR if the project is public
+    }
+
     String sort = request.getParameter("sort");
     if (isEmptyParameter(sort)) {
       sort = "dsc";
     }
-
-    String uEmail = userService.getCurrentUser().getEmail();
-    String projId = request.getParameter("proj-id");
 
     Query projQuery = new Query("Project").addSort(
         "utc", sort.equals(ASCENDING_SORT) ? SortDirection.ASCENDING
@@ -221,35 +225,48 @@ public class ProjectServlet extends HttpServlet {
 
     String role = request.getParameter("role");
     String visibility = request.getParameter("visibility");
-    Filter ownFilter = new FilterPredicate("owners", FilterOperator.EQUAL, uEmail);
-    Filter editFilter = new FilterPredicate("editors", FilterOperator.EQUAL, uEmail);
+    Filter ownFilter =
+        new FilterPredicate("owners", FilterOperator.EQUAL, uEmail);
+    Filter editFilter =
+        new FilterPredicate("editors", FilterOperator.EQUAL, uEmail);
+    Filter ownOrEditFilter = new CompositeFilter(
+        CompositeFilterOperator.OR, Arrays.asList(ownFilter, editFilter));
+
+    ArrayList<Filter> allFilters = new ArrayList<Filter>();
+
+    if (role.toLowerCase().equals("owner")) {
+      allFilters.add(ownFilter);
+    } else if (role.toLowerCase().equals("editor")) {
+      allFilters.add(editFilter);
+    }
+    if (isEmptyParameter(role)) {
+      allFilters.add(ownOrEditFilter);
+    }
 
     String global = Boolean.parseBoolean(request.getParameter("global"));
     if (global) {
-        visibility = PUBLIC;
-        role = "viewer";
-    }
-    if (isEmptyParameter(visibility) || (!visibility.toLowerCase().equals(PUBLIC) && !visibility.toLowerCase().equals(PRIVATE))) {
-        visibility = PRIVATE;
+      visibility = PUBLIC;
+      role = "viewer";
     }
 
-    Filter visFilter = new FilterPredicate("visibility", FilterOperator.EQUAL, visibility);
+    if (isEmptyParameter(visibility) ||
+        (!visibility.toLowerCase().equals(PUBLIC) &&
+         !visibility.toLowerCase().equals(PRIVATE))) {
+      visibility = PRIVATE;
+    }
 
-    if (role.toLowerCase().equals("owner") || isEmptyParameter(role)) {
-      projQuery.setFilter(ownFilter);
-    }
-    if (role.toLowerCase().equals("editor") || isEmptyParameter(role)) {
-      projQuery.setFilter(editFilter);
-    }
+    Filter visFilter =
+        new FilterPredicate("visibility", FilterOperator.EQUAL, visibility);
+    allFilters.add(visFilter);
 
     searchTerm = request.getParameter("search-term");
     if (!isEmptyParameter(searchTerm)) {
-        Filter searchFilter = new FilterPredicate("name", FilterOperator.EQUAL, searchTerm.toLowerCase());
+      Filter searchFilter = new FilterPredicate("name", FilterOperator.EQUAL,
+                                                searchTerm.toLowerCase());
+      allFilters.add(searchFilter);
     }
 
-    
     PreparedQuery accessibleProjects = datastore.prepare(projQuery);
-
 
     /*
     Optional parameters
@@ -262,11 +279,11 @@ public class ProjectServlet extends HttpServlet {
 
     With no parameters, returns proj-ids for all public and private projects for
     given User (visibility default “all”, role default both, global default
-    “false”) 
-    global any + role any == global ignored 
-    visibility any + global “true” → information for all public projects, visibility 
-    ignored 
-    With just proj-id, returns JSON of information about Project
+    “false”)
+    global any + role any == global ignored
+    visibility any + global “true” → information for all public projects,
+    visibility ignored With just proj-id, returns JSON of information about
+    Project
     */
   }
 }
