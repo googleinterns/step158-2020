@@ -210,63 +210,106 @@ public class ProjectServlet extends HttpServlet {
     String uEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
 
+    ArrayList<Entity> projects = new ArrayList<Entity>();
     if (!isEmptyParameter(projId)) {
       // check if editor or owner OR if the project is public
+      // Must be an owner or editor
+      Query projQuery = new Query("Project");
+
+      Filter ownEditPublicFilter = new CompositeFilter(
+          CompositeFilterOperator.AND,
+          Arrays.asList(
+              new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
+              new CompositeFilter(
+                  CompositeFilterOperator.OR,
+                  Arrays.<Filter>asList(
+                      new FilterPredicate("visibility", FilterOperator.EQUAL,
+                                          PUBLIC),
+                      new FilterPredicate("owners", FilterOperator.EQUAL, uEmail),
+                      new FilterPredicate("editors", FilterOperator.EQUAL,
+                                          uEmail)))));
+
+      projQuery.setFilter(ownEditPublicFilter);
+      PreparedQuery accessibleProjects = datastore.prepare(projQuery);
+
+      // Only owners and editors of given project can view information
+      if (accessibleProjects.countEntities() == 0) {
+        response.sendRedirect("/");
+        return;
+      }
+      projects.add(accessibleProjects.asSingleEntity());
+    } else {
+      String sort = request.getParameter("sort");
+      if (isEmptyParameter(sort)) {
+        sort = "dsc";
+      }
+
+      Query projQuery = new Query("Project").addSort(
+          "utc", sort.equals(ASCENDING_SORT) ? Query.SortDirection.ASCENDING
+                                             : Query.SortDirection.DESCENDING);
+
+      String role = request.getParameter("role");
+      String visibility = request.getParameter("visibility");
+      Filter ownFilter =
+          new FilterPredicate("owners", FilterOperator.EQUAL, uEmail);
+      Filter editFilter =
+          new FilterPredicate("editors", FilterOperator.EQUAL, uEmail);
+      Filter ownOrEditFilter = new CompositeFilter(
+          CompositeFilterOperator.OR, Arrays.asList(ownFilter, editFilter));
+
+      ArrayList<Filter> allFilters = new ArrayList<Filter>();
+
+      Boolean global = Boolean.parseBoolean(request.getParameter("global"));
+      if (global) {
+        visibility = PUBLIC;
+        role = "viewer";
+      }
+
+      if (role.toLowerCase().equals("owner")) {
+        allFilters.add(ownFilter);
+      } else if (role.toLowerCase().equals("editor")) {
+        allFilters.add(editFilter);
+      }
+      if (isEmptyParameter(role)) {
+        allFilters.add(ownOrEditFilter);
+      }
+
+      if (isEmptyParameter(visibility) ||
+          (!visibility.toLowerCase().equals(PUBLIC) &&
+           !visibility.toLowerCase().equals(PRIVATE))) {
+        visibility = PRIVATE;
+      }
+
+      Filter visFilter =
+          new FilterPredicate("visibility", FilterOperator.EQUAL, visibility);
+      allFilters.add(visFilter);
+
+      String searchTerm = request.getParameter("search-term");
+      if (!isEmptyParameter(searchTerm)) {
+        Filter searchFilter = new FilterPredicate("name", FilterOperator.EQUAL,
+                                                  searchTerm.toLowerCase());
+        allFilters.add(searchFilter);
+      }
+      projQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, allFilters));
+
+      PreparedQuery accessibleProjects = datastore.prepare(projQuery);
+      for (Entity entity : accessibleProjects.asIterable()) {
+          projects.add(entity);
+      }
     }
 
-    String sort = request.getParameter("sort");
-    if (isEmptyParameter(sort)) {
-      sort = "dsc";
+    ArrayList<ProjectInfo> projectInfoList = new ArrayList<ProjectInfo>();
+    for (Entity entity : projects) {
+        String curProjId = (String)entity.getProperty("proj-id");
+        String curProjName = (String)entity.getProperty("name");
+        String timestamp = (String)entity.getProperty("utc");
+        projectInfoList.add(new ProjectInfo(curProjId, curProjName, timestamp));
+
     }
 
-    Query projQuery = new Query("Project").addSort(
-        "utc", sort.equals(ASCENDING_SORT) ? SortDirection.ASCENDING
-                                           : SortDirection.DESCENDING);
-
-    String role = request.getParameter("role");
-    String visibility = request.getParameter("visibility");
-    Filter ownFilter =
-        new FilterPredicate("owners", FilterOperator.EQUAL, uEmail);
-    Filter editFilter =
-        new FilterPredicate("editors", FilterOperator.EQUAL, uEmail);
-    Filter ownOrEditFilter = new CompositeFilter(
-        CompositeFilterOperator.OR, Arrays.asList(ownFilter, editFilter));
-
-    ArrayList<Filter> allFilters = new ArrayList<Filter>();
-
-    if (role.toLowerCase().equals("owner")) {
-      allFilters.add(ownFilter);
-    } else if (role.toLowerCase().equals("editor")) {
-      allFilters.add(editFilter);
-    }
-    if (isEmptyParameter(role)) {
-      allFilters.add(ownOrEditFilter);
-    }
-
-    String global = Boolean.parseBoolean(request.getParameter("global"));
-    if (global) {
-      visibility = PUBLIC;
-      role = "viewer";
-    }
-
-    if (isEmptyParameter(visibility) ||
-        (!visibility.toLowerCase().equals(PUBLIC) &&
-         !visibility.toLowerCase().equals(PRIVATE))) {
-      visibility = PRIVATE;
-    }
-
-    Filter visFilter =
-        new FilterPredicate("visibility", FilterOperator.EQUAL, visibility);
-    allFilters.add(visFilter);
-
-    searchTerm = request.getParameter("search-term");
-    if (!isEmptyParameter(searchTerm)) {
-      Filter searchFilter = new FilterPredicate("name", FilterOperator.EQUAL,
-                                                searchTerm.toLowerCase());
-      allFilters.add(searchFilter);
-    }
-
-    PreparedQuery accessibleProjects = datastore.prepare(projQuery);
+    Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    String jsonProjects = gson.toJson(projectInfoList);
+    response.getWriter().println(jsonProjects);
 
     /*
     Optional parameters
