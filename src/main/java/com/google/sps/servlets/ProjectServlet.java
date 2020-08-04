@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 public class ProjectServlet extends HttpServlet {
 
   private static final String ASCENDING_SORT = "asc";
+  private static final String DESCENDING_SORT = "dsc";
   private static final String PRIVATE = "private";
   private static final String PUBLIC = "public";
 
@@ -146,11 +147,11 @@ public class ProjectServlet extends HttpServlet {
     // Default visibility to private (only owners and editors can view)
     String visibility = request.getParameter("visibility");
     if (isEmptyParameter(visibility) && isCreateMode) {
-      visibility = "private";
+      visibility = PRIVATE;
     }
     if (!isEmptyParameter(visibility) &&
-        (visibility.toLowerCase().equals("public") ||
-         visibility.toLowerCase().equals("private"))) {
+        (visibility.toLowerCase().equals(PUBLIC) ||
+         visibility.toLowerCase().equals(PRIVATE))) {
       projEntity.setProperty("visibility", visibility);
     }
 
@@ -210,10 +211,14 @@ public class ProjectServlet extends HttpServlet {
     String uEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
 
+    // Will be either a single project based on project ID or one or more 
+    // projects from a query based on various parameters
     ArrayList<Entity> projects = new ArrayList<Entity>();
+    
+    // Searching for one project with a project ID
     if (!isEmptyParameter(projId)) {
-      // check if editor or owner OR if the project is public
-      // Must be an owner or editor
+      // Project must be public or User must be an owner or editor for private 
+      // projects
       Query projQuery = new Query("Project");
 
       Filter ownEditPublicFilter = new CompositeFilter(
@@ -225,31 +230,47 @@ public class ProjectServlet extends HttpServlet {
                   Arrays.<Filter>asList(
                       new FilterPredicate("visibility", FilterOperator.EQUAL,
                                           PUBLIC),
-                      new FilterPredicate("owners", FilterOperator.EQUAL, uEmail),
+                      new FilterPredicate("owners", FilterOperator.EQUAL,
+                                          uEmail),
                       new FilterPredicate("editors", FilterOperator.EQUAL,
                                           uEmail)))));
 
       projQuery.setFilter(ownEditPublicFilter);
       PreparedQuery accessibleProjects = datastore.prepare(projQuery);
 
-      // Only owners and editors of given project can view information
       if (accessibleProjects.countEntities() == 0) {
         response.sendRedirect("/");
         return;
       }
       projects.add(accessibleProjects.asSingleEntity());
-    } else {
+    } 
+
+    // Searching for multiple projects with various parameters
+    else {
       String sort = request.getParameter("sort");
+      // Sorted in descending chronological order by default
       if (isEmptyParameter(sort)) {
-        sort = "dsc";
+        sort = DESCENDING_SORT;
       }
+      sort = sort.toLowerCase();
 
       Query projQuery = new Query("Project").addSort(
           "utc", sort.equals(ASCENDING_SORT) ? Query.SortDirection.ASCENDING
                                              : Query.SortDirection.DESCENDING);
 
+
+      // Add relevant filters to array based on parameters
+      ArrayList<Filter> allFilters = new ArrayList<Filter>();
+
       String role = request.getParameter("role");
       String visibility = request.getParameter("visibility");
+      // Global overrides visibility and role
+      Boolean global = Boolean.parseBoolean(request.getParameter("global"));
+      if (global) {
+        visibility = PUBLIC;
+        role = "viewer";
+      }
+
       Filter ownFilter =
           new FilterPredicate("owners", FilterOperator.EQUAL, uEmail);
       Filter editFilter =
@@ -257,76 +278,61 @@ public class ProjectServlet extends HttpServlet {
       Filter ownOrEditFilter = new CompositeFilter(
           CompositeFilterOperator.OR, Arrays.asList(ownFilter, editFilter));
 
-      ArrayList<Filter> allFilters = new ArrayList<Filter>();
-
-      Boolean global = Boolean.parseBoolean(request.getParameter("global"));
-      if (global) {
-        visibility = PUBLIC;
-        role = "viewer";
-      }
-
-      if (role.toLowerCase().equals("owner")) {
+      // By default, filter to only projects the User owns or edits
+      if (isEmptyParameter(role)) {
+        allFilters.add(ownOrEditFilter);
+      } else if (role.toLowerCase().equals("owner")) {
         allFilters.add(ownFilter);
       } else if (role.toLowerCase().equals("editor")) {
         allFilters.add(editFilter);
       }
-      if (isEmptyParameter(role)) {
-        allFilters.add(ownOrEditFilter);
+
+      // Don't filter by visibility by default
+      if (!isEmptyParameter(visibility) &&
+          (visibility.toLowerCase().equals(PUBLIC) ||
+           visibility.toLowerCase().equals(PRIVATE))) {
+        Filter visFilter =
+            new FilterPredicate("visibility", FilterOperator.EQUAL, visibility);
+        allFilters.add(visFilter);
       }
 
-      if (isEmptyParameter(visibility) ||
-          (!visibility.toLowerCase().equals(PUBLIC) &&
-           !visibility.toLowerCase().equals(PRIVATE))) {
-        visibility = PRIVATE;
-      }
-
-      Filter visFilter =
-          new FilterPredicate("visibility", FilterOperator.EQUAL, visibility);
-      allFilters.add(visFilter);
-
+      // Don't filter by search term if not provided
+      // No partial matching/regex
       String searchTerm = request.getParameter("search-term");
       if (!isEmptyParameter(searchTerm)) {
         Filter searchFilter = new FilterPredicate("name", FilterOperator.EQUAL,
                                                   searchTerm.toLowerCase());
         allFilters.add(searchFilter);
       }
-      projQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, allFilters));
+
+      // A composite filter requres mroe than one filter
+      if (allFilters.size() == 1) {
+        projQuery.setFilter(allFilters.get(0));
+      } else {
+        projQuery.setFilter(
+            new CompositeFilter(CompositeFilterOperator.AND, allFilters));
+      }
 
       PreparedQuery accessibleProjects = datastore.prepare(projQuery);
       for (Entity entity : accessibleProjects.asIterable()) {
-          projects.add(entity);
+        projects.add(entity);
       }
     }
 
+    // Parse Entities to custom objects
     ArrayList<ProjectInfo> projectInfoList = new ArrayList<ProjectInfo>();
     for (Entity entity : projects) {
-        String curProjId = (String)entity.getProperty("proj-id");
-        String curProjName = (String)entity.getProperty("name");
-        String timestamp = (String)entity.getProperty("utc");
-        projectInfoList.add(new ProjectInfo(curProjId, curProjName, timestamp));
-
+      String curProjId = (String)entity.getProperty("proj-id");
+      String curProjName = (String)entity.getProperty("name");
+      String timestamp = (String)entity.getProperty("utc");
+      String curVis = (String)entity.getProperty("visibility");
+      projectInfoList.add(
+          new ProjectInfo(curProjId, curProjName, timestamp, curVis));
     }
 
-    Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    Gson gson =
+        new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     String jsonProjects = gson.toJson(projectInfoList);
     response.getWriter().println(jsonProjects);
-
-    /*
-    Optional parameters
-    visibility	“public” or “private”
-    role        "owner" or "editor"
-    search-term
-    global		Boolean
-    sort        "asc" or "dsc"
-    proj-id
-
-    With no parameters, returns proj-ids for all public and private projects for
-    given User (visibility default “all”, role default both, global default
-    “false”)
-    global any + role any == global ignored
-    visibility any + global “true” → information for all public projects,
-    visibility ignored With just proj-id, returns JSON of information about
-    Project
-    */
   }
 }

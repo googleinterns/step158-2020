@@ -4,16 +4,12 @@ class ProjectInfo {
   String projId;
   String name;
   String timestamp;
-  String numOwners;
-  String numEditors;
-  String role;
+  String visibility;
 
-  public UserInfo(String projId, String name, String timestamp, String numOwners, String numEditors, String role) {
+  public ProjectInfo(String projId, String name, String timestamp, String visibility) {
     this.projId = projId;
     this.name = name;
     this.timestamp = timestamp;
-    this.numOwners = numOwners;
-    this.numEditors = numEditors; 
-    this.role = role;
+    this.visibility = visibility;
   }
 }
