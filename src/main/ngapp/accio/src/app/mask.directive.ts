@@ -21,11 +21,15 @@ export class MaskDirective {
     const xCoord = e.offsetX;
     const yCoord = e.offsetY;
     this.ctx = this.canvas.nativeElement.getContext('2d');
+    
+    //  TODO-MASK This will need to be @Input() from editor component as ctx to the scaled image once we have 
+    //    a master list of pixels in the mask in magic-wand-service
     let imgData = this.ctx.getImageData(0,0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
 
     // tolerance will come from user input
     const tolerance = 20;
 
+    //  TODO-MASK-maskPixels needs to contain cumulative set of all pixels user clicked and added to the mask
     // returns an array indices of each pixel in the mask
     const maskPixels = this.magicWandService.floodfill(this.originalData, Math.floor(xCoord / this.scale), Math.floor(yCoord / this.scale), tolerance);
 
@@ -39,19 +43,21 @@ export class MaskDirective {
    *    lays the mask on top of the scaled image. 
    *  Adds all pixels to mask by giving alpha value of 255, changing global alpha on 
    *    maskImage will multiply 255 by globalAlpha = [0,1]
-   *  maskPixels: set of coordinates indexed by red value of pixels to be in mask
-   *  imgData: Uint8clampedArray of all pixel data in scaled image. 
-   *  alphaValue: the number the user passes in on a slide bar for transparency of the mask
+   *  @Param: maskPixels: set of coordinates indexed by red value of pixels to be in mask
+   *  @Param: imgData: Uint8clampedArray of all pixel data in scaled image. 
+   *  @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask
    */
   private drawMask(maskPixels: Set<number>, imgData: ImageData, alphaValue: number): void {
     //clear old context
     this.ctx.clearRect(0,0,this.canvas.nativeElement.width, this.canvas.nativeElement.height);
     
-    //new imagedata creates transparent black rectangle
+    //  new imagedata creates transparent black rectangle, 
+    //  TODO-MASK: Pass in image data reference to mask image ctx as well to reduce the need to redraw
+    //    every pixel each time
     let img = new ImageData(imgData.width, imgData.height);
 
     // access all pixels in original mask, scale them up to image on UI width
-    // ***** Need flood fill to pass back total mask, not just new one created, used for undo/redo as well
+    // TODO-MASK: Need flood fill to pass back total mask, not just new one created, used for undo/redo as well
     for (let pixel of maskPixels) {
       let y = this.getY(this.originalData.width, pixel);
       let x = this.getX(this.originalData.width, pixel, y);
@@ -72,7 +78,7 @@ export class MaskDirective {
 
   /**
   * Changes the alpha value of the mask displayed 
-  *  alphaValue: the number the user passes in on a slide bar for transparency of the mask
+  * @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask
   */
   private changeAlpha(alphaValue: number): void {
     if (alphaValue == 0) {
@@ -88,9 +94,9 @@ export class MaskDirective {
 
   /**
   * draws the original image and updated mask on context
-  * imgData: ImageData from the original image
-  * mask: source of new mask 
-  * alphaValue: the number the user passes in on a slide bar for transparency of the mask
+  * @Param: imgData: ImageData from the original image
+  * @Param: mask: source of new mask 
+  * @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask
   */
   private drawImageAndMask(imgData: ImageData, mask: string, alphaValue: number): void {
     // restore original image (imgData)
@@ -110,8 +116,8 @@ export class MaskDirective {
 
   /** 
    * Reverses pixel index from floodfill set to get y index
-   * width: width of the original image
-   * pixel: pixel index in from the returned floodfill mask
+   * @Param: width: width of the original image
+   * @Param: pixel: pixel index in from the returned floodfill mask
    */
   private getY(width: number, pixel: number): number {
     return Math.floor(pixel / (width*4));
@@ -119,9 +125,9 @@ export class MaskDirective {
 
   /** 
    * Reverses pixel index from floodfill set to get y index
-   * width: width of the original image
-   * pixel: pixel index in from the returned floodfill mask
-   * y: y value from this.getY();
+   * @Param: width: width of the original image
+   * @Param: pixel: pixel index in from the returned floodfill mask
+   * @Param: y: y value from this.getY();
    */
   private getX(width: number, pixel: number, y: number): number {
     return (pixel / 4) - (y * width);
