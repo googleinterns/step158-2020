@@ -1,5 +1,7 @@
 package com.google.sps.servlets;
 
+import java.util.ArrayList;
+
 class ImageInfo {
   String url;
   String name;

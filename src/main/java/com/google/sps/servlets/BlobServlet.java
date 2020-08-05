@@ -45,7 +45,6 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.setStatus(404);
       throw new IOException("User must be logged in.");
     }
 
@@ -54,6 +53,7 @@ public class BlobServlet extends HttpServlet {
     if (mode == null || (mode != "create" && mode != "update")) {
       throw new IOException("Invalid mode.");
     }
+    Boolean isCreateMode = (mode.toLowerCase().equals("create"));
 
     // Check if working with image or mask
     String parentImg = request.getParameter("parent-img");
@@ -71,35 +71,29 @@ public class BlobServlet extends HttpServlet {
     String projId = request.getParameter("proj-id");
     Key projKey = KeyFactory.stringToKey(projId);
     Entity projEntity = new Entity("Project");
+
     try {
       projEntity = datastore.get(projKey);
     } catch (Exception e) {
       response.sendRedirect("/");
       return;
     }
-    String uid = userService.getCurrentUser().getUserId();
+    String uEmail = userService.getCurrentUser().getEmail();
     Key assetParentKey = projKey;
     Entity imgEntity = new Entity("Image", projKey);
 
-    // Must be an owner or editor
-    Query projQuery = new Query("Project");
-
-    Filter ownEditFilter = new CompositeFilter(
-        CompositeFilterOperator.AND,
-        Arrays.asList(
-            new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
-            new CompositeFilter(
-                CompositeFilterOperator.OR,
-                Arrays.<Filter>asList(
-                    new FilterPredicate("owners", FilterOperator.EQUAL, uid),
-                    new FilterPredicate("editors", FilterOperator.EQUAL,
-                                        uid)))));
-
-    projQuery.setFilter(ownEditFilter);
-    PreparedQuery accessibleProjects = datastore.prepare(projQuery);
-
-    // Only owners and editors of given project can modify or create
-    if (accessibleProjects.countEntities() == 0) {
+    try {
+      projEntity = datastore.get(projKey);
+    } catch (Exception e) {
+      response.sendRedirect("/");
+      return;
+    }
+    ArrayList<String> owners =
+        (ArrayList<String>)projEntity.getProperty("owners");
+    ArrayList<String> editors =
+        (ArrayList<String>)projEntity.getProperty("editors");
+    String existingVis = (String)projEntity.getProperty("visibility");
+    if (!owners.contains(uEmail) && !editors.contains(uEmail)) {
       throw new IOException(
           "User does not have permission to edit the project.");
     }
@@ -116,7 +110,7 @@ public class BlobServlet extends HttpServlet {
         throw new IOException(
             "No parent image with that name exists for this project or this project does not exist.");
       }
-      if (mode == "create") {
+      if (isCreateMode) {
         Key parentEntityKey = existingImg.asSingleEntity().getKey();
         imgEntity = new Entity("Mask", parentEntityKey);
       } else {
@@ -134,7 +128,7 @@ public class BlobServlet extends HttpServlet {
         }
         imgEntity = existingMask.asSingleEntity();
       }
-    } else if (mode == "update") {
+    } else if (!isCreateMode) {
       Query imgQuery = new Query("Image").setAncestor(projKey);
       Filter imgFilter =
           new FilterPredicate("name", FilterOperator.EQUAL, imgName);
@@ -149,15 +143,12 @@ public class BlobServlet extends HttpServlet {
     }
 
     // Owners have additional permissions
-    String ownersString =
-        (String)accessibleProjects.asSingleEntity().getProperty("owners");
-    Boolean isOwner = ownersString.contains(uid);
+    Boolean isOwner = owners.contains(uEmail);
 
     Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
-    if (delete) {
-      if (!isOwner || mode == "create") {
-        throw new IOException(
-            "Only owners can delete assets and only in update mode.");
+    if (delete && !isCreateMode) {
+      if (!isOwner) {
+        throw new IOException("Only owners can delete assets.");
       } else {
         datastore.delete(imgEntity.getKey());
         response.sendRedirect("/");
@@ -165,7 +156,7 @@ public class BlobServlet extends HttpServlet {
       }
     }
 
-    if (mode == "create" && !isOwner && !isMask) {
+    if (isCreateMode && !isOwner && !isMask) {
       throw new IOException("Only owners can add new images.");
     }
 
@@ -177,15 +168,15 @@ public class BlobServlet extends HttpServlet {
     // User submitted form without selecting a file
     Boolean hasNonEmptyImage = blobKeys != null && !blobKeys.isEmpty();
     if (!hasNonEmptyImage) {
-      if (mode == "create") {
+      if (isCreateMode) {
         throw new IOException("User submitted form without selecting a file.");
       }
-    } else if (mode == "update" && !isMask) {
+    } else if (!isCreateMode && !isMask) {
       blobstoreService.delete(blobKeys.get(0));
       throw new IOException("No upload allowed for base image update.");
     }
 
-    if (mode == "create" || (mode == "update" && hasNonEmptyImage)) {
+    if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
       ArrayList<String> validExtensions = new ArrayList<String>(
           (isMask) ? Arrays.asList("png")
                    : Arrays.asList("png", "jpg", "jpeg", "jfif", "pjpeg", "pjp",
@@ -212,7 +203,7 @@ public class BlobServlet extends HttpServlet {
     String tags = request.getParameter("tags");
     String newName = request.getParameter("new-name");
 
-    if (mode == "update") {
+    if (!isCreateMode) {
       if (tags != null) {
         ArrayList<String> listTags =
             new ArrayList(Arrays.asList(tags.toLowerCase().split("\\s*,\\s*")));
@@ -243,18 +234,47 @@ public class BlobServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
-    response.setContentType("applciation/json");
+    response.setContentType("application/json");
 
     UserService userService = UserServiceFactory.getUserService();
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-    String uid = userService.getCurrentUser().getUserId();
+    String uEmail = userService.getCurrentUser().getEmail();
 
     if (!userService.isUserLoggedIn()) {
       return;
     }
 
-    PreparedQuery storedBlobKeys = datastore.prepare(imageQuery);
+    String projId = request.getParameter("proj-id");
+    Key projKey = KeyFactory.stringToKey(projId);
+
+    Entity projEntity = new Entity("Project");
+    try {
+      projEntity = datastore.get(projKey);
+    } catch (Exception e) {
+      response.sendRedirect("/");
+      return;
+    }
+    ArrayList<String> owners =
+        (ArrayList<String>)projEntity.getProperty("owners");
+    ArrayList<String> editors =
+        (ArrayList<String>)projEntity.getProperty("editors");
+    String existingVis = (String)projEntity.getProperty("visibility");
+    if (!owners.contains(uEmail) && !editors.contains(uEmail) &&
+        !existingVis.equals(dataUtils.PUBLIC)) {
+      response.sendRedirect("/");
+      return;
+    }
+
+    Boolean withMasks =
+          Boolean.parseBoolean(request.getParameter("with-masks"));
+    String tag = request.getParameter("tag");
+    Query imageQuery = new Query("Image").setAncestor(projKey);
+    if (!dataUtils.isEmptyParameter(tag) && !withMasks) {
+        Filter tagFilter = new FilterPredicate("tags", FilterOperator.EQUAL, tag);
+        imageQuery.setFilter(tagFilter);
+    }
+    PreparedQuery storedImages = datastore.prepare(imageQuery);
 
     ArrayList<ImageInfo> imageObjects = new ArrayList<ImageInfo>();
 
@@ -265,19 +285,21 @@ public class BlobServlet extends HttpServlet {
       String imageTime = (String)imageEntity.getProperty("utc");
       ArrayList<String> imageTags =
           (ArrayList<String>)imageEntity.getProperty("tags");
-      
-      ArrayList<MaskInfo> imageMasks = new ArrayList<MaskInfo>();
-      Query maskQuery = new Query("Mask").setAncestor(entity.getKey());
-      PreparedQuery storedMasks = datastore.prepare(maskQuery);
 
-      for (Entity maskEntity : storedMasks.asIterable()) {
-        String maskUrl =
-            "/blob-host?blobkey=" + (String)maskEntity.getProperty("url");
-        String maskName = (String)maskEntity.getProperty("name");
-        String maskTime = (String)maskEntity.getProperty("utc");
-        ArrayList<String> maskTags =
-            (ArrayList<String>)maskEntity.getProperty("tags");
-        imageMasks.add(new MaskInfo(maskUrl, maskName, masktime, maskTags));
+      ArrayList<MaskInfo> imageMasks = new ArrayList<MaskInfo>();
+      if (withMasks) {
+        Query maskQuery = new Query("Mask").setAncestor(imageEntity.getKey());
+        PreparedQuery storedMasks = datastore.prepare(maskQuery);
+
+        for (Entity maskEntity : storedMasks.asIterable()) {
+          String maskUrl =
+              "/blob-host?blobkey=" + (String)maskEntity.getProperty("url");
+          String maskName = (String)maskEntity.getProperty("name");
+          String maskTime = (String)maskEntity.getProperty("utc");
+          ArrayList<String> maskTags =
+              (ArrayList<String>)maskEntity.getProperty("tags");
+          imageMasks.add(new MaskInfo(maskUrl, maskName, maskTime, maskTags));
+        }
       }
 
       imageObjects.add(
@@ -294,7 +316,7 @@ public class BlobServlet extends HttpServlet {
     Required parameters
     proj-id
     Optional parameters
-    label
+    tag
     img-name
     with-masks	Boolean
     Default return: JSON of all image links and names for given project if it
@@ -304,8 +326,10 @@ public class BlobServlet extends HttpServlet {
     google.com, name: g} ] proj-id + img-name provided: JSON of image link and
     name
     + with-masks = “true”: image and mask links and names (with-masks = “false”
-    by default) First index is for the image label: without masks, filters for
-    images; with masks (and necessarily img-name), filters masks for img-name
+    by default) First index is for the image
+
+    tag: without masks, filters for images; with masks (and necessarily
+    img-name), filters masks for img-name
     */
   }
 }

@@ -1,5 +1,7 @@
 package com.google.sps.servlets;
 
+import java.util.ArrayList;
+
 class MaskInfo {
   String url;
   String name;
