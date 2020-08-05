@@ -2,6 +2,10 @@ package com.google.sps.servlets;
 
 import java.util.ArrayList;
 
+/**
+ * Holds relevant mask info to return to front end
+ * Allows for easy creation of JSON response
+ */
 class MaskInfo {
   String url;
   String name;
