@@ -99,24 +99,21 @@ public class ProjectServlet extends HttpServlet {
         response.sendRedirect("/");
         return;
       }
-      // Must be an owner
-      Query projQuery = new Query("Project");
 
-      Filter ownFilter = new CompositeFilter(
-          CompositeFilterOperator.AND,
-          Arrays.<Filter>asList(
-              new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
-              new FilterPredicate("owners", FilterOperator.EQUAL, uEmail)));
-
-      projQuery.setFilter(ownFilter);
-      PreparedQuery accessibleProjects = datastore.prepare(projQuery);
-
-      // No owned projects with given project ID for current User
-      if (accessibleProjects.countEntities() == 0) {
+      // Must be owner to update
+      Key projKey = KeyFactory.stringToKey(projId);
+      try {
+        projEntity = datastore.get(projKey);
+      } catch (Exception e) {
         response.sendRedirect("/");
         return;
       }
-      projEntity = accessibleProjects.asSingleEntity();
+      ArrayList<String> owners =
+          (ArrayList<String>)projEntity.getProperty("owners");
+      if (!owners.contains(uEmail)) {
+        response.sendRedirect("/");
+        return;
+      }
 
       // Delete overrides all other updates
       Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
@@ -166,10 +163,10 @@ public class ProjectServlet extends HttpServlet {
     //      if no one provided, change nothing
     if (isCreateMode || !isEmptyParameter(ownersString)) {
       ArrayList<String> listOwnerEmails = new ArrayList<String>();
-      listOwnerEmails.add(uEmail);
       if (!isEmptyParameter(ownersString)) {
         listOwnerEmails = parseEmails(ownersString);
       }
+      listOwnerEmails.add(uEmail);
       projEntity.setIndexedProperty("owners",
                                     withDuplicatesRemoved(listOwnerEmails));
     }
@@ -211,39 +208,34 @@ public class ProjectServlet extends HttpServlet {
     String uEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
 
-    // Will be either a single project based on project ID or one or more 
+    // Will be either a single project based on project ID or one or more
     // projects from a query based on various parameters
     ArrayList<Entity> projects = new ArrayList<Entity>();
-    
+
     // Searching for one project with a project ID
     if (!isEmptyParameter(projId)) {
-      // Project must be public or User must be an owner or editor for private 
+      // Project must be public or User must be an owner or editor for private
       // projects
-      Query projQuery = new Query("Project");
-
-      Filter ownEditPublicFilter = new CompositeFilter(
-          CompositeFilterOperator.AND,
-          Arrays.asList(
-              new FilterPredicate("proj-id", FilterOperator.EQUAL, projId),
-              new CompositeFilter(
-                  CompositeFilterOperator.OR,
-                  Arrays.<Filter>asList(
-                      new FilterPredicate("visibility", FilterOperator.EQUAL,
-                                          PUBLIC),
-                      new FilterPredicate("owners", FilterOperator.EQUAL,
-                                          uEmail),
-                      new FilterPredicate("editors", FilterOperator.EQUAL,
-                                          uEmail)))));
-
-      projQuery.setFilter(ownEditPublicFilter);
-      PreparedQuery accessibleProjects = datastore.prepare(projQuery);
-
-      if (accessibleProjects.countEntities() == 0) {
+      Key projKey = KeyFactory.stringToKey(projId);
+      Entity projEntity = new Entity("Project");
+      try {
+        projEntity = datastore.get(projKey);
+      } catch (Exception e) {
         response.sendRedirect("/");
         return;
       }
-      projects.add(accessibleProjects.asSingleEntity());
-    } 
+      ArrayList<String> owners =
+          (ArrayList<String>)projEntity.getProperty("owners");
+      ArrayList<String> editors =
+          (ArrayList<String>)projEntity.getProperty("editors");
+      String existingVis = (String)projEntity.getProperty("visibility");
+      if (!owners.contains(uEmail) && !editors.contains(uEmail) &&
+          !existingVis.equals(PUBLIC)) {
+        response.sendRedirect("/");
+        return;
+      }
+      projects.add(projEntity);
+    }
 
     // Searching for multiple projects with various parameters
     else {
@@ -257,7 +249,6 @@ public class ProjectServlet extends HttpServlet {
       Query projQuery = new Query("Project").addSort(
           "utc", sort.equals(ASCENDING_SORT) ? Query.SortDirection.ASCENDING
                                              : Query.SortDirection.DESCENDING);
-
 
       // Add relevant filters to array based on parameters
       ArrayList<Filter> allFilters = new ArrayList<Filter>();
@@ -305,7 +296,7 @@ public class ProjectServlet extends HttpServlet {
         allFilters.add(searchFilter);
       }
 
-      // A composite filter requres mroe than one filter
+      // A composite filter requres more than one filter
       if (allFilters.size() == 1) {
         projQuery.setFilter(allFilters.get(0));
       } else {
