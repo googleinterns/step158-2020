@@ -29,7 +29,7 @@ export class EditorComponent implements OnInit {
 
   private innerHeight: number;
   //  To trim image scale so image is smaller than width and height.
-  private scaleFactor = 1.2;
+  private scaleFactor = .9;
   image = new Image();
 
   ngOnInit() {
@@ -71,7 +71,7 @@ export class EditorComponent implements OnInit {
     this.hiddenCanvas.nativeElement.height = this.image.height;
 
     // used to scale the image to the window size, 1.2 so the image is smaller than the window.
-    this.scaleFactor = Math.floor(this.innerHeight / this.image.height / this.scaleFactor);
+    this.scaleFactor = Math.floor(this.innerHeight / this.image.height * this.scaleFactor);
     // TO DO: add scaling if image is larger than window
     if (this.scaleFactor <= 0) {
       this.scaleFactor =  1;
