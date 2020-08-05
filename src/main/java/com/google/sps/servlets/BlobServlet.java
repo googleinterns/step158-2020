@@ -26,8 +26,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -45,6 +45,7 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
+      response.setStatus(404);
       throw new IOException("User must be logged in.");
     }
 
@@ -116,8 +117,7 @@ public class BlobServlet extends HttpServlet {
             "No parent image with that name exists for this project or this project does not exist.");
       }
       if (mode == "create") {
-        Key parentEntityKey =
-            existingImg.asSingleEntity().getKey();
+        Key parentEntityKey = existingImg.asSingleEntity().getKey();
         imgEntity = new Entity("Mask", parentEntityKey);
       } else {
         assetParentKey = existingImg.asSingleEntity().getKey();
@@ -175,7 +175,7 @@ public class BlobServlet extends HttpServlet {
     List<BlobKey> blobKeys = blobs.get("image");
 
     // User submitted form without selecting a file
-    Boolean hasNonEmptyImage = !(blobKeys == null || blobKeys.isEmpty());
+    Boolean hasNonEmptyImage = blobKeys != null && !blobKeys.isEmpty();
     if (!hasNonEmptyImage) {
       if (mode == "create") {
         throw new IOException("User submitted form without selecting a file.");
@@ -243,7 +243,7 @@ public class BlobServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
-    response.setContentType("application/json");
+    response.setContentType("applciation/json");
 
     UserService userService = UserServiceFactory.getUserService();
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -251,34 +251,61 @@ public class BlobServlet extends HttpServlet {
     String uid = userService.getCurrentUser().getUserId();
 
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/imgmanip.html");
       return;
     }
-    Query userQuery = new Query("User");
-    Filter propertyFilter =
-        new FilterPredicate("uid", FilterOperator.EQUAL, uid);
-
-    userQuery.setFilter(propertyFilter);
-
-    PreparedQuery user = datastore.prepare(userQuery);
-
-    Entity userEntity = user.asSingleEntity();
-
-    Query imageQuery = new Query("Image").setAncestor(userEntity.getKey());
 
     PreparedQuery storedBlobKeys = datastore.prepare(imageQuery);
 
-    ArrayList<String> blobKeys = new ArrayList<String>();
+    ArrayList<ImageInfo> imageObjects = new ArrayList<ImageInfo>();
 
-    for (Entity entity : storedBlobKeys.asIterable()) {
-      String url =
-          "/blob-host?blobkey=" + (String)entity.getProperty("blobkey");
-      blobKeys.add(url);
+    for (Entity imageEntity : storedImages.asIterable()) {
+      String imageUrl =
+          "/blob-host?blobkey=" + (String)imageEntity.getProperty("url");
+      String imageName = (String)imageEntity.getProperty("name");
+      String imageTime = (String)imageEntity.getProperty("utc");
+      ArrayList<String> imageTags =
+          (ArrayList<String>)imageEntity.getProperty("tags");
+      
+      ArrayList<MaskInfo> imageMasks = new ArrayList<MaskInfo>();
+      Query maskQuery = new Query("Mask").setAncestor(entity.getKey());
+      PreparedQuery storedMasks = datastore.prepare(maskQuery);
+
+      for (Entity maskEntity : storedMasks.asIterable()) {
+        String maskUrl =
+            "/blob-host?blobkey=" + (String)maskEntity.getProperty("url");
+        String maskName = (String)maskEntity.getProperty("name");
+        String maskTime = (String)maskEntity.getProperty("utc");
+        ArrayList<String> maskTags =
+            (ArrayList<String>)maskEntity.getProperty("tags");
+        imageMasks.add(new MaskInfo(maskUrl, maskName, masktime, maskTags));
+      }
+
+      imageObjects.add(
+          new ImageInfo(imageUrl, imageName, imageTime, imageTags, imageMasks));
     }
 
     Gson gson =
         new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    String jsonBlobKeys = gson.toJson(blobKeys);
-    response.getWriter().println(jsonBlobKeys);
+    String jsonImages = gson.toJson(imageObjects);
+    response.getWriter().println(jsonImages);
+
+    /*
+    Get
+    Required parameters
+    proj-id
+    Optional parameters
+    label
+    img-name
+    with-masks	Boolean
+    Default return: JSON of all image links and names for given project if it
+    belongs to logged-in user or is public Name, owners, and time last updated
+    included as first element E.g. [ {name: myProject, owners: dtjanaka, time:
+    2020-07-29T20:09:02+0000}, {link: abc.xyz, name: alphabet}, {link:
+    google.com, name: g} ] proj-id + img-name provided: JSON of image link and
+    name
+    + with-masks = “true”: image and mask links and names (with-masks = “false”
+    by default) First index is for the image label: without masks, filters for
+    images; with masks (and necessarily img-name), filters masks for img-name
+    */
   }
 }
