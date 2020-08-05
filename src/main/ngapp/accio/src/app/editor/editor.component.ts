@@ -27,13 +27,14 @@ export class EditorComponent implements OnInit {
   hiddenCanvas: ElementRef<HTMLCanvasElement>; 
   private hiddenCtx: CanvasRenderingContext2D;
 
-  private innerHeight: number;
   //  To trim image scale so image is smaller than width and height.
-
   private scaleFactor = .9;
-  image = new Image();
+  private image: HTMLImageElement;
+  private innerHeight: number;
+  private maskData: ImageData;
 
   ngOnInit() {
+    this.image = new Image();
     this.innerHeight = window.innerHeight;
     //returns url user clicked in gallery component
     this.route.paramMap.subscribe(params => {
@@ -78,11 +79,16 @@ export class EditorComponent implements OnInit {
       this.scaleFactor =  1;
     }
 
-    //adjust canvas to image width and height, use stx. scale to show the image larger than it is. 
-    this.canvas.nativeElement.width = this.image.width * this.scaleFactor;
-    this.canvas.nativeElement.height = this.image.height * this.scaleFactor;
+    let scaleWidth = this.image.width * this.scaleFactor;
+    let scaleHeight = this.image.height * this.scaleFactor;
 
+    //adjust canvas to scaled image width and height, use ctx. 
+    this.canvas.nativeElement.width = scaleWidth;
+    this.canvas.nativeElement.height = scaleHeight;
     this.ctx.scale(this.scaleFactor, this.scaleFactor); 
+
+    //  initalize transparent black image data to use for mask
+    this.maskData = new ImageData(scaleWidth,  scaleHeight);
     
     this.image.onload = () => {
       this.ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
@@ -100,4 +106,11 @@ export class EditorComponent implements OnInit {
     return this.hiddenCtx.getImageData(0,0, this.image.width, this.image.height);
   }
 
+  public getMaskData(): ImageData {
+    return this.maskData;
+  }
+
+  public getScaledData(): ImageData {
+    return this.ctx.getImageData(0, 0, this.image.width * this.scaleFactor, this.image.height * this.scaleFactor);
+  }
 }

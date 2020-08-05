@@ -7,6 +7,8 @@ import { MagicWandService } from './magic-wand.service';
 export class MaskDirective {
   @Input() scale: number;
   @Input() originalData: ImageData;
+  @Input() scaledData: ImageData;
+  @Input() maskData: ImageData;
 
   // create direct reference of canvas on editor.html
   constructor(
@@ -24,7 +26,7 @@ export class MaskDirective {
     
     //  TODO-MASK This will need to be @Input() from editor component as ctx to the scaled image once we have 
     //    a master list of pixels in the mask in magic-wand-service
-    let imgData = this.ctx.getImageData(0,0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+    let imgData = this.scaledData;//this.ctx.getImageData(0,0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
 
     // tolerance will come from user input
     const tolerance = 20;
@@ -52,12 +54,9 @@ export class MaskDirective {
     this.ctx.clearRect(0,0,this.canvas.nativeElement.width, this.canvas.nativeElement.height);
     
     //  new imagedata creates transparent black rectangle, 
-    //  TODO-MASK: Pass in image data reference to mask image ctx as well to reduce the need to redraw
-    //    every pixel each time
-    let img = new ImageData(imgData.width, imgData.height);
+    let img = this.maskData;
 
     // access all pixels in original mask, scale them up to image on UI width
-    // TODO-MASK: Need flood fill to pass back total mask, not just new one created, used for undo/redo as well
     for (let pixel of maskPixels) {
       let y = this.getY(this.originalData.width, pixel);
       let x = this.getX(this.originalData.width, pixel, y);
@@ -102,6 +101,7 @@ export class MaskDirective {
     // restore original image (imgData)
     this.ctx.putImageData(imgData, 0, 0);
     this.ctx.save();
+
     //make a new image to add
     this.ctx.globalAlpha = alphaValue;    
     let maskImage = new Image();
