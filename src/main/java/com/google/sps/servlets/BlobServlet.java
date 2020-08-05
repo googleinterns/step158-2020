@@ -50,12 +50,13 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      throw new IOException("User must be logged in.");
+      response.sendRedirect("/[login page]"); // placeholder for login page
     }
 
     // Mode is a required parameter
     String mode = request.getParameter("mode");
-    if (mode == null || (mode != "create" && mode != "update")) {
+    if (DataUtils.isEmptyParameter(mode) ||
+        (mode != "create" && mode != "update")) {
       throw new IOException("Invalid mode.");
     }
     Boolean isCreateMode = (mode.toLowerCase().equals("create"));
@@ -63,13 +64,13 @@ public class BlobServlet extends HttpServlet {
     // Check if working with image or mask
     String parentImg = request.getParameter("parent-img");
     Boolean isMask = false;
-    if (parentImg != null) {
+    if (!DataUtils.isEmptyParameter(parentImg)) {
       isMask = true;
     }
 
     // Get the image name entered by the user
     String imgName = request.getParameter("img-name");
-    if (imgName == null) {
+    if (DataUtils.isEmptyParameter(imgName)) {
       throw new IOException("Image name must be provided.");
     }
 
@@ -80,19 +81,13 @@ public class BlobServlet extends HttpServlet {
     try {
       projEntity = datastore.get(projKey);
     } catch (Exception e) {
-      response.sendRedirect("/");
-      return;
+      throw new IOException(
+          "You do not have permission to access this project.");
     }
     String uEmail = userService.getCurrentUser().getEmail();
     Key assetParentKey = projKey;
     Entity imgEntity = new Entity("Image", projKey);
 
-    try {
-      projEntity = datastore.get(projKey);
-    } catch (Exception e) {
-      response.sendRedirect("/");
-      return;
-    }
     ArrayList<String> owners =
         (ArrayList<String>)projEntity.getProperty("owners");
     ArrayList<String> editors =
@@ -100,7 +95,7 @@ public class BlobServlet extends HttpServlet {
     String existingVis = (String)projEntity.getProperty("visibility");
     if (!owners.contains(uEmail) && !editors.contains(uEmail)) {
       throw new IOException(
-          "User does not have permission to edit the project.");
+          "You does not have permission to edit the project.");
     }
 
     // Asset to update must already exist
@@ -112,8 +107,7 @@ public class BlobServlet extends HttpServlet {
       PreparedQuery existingImg = datastore.prepare(imgQuery);
 
       if (existingImg.countEntities() == 0) {
-        throw new IOException(
-            "No parent image with that name exists for this project or this project does not exist.");
+        throw new IOException("Image not found.");
       }
       if (isCreateMode) {
         Key parentEntityKey = existingImg.asSingleEntity().getKey();
@@ -128,8 +122,9 @@ public class BlobServlet extends HttpServlet {
         PreparedQuery existingMask = datastore.prepare(maskQuery);
 
         if (existingMask.countEntities() == 0) {
-          throw new IOException(
-              "No mask with that name exists to update for this project.");
+          response.sendRedirect("/");
+          return;
+          throw new IOException("Image not found.");
         }
         imgEntity = existingMask.asSingleEntity();
       }
@@ -141,8 +136,7 @@ public class BlobServlet extends HttpServlet {
       PreparedQuery existingImg = datastore.prepare(imgQuery);
 
       if (existingImg.countEntities() == 0) {
-        throw new IOException(
-            "No image with that name exists to update for this project or this project does not exist.");
+        throw new IOException("No image found.");
       }
       imgEntity = existingImg.asSingleEntity();
     }
@@ -156,13 +150,13 @@ public class BlobServlet extends HttpServlet {
         throw new IOException("Only owners can delete assets.");
       } else {
         datastore.delete(imgEntity.getKey());
-        response.sendRedirect("/");
+        response.sendRedirect("/[project homepage]"); //placeholder for project homepage
         return;
       }
     }
 
     if (isCreateMode && !isOwner && !isMask) {
-      throw new IOException("Only owners can add new images.");
+      throw new IOException("You do not have permission to do that.");
     }
 
     BlobstoreService blobstoreService =
@@ -174,11 +168,11 @@ public class BlobServlet extends HttpServlet {
     Boolean hasNonEmptyImage = blobKeys != null && !blobKeys.isEmpty();
     if (!hasNonEmptyImage) {
       if (isCreateMode) {
-        throw new IOException("User submitted form without selecting a file.");
+        throw new IOException("Form submitted without a file.");
       }
     } else if (!isCreateMode && !isMask) {
       blobstoreService.delete(blobKeys.get(0));
-      throw new IOException("No upload allowed for base image update.");
+      hasNonEmptyImage = true;
     }
 
     if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
@@ -209,7 +203,7 @@ public class BlobServlet extends HttpServlet {
     String newName = request.getParameter("new-name");
 
     if (!isCreateMode) {
-      if (tags != null) {
+      if (!DataUtils.isEmptyParameter(tags)) {
         ArrayList<String> listTags =
             new ArrayList(Arrays.asList(tags.toLowerCase().split("\\s*,\\s*")));
         LinkedHashSet<String> hashTags = new LinkedHashSet<String>(listTags);
@@ -217,7 +211,7 @@ public class BlobServlet extends HttpServlet {
         imgEntity.setProperty("tags", uniqueTags);
       }
 
-      if (newName != null) {
+      if (!DataUtils.isEmptyParameter(newName)) {
         Query nameQuery =
             new Query((isMask) ? "Mask" : "Image").setAncestor(assetParentKey);
         Filter nameFilter =
@@ -247,6 +241,7 @@ public class BlobServlet extends HttpServlet {
     String uEmail = userService.getCurrentUser().getEmail();
 
     if (!userService.isUserLoggedIn()) {
+      response.redirect("/");
       return;
     }
 
@@ -266,18 +261,18 @@ public class BlobServlet extends HttpServlet {
         (ArrayList<String>)projEntity.getProperty("editors");
     String existingVis = (String)projEntity.getProperty("visibility");
     if (!owners.contains(uEmail) && !editors.contains(uEmail) &&
-        !existingVis.equals(dataUtils.PUBLIC)) {
+        !existingVis.equals(DataUtils.PUBLIC)) {
       response.sendRedirect("/");
       return;
     }
 
     Boolean withMasks =
-          Boolean.parseBoolean(request.getParameter("with-masks"));
+        Boolean.parseBoolean(request.getParameter("with-masks"));
     String tag = request.getParameter("tag");
     Query imageQuery = new Query("Image").setAncestor(projKey);
-    if (!dataUtils.isEmptyParameter(tag) && !withMasks) {
-        Filter tagFilter = new FilterPredicate("tags", FilterOperator.EQUAL, tag);
-        imageQuery.setFilter(tagFilter);
+    if (!DataUtils.isEmptyParameter(tag) && !withMasks) {
+      Filter tagFilter = new FilterPredicate("tags", FilterOperator.EQUAL, tag);
+      imageQuery.setFilter(tagFilter);
     }
     PreparedQuery storedImages = datastore.prepare(imageQuery);
 
