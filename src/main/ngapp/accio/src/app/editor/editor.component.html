@@ -1,4 +1,6 @@
 <div id="img-editor">
-  <canvas #canvas>
+  <canvas #canvas appMask [scale]="getScaleFactor()" [originalData]="getImgData()">
+  </canvas>
+  <canvas #hiddenCanvas style="display:none">
   </canvas>
 </div>
