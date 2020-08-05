@@ -26,7 +26,7 @@ export class MaskDirective {
     // tolerance will come from user input
     const tolerance = 20;
 
-    // returns an array indicies of each pixel in the mask
+    // returns an array indices of each pixel in the mask
     const maskPixels = this.magicWandService.floodfill(this.originalData, Math.floor(xCoord / this.scale), Math.floor(yCoord / this.scale), tolerance);
 
     // alpha value hardcoded for now
@@ -132,7 +132,6 @@ export class MaskDirective {
   * Returns index of start of pixel at @x, @y
   * (which represents the red attribute of that pixel)
   * Important: Returns array of number representing indices.
-  * First element contains value of index for attribute: red and so on
   */
   private getPixel(x: number, y: number, width: number): number {
     return (x + (y * width)) * 4;
