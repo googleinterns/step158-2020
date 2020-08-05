@@ -106,10 +106,12 @@ export class EditorComponent implements OnInit {
     return this.hiddenCtx.getImageData(0,0, this.image.width, this.image.height);
   }
 
+  /** returns black transparent ImageData for single mask image */
   public getMaskData(): ImageData {
     return this.maskData;
   }
 
+  /** returns the scaled images data for reference printing scaled image after mask*/
   public getScaledData(): ImageData {
     return this.ctx.getImageData(0, 0, this.image.width * this.scaleFactor, this.image.height * this.scaleFactor);
   }
