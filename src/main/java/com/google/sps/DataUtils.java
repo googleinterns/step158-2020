@@ -1,6 +1,9 @@
 package com.google.sps.servlets;
 
-public final class dataUtils {
+/**
+ * Provides utilities for servlets interacting with the database
+ */
+public final class DataUtils {
   public static final String ASCENDING_SORT = "asc";
   public static final String DESCENDING_SORT = "dsc";
   public static final String PRIVATE = "private";
@@ -10,5 +13,5 @@ public final class dataUtils {
     return param == null || param.isEmpty();
   }
 
-  private dataUtils() {}
+  private DataUtils() {}
 }
