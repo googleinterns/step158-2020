@@ -31,7 +31,6 @@ export class MaskDirective {
 
     // alpha value hardcoded for now
     this.drawMask(maskPixels, imgData, 1);
-    this.reverse(imgData, 1)
   }
 
   /**
