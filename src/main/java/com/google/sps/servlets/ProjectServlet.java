@@ -28,6 +28,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Handles POST and GET requests for projects
+ * Allows creation and update of projects
+ * Supports queries for projects based on various parameters
+ */
 @WebServlet("/projects")
 public class ProjectServlet extends HttpServlet {
 
