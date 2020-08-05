@@ -3,8 +3,6 @@
   position: relative;
   text-align: center;
   top: 200px;
-  /* padding-right: 5vw;
-  padding-left: 5vw; */
   padding-bottom: 100px;
   padding-top: 100px;
   background-color: #333333;
@@ -12,6 +10,7 @@
 }
 
 canvas {
+  border: 1px solid black;
   background-color: white;
 }
 

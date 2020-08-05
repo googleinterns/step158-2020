@@ -29,6 +29,7 @@ export class EditorComponent implements OnInit {
 
   private innerHeight: number;
   //  To trim image scale so image is smaller than width and height.
+
   private scaleFactor = .9;
   image = new Image();
 
