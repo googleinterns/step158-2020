@@ -34,6 +34,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Handles POST and GET requests for images
+ * Allows creation and update of images and masks
+ * Supports queries for images based on various parameters
+ */
 @WebServlet("/blobs")
 public class BlobServlet extends HttpServlet {
 
