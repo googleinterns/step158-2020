@@ -100,7 +100,7 @@ export class MaskDirective {
   */
   private drawImageAndMask(imgData: ImageData, mask: string, alphaValue: number): void {
     // restore original image (imgData)
-    //this.ctx.putImageData(imgData, 0, 0);
+    this.ctx.putImageData(imgData, 0, 0);
     this.ctx.save();
     //make a new image to add
     this.ctx.globalAlpha = alphaValue;    
