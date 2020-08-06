@@ -6,14 +6,45 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./top-bar.component.css']
 })
 export class TopBarComponent implements OnInit {
+  SIGN_OUT = 'Sign Out';
+  SIGN_IN = 'Sign In';
+
+  buttonText: string = this.SIGN_OUT;
+  buttonLink: string;
 
   constructor() { }
 
   ngOnInit(): void {
+    this.handleLogin();
   }
 
-  loggedIn = false;
-  toggleButton() {
-    this.loggedIn = !this.loggedIn;
+  async handleLogin() {
+    console.log('handling login...');
+    let response = await fetch('/login-status?page=');
+    /**Content received contains 
+     * {loggedIn: boolean,
+     * url: string} 
+     */
+    let content = await response.json();
+
+    // TODO uncomment this code once UI team creates intro component:
+    // If !loggedIn redirect to intro.html
+    // if (!content.loggedIn) {
+    //   location.href = '/intro';
+    // }
+
+    document.getElementById('login-button').onclick = () => {
+      console.log('click registered...');
+      this.toggleButton(content.loggedIn, content.url);
+      location.href = this.buttonLink;
+    };
+  }
+
+  /**Sets the appropriate text and redirects url for the button
+   * based on if the user is logged in or not.
+   */
+  toggleButton(loggedIn: boolean, url: string): void {
+    this.buttonText = loggedIn ? this.SIGN_OUT : this.SIGN_IN;
+    this.buttonLink = url;
   }
 }
