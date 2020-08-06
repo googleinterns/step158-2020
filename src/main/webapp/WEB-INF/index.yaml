@@ -1,14 +1,50 @@
-#gcloud datastore indexes create ~/step/portfolio/src/main/webapp/WEB-INF/index.yaml
+#gcloud datastore indexes create ~/accio/src/main/webapp/WEB-INF/index.yaml
 
 indexes:
 
-- kind: Comment
+- kind: Project
   properties:
-  - name: uid
-  - name: iso8601
+  - name: owners
+  - name: visibility
+  - name: utc
     direction: desc
 
-- kind: Comment
+- kind: Project
   properties:
-  - name: uid
-  - name: iso8601
+  - name: editors
+  - name: visibility
+  - name: utc
+    direction: desc
+
+- kind: Project
+  properties:
+  - name: owners
+  - name: utc
+    direction: desc
+
+- kind: Project
+  properties:
+  - name: editors
+  - name: utc
+    direction: desc
+
+- kind: Project
+  properties:
+  - name: owners
+  - name: utc
+
+- kind: Project
+  properties:
+  - name: editors
+  - name: utc
+
+- kind: Project
+  properties:
+  - name: visibility
+  - name: utc
+    direction: desc
+
+- kind: Project
+  properties:
+  - name: visibility
+  - name: utc
