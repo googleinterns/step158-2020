@@ -48,17 +48,16 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect(
-          "/[login page]"); // placeholder: should redirect to login
+      response.sendRedirect("/"); // placeholder: should redirect to login
       return;
     }
 
     // Mode is a required parameter
-    Boolean isCreateMode = DataUtils.parseMode(request, response);
+    boolean isCreateMode = DataUtils.parseMode(request, response);
 
     // Check if working with image or mask
     String parentImg = request.getParameter("parent-img");
-    Boolean isMask = !DataUtils.isEmptyParameter(parentImg);
+    boolean isMask = !DataUtils.isEmptyParameter(parentImg);
 
     String now = Instant.now().toString();
 
@@ -102,13 +101,13 @@ public class BlobServlet extends HttpServlet {
     // Owners have additional permissions
     ArrayList<String> owners =
         (ArrayList<String>)projEntity.getProperty("owners");
-    Boolean isOwner = owners.contains(uEmail);
+    boolean isOwner = owners.contains(uEmail);
 
     if (isCreateMode && !isOwner && !isMask) {
       throw new IOException("You do not have permission to do that.");
     }
 
-    Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
+    boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
     if (delete && !isCreateMode) {
       if (!isOwner) {
         throw new IOException("Only owners can delete assets.");
@@ -126,7 +125,7 @@ public class BlobServlet extends HttpServlet {
     List<BlobKey> blobKeys = blobs.get("image");
 
     // User submitted form without selecting a file
-    Boolean hasNonEmptyImage = blobKeys != null && !blobKeys.isEmpty();
+    boolean hasNonEmptyImage = blobKeys != null && !blobKeys.isEmpty();
     if (!hasNonEmptyImage) {
       if (isCreateMode) {
         throw new IOException("Form submitted without a file.");
@@ -194,7 +193,7 @@ public class BlobServlet extends HttpServlet {
     Entity projEntity = DataUtils.getProjectEntity(projId, uEmail, true, true);
     Key projKey = projEntity.getKey();
 
-    Boolean withMasks =
+    boolean withMasks =
         Boolean.parseBoolean(request.getParameter("with-masks"));
     String tag = request.getParameter("tag");
     Query imageQuery = new Query(DataUtils.IMAGE).setAncestor(projKey);
@@ -247,7 +246,7 @@ public class BlobServlet extends HttpServlet {
     Optional parameters
     tag
     img-name
-    with-masks	Boolean
+    with-masks	boolean
     Default return: JSON of all image links and names for given project if it
     belongs to logged-in user or is public Name, owners, and time last updated
     included as first element E.g. [ {name: myProject, owners: dtjanaka, time:
@@ -262,7 +261,7 @@ public class BlobServlet extends HttpServlet {
     */
   }
 
-  private Boolean isValidFile(BlobKey blobKey, Boolean isMask)
+  private boolean isValidFile(BlobKey blobKey, boolean isMask)
       throws IOException {
     BlobstoreService blobstoreService =
         BlobstoreServiceFactory.getBlobstoreService();

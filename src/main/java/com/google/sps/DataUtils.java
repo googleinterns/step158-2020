@@ -33,9 +33,9 @@ public final class DataUtils {
   /**
    * Determines if the given request parameter is empty.
    * @param     {String}    param   request parameter
-   * @return    {Boolean}
+   * @return    {boolean}
    */
-  public static Boolean isEmptyParameter(String param) {
+  public static boolean isEmptyParameter(String param) {
     return param == null || param.isEmpty();
   }
 
@@ -63,9 +63,9 @@ public final class DataUtils {
    * Parses mode for POST requests and returns whether the mode is create.
    * @param     {HttpServeletRequest}   request   the HTTP request
    * @param     {HttpServeletResponse}  response   the HTTP response
-   * @return    {Boolean}
+   * @return    {boolean}
    */
-  public static Boolean parseMode(HttpServletRequest request,
+  public static boolean parseMode(HttpServletRequest request,
                                   HttpServletResponse response)
       throws IOException {
     String mode = request.getParameter("mode");
@@ -81,15 +81,15 @@ public final class DataUtils {
    * @param     {String}        projId          the Datastore key String for
    *                                            the working project
    * @param     {String}        uEmail          the User's email
-   * @param     {Boolean}       accessIfEditor  whether editors can access
-   * @param     {Boolean}       accessIfPublic  whether the project can be
+   * @param     {boolean}       accessIfEditor  whether editors can access
+   * @param     {boolean}       accessIfPublic  whether the project can be
                                                 used for the current action
                                                 given it is public
    * @return    {Entity}
    */
   public static Entity getProjectEntity(String projId, String uEmail,
-                                        Boolean accessIfEditor,
-                                        Boolean accessIfPublic)
+                                        boolean accessIfEditor,
+                                        boolean accessIfPublic)
       throws IOException {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
@@ -110,10 +110,10 @@ public final class DataUtils {
         (ArrayList<String>)projEntity.getProperty("editors");
     String existingVis = (String)projEntity.getProperty("visibility");
 
-    Boolean isOwner = owners.contains(uEmail);
-    Boolean isEditor =
+    boolean isOwner = owners.contains(uEmail);
+    boolean isEditor =
         accessIfEditor && editors != null && editors.contains(uEmail);
-    Boolean isPublic = accessIfPublic && existingVis.equals(PUBLIC);
+    boolean isPublic = accessIfPublic && existingVis.equals(PUBLIC);
 
     if (!isOwner && !isEditor && !isPublic) {
       throw new IOException(

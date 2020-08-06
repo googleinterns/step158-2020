@@ -48,7 +48,7 @@ public class ProjectServlet extends HttpServlet {
     }
 
     // Mode is a required parameter
-    Boolean isCreateMode = DataUtils.parseMode(request, response);
+    boolean isCreateMode = DataUtils.parseMode(request, response);
 
     String uEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
@@ -62,7 +62,7 @@ public class ProjectServlet extends HttpServlet {
       projEntity = DataUtils.getProjectEntity(projId, uEmail, false, false);
 
       // Delete overrides all other updates
-      Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
+      boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
       if (delete) {
         datastore.delete(projEntity.getKey());
         response.sendRedirect("/"); // placeholder: should redirect to projects gallery
@@ -189,7 +189,7 @@ public class ProjectServlet extends HttpServlet {
       String role = request.getParameter("role");
       String visibility = request.getParameter("visibility");
       // Global overrides visibility and role
-      Boolean global = Boolean.parseBoolean(request.getParameter("global"));
+      boolean global = Boolean.parseBoolean(request.getParameter("global"));
       if (global) {
         visibility = DataUtils.PUBLIC;
         role = "viewer";

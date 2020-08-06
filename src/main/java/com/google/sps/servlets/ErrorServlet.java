@@ -7,6 +7,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Handles errors and exceptions.
+ */
 @WebServlet("/error")
 public class ErrorServlet extends HttpServlet {
 

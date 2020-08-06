@@ -10,6 +10,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Sends back the login status of User and a login/logout link.
+ */
 @WebServlet("/login-status")
 public class Login extends HttpServlet {
   @Override
