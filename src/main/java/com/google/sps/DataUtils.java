@@ -90,7 +90,7 @@ public final class DataUtils {
     String existingVis = (String)projEntity.getProperty("visibility");
 
     Boolean isOwner = owners.contains(uEmail);
-    Boolean isEditor = accessIfEditor && editors.contains(uEmail);
+    Boolean isEditor = accessIfEditor && editors != null && editors.contains(uEmail);
     Boolean isPublic = accessIfPublic && existingVis.equals(PUBLIC);
 
     if (!isOwner && !isEditor && !isPublic) {

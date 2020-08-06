@@ -26,7 +26,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.annotation.WebServlet;
@@ -63,7 +62,9 @@ public class BlobServlet extends HttpServlet {
 
     // Get the image name entered by the user
     String imgName = request.getParameter("img-name");
-    if (DataUtils.isEmptyParameter(imgName)) {
+    if (DataUtils.isEmptyParameter(
+            imgName)) { // TODO don't fail on create, assign Untitled name a la
+                        // projects
       throw new IOException("Image name must be provided.");
     }
 
@@ -97,6 +98,10 @@ public class BlobServlet extends HttpServlet {
         (ArrayList<String>)projEntity.getProperty("owners");
     Boolean isOwner = owners.contains(uEmail);
 
+    if (isCreateMode && !isOwner && !isMask) {
+      throw new IOException("You do not have permission to do that.");
+    }
+
     Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
     if (delete && !isCreateMode) {
       if (!isOwner) {
@@ -109,14 +114,10 @@ public class BlobServlet extends HttpServlet {
       }
     }
 
-    if (isCreateMode && !isOwner && !isMask) {
-      throw new IOException("You do not have permission to do that.");
-    }
-
     BlobstoreService blobstoreService =
         BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
-    List<BlobKey> blobKeys = blobs.get(DataUtils.IMAGE);
+    List<BlobKey> blobKeys = blobs.get("image");
 
     // User submitted form without selecting a file
     Boolean hasNonEmptyImage = blobKeys != null && !blobKeys.isEmpty();
@@ -138,33 +139,35 @@ public class BlobServlet extends HttpServlet {
     }
 
     String now = Instant.now().toString();
-    imgEntity.setProperty("name", imgName);
+    imgEntity.setProperty("name", imgName); // TODO check for duplicates before
+                                            // setting here and add time if dupe
     imgEntity.setProperty("utc", now);
     projEntity.setProperty("utc", now);
 
     String tags = request.getParameter("tags");
-    String newName = request.getParameter("new-name");
+    if (!DataUtils.isEmptyParameter(tags)) {
+      ArrayList<String> listTags =
+          new ArrayList(Arrays.asList(DataUtils.parseCommaList(tags)));
+      imgEntity.setProperty("tags", DataUtils.withDuplicatesRemoved(listTags));
+    }
 
     if (!isCreateMode) {
-      if (!DataUtils.isEmptyParameter(tags)) {
-        ArrayList<String> listTags =
-            new ArrayList(Arrays.asList(DataUtils.parseCommaList(tags)));
-        imgEntity.setProperty("tags", DataUtils.withDuplicatesRemoved(listTags));
-      }
-
+      String newName = request.getParameter("new-name");
       if (!DataUtils.isEmptyParameter(newName)) {
         try {
-            getAssetEntity((isMask) ? DataUtils.MASK : DataUtils.IMAGE, assetParentKey, newName);
-            newName += now;
-            imgEntity.setProperty("name", newName);
-        } catch (Exception e) { 
-            imgEntity.setProperty("name", newName);
+          getAssetEntity((isMask) ? DataUtils.MASK : DataUtils.IMAGE,
+                         assetParentKey, newName);
+          newName += now;
+          imgEntity.setProperty("name", newName);
+        } catch (Exception e) {
+          imgEntity.setProperty("name", newName);
         }
       }
     }
 
     datastore.put(Arrays.asList(imgEntity, projEntity));
-    response.sendRedirect("/");
+    response.sendRedirect(
+        "/imgupload.html"); // placeholder for redirect after successful upload
   }
 
   @Override
@@ -266,7 +269,7 @@ public class BlobServlet extends HttpServlet {
                                  "gif", "bmp", "ico", "cur", "svg", "webp"));
 
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
-    String[] splitFilename = blobInfo.getFilename().split(".");
+    String[] splitFilename = blobInfo.getFilename().split("\\.");
     String extension = splitFilename[splitFilename.length - 1].toLowerCase();
     if (blobInfo.getSize() == 0 || !validExtensions.contains(extension)) {
       blobstoreService.delete(blobKey);
