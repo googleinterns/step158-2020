@@ -53,7 +53,7 @@ export class MaskDirective {
     //    when initialized, alpha value must start at 1 to set properly. 
     this.ctx.globalAlpha = 1;
 
-    // Access all pixels in original mask and add alpha value so their 
+    // Access all pixels in the original mask and add alpha value so they're visable.
     for (let pixel of maskPixels) {
       this.maskData.data[pixel + 3] = 255;
     } 
