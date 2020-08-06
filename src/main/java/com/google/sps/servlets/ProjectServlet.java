@@ -111,7 +111,7 @@ public class ProjectServlet extends HttpServlet {
     if (isCreateMode || !DataUtils.isEmptyParameter(ownersString)) {
       ArrayList<String> listOwnerEmails = new ArrayList<String>();
       if (!DataUtils.isEmptyParameter(ownersString)) {
-        listOwnerEmails = DataUtils.parseEmails(ownersString);
+        listOwnerEmails = DataUtils.parseCommaList(ownersString);
       }
       listOwnerEmails.add(uEmail);
       projEntity.setIndexedProperty(
@@ -120,7 +120,7 @@ public class ProjectServlet extends HttpServlet {
 
     // If anything provided for editors, overwrite current editors
     if (!DataUtils.isEmptyParameter(editorsString)) {
-      ArrayList<String> listEditorEmails = DataUtils.parseEmails(editorsString);
+      ArrayList<String> listEditorEmails = DataUtils.parseCommaList(editorsString);
       projEntity.setIndexedProperty(
           "editors", DataUtils.withDuplicatesRemoved(listEditorEmails));
     }

@@ -77,20 +77,18 @@ public class BlobServlet extends HttpServlet {
 
     // Asset to update must already exist
     if (isMask) {
-      Entity existingImg =
-          DataUtils.getAssetEntity(DataUtils.IMAGE, projKey, parentImg);
+      Entity existingImg = getAssetEntity(DataUtils.IMAGE, projKey, parentImg);
 
       if (isCreateMode) {
         Key parentEntityKey = existingImg.getKey();
         imgEntity = new Entity(DataUtils.MASK, parentEntityKey);
       } else {
         assetParentKey = existingImg.getKey();
-        imgEntity =
-            DataUtils.getAssetEntity(DataUtils.MASK, assetParentKey, imgName);
+        imgEntity = getAssetEntity(DataUtils.MASK, assetParentKey, imgName);
       }
     } else {
       if (!isCreateMode) {
-        imgEntity = DataUtils.getAssetEntity(DataUtils.IMAGE, projKey, imgName);
+        imgEntity = getAssetEntity(DataUtils.IMAGE, projKey, imgName);
       }
     }
 
@@ -131,23 +129,12 @@ public class BlobServlet extends HttpServlet {
       hasNonEmptyImage = true;
     }
 
+    BlobKey blobKey = blobKeys.get(0);
+
     if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
-      ArrayList<String> validExtensions = new ArrayList<String>(
-          (isMask) ? Arrays.asList("png")
-                   : Arrays.asList("png", "jpg", "jpeg", "jfif", "pjpeg", "pjp",
-                                   "gif", "bmp", "ico", "cur", "svg", "webp"));
-
-      // Check validity of blob key
-      BlobKey blobKey = blobKeys.get(0);
-      BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
-      String[] splitFilename = blobInfo.getFilename().split(".");
-      String extension = splitFilename[splitFilename.length - 1].toLowerCase();
-      if (blobInfo.getSize() == 0 || !validExtensions.contains(extension)) {
-        blobstoreService.delete(blobKey);
-        throw new IOException("Blobkeys invalid or file not supported.");
+      if (isValidFile(blobKey, isMask)) {
+        imgEntity.setProperty("blobkey", blobKey.getKeyString());
       }
-
-      imgEntity.setProperty("blobkey", blobKey.getKeyString());
     }
 
     String now = Instant.now().toString();
@@ -161,24 +148,18 @@ public class BlobServlet extends HttpServlet {
     if (!isCreateMode) {
       if (!DataUtils.isEmptyParameter(tags)) {
         ArrayList<String> listTags =
-            new ArrayList(Arrays.asList(tags.toLowerCase().split("\\s*,\\s*")));
-        LinkedHashSet<String> hashTags = new LinkedHashSet<String>(listTags);
-        ArrayList<String> uniqueTags = new ArrayList<String>(hashTags);
-        imgEntity.setProperty("tags", uniqueTags);
+            new ArrayList(Arrays.asList(DataUtils.parseCommaList(tags)));
+        imgEntity.setProperty("tags", DataUtils.withDuplicatesRemoved(listTags));
       }
 
       if (!DataUtils.isEmptyParameter(newName)) {
-        Query nameQuery = new Query((isMask) ? DataUtils.MASK : DataUtils.IMAGE)
-                              .setAncestor(assetParentKey);
-        Filter nameFilter =
-            new FilterPredicate("name", FilterOperator.EQUAL, newName);
-        nameQuery.setFilter(nameFilter);
-        PreparedQuery existingName = datastore.prepare(nameQuery);
-
-        if (existingName.countEntities() != 0) {
-          newName += now;
+        try {
+            getAssetEntity((isMask) ? DataUtils.MASK : DataUtils.IMAGE, assetParentKey, newName);
+            newName += now;
+            imgEntity.setProperty("name", newName);
+        } catch (Exception e) { 
+            imgEntity.setProperty("name", newName);
         }
-        imgEntity.setProperty("name", newName);
       }
     }
 
@@ -272,5 +253,42 @@ public class BlobServlet extends HttpServlet {
     tag: without masks, filters for images; with masks (and necessarily
     img-name), filters masks for img-name
     */
+  }
+
+  private Boolean isValidFile(BlobKey blobKey, Boolean isMask)
+      throws IOException {
+    BlobstoreService blobstoreService =
+        BlobstoreServiceFactory.getBlobstoreService();
+
+    ArrayList<String> validExtensions = new ArrayList<String>(
+        (isMask) ? Arrays.asList("png")
+                 : Arrays.asList("png", "jpg", "jpeg", "jfif", "pjpeg", "pjp",
+                                 "gif", "bmp", "ico", "cur", "svg", "webp"));
+
+    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+    String[] splitFilename = blobInfo.getFilename().split(".");
+    String extension = splitFilename[splitFilename.length - 1].toLowerCase();
+    if (blobInfo.getSize() == 0 || !validExtensions.contains(extension)) {
+      blobstoreService.delete(blobKey);
+      throw new IOException("Blobkeys invalid or file not supported.");
+    }
+
+    return true;
+  }
+
+  private Entity getAssetEntity(String kind, Key ancestor, String name)
+      throws IOException {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+    Query imgQuery = new Query(kind).setAncestor(ancestor);
+    Filter imgFilter = new FilterPredicate("name", FilterOperator.EQUAL, name);
+    imgQuery.setFilter(imgFilter);
+    PreparedQuery existingImgQuery = datastore.prepare(imgQuery);
+
+    if (existingImgQuery.countEntities() == 0) {
+      throw new IOException("Image not found.");
+    }
+
+    return existingImgQuery.asSingleEntity();
   }
 }

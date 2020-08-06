@@ -49,13 +49,13 @@ public final class DataUtils {
   }
 
   /**
-   * Parses comma-separated list of emails into array
-   * @param     {String}            emails   unseparated emails
+   * Parses comma-separated list into array
+   * @param     {String}            list   unseparated text
    * @return    {ArrayList<String>}
    */
-  public static ArrayList<String> parseEmails(String emails) {
+  public static ArrayList<String> parseCommaList(String list) throws IOException {
     return new ArrayList(
-        Arrays.asList(emails.toLowerCase().split("\\s*,\\s*")));
+        Arrays.asList(list.toLowerCase().split("\\s*,\\s*")));
   }
 
   public static Boolean parseMode(HttpServletRequest request,
@@ -99,22 +99,6 @@ public final class DataUtils {
     }
 
     return projEntity;
-  }
-
-  public static Entity getAssetEntity(String kind, Key ancestor, String name)
-      throws IOException {
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-
-    Query imgQuery = new Query(kind).setAncestor(ancestor);
-    Filter imgFilter = new FilterPredicate("name", FilterOperator.EQUAL, name);
-    imgQuery.setFilter(imgFilter);
-    PreparedQuery existingImgQuery = datastore.prepare(imgQuery);
-
-    if (existingImgQuery.countEntities() == 0) {
-      throw new IOException("Image not found.");
-    }
-
-    return existingImgQuery.asSingleEntity();
   }
 
   private DataUtils() {}
