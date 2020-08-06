@@ -55,12 +55,11 @@ public class ProjectServlet extends HttpServlet {
 
     // Will be either a new entity for creation or an existing entity for
     // updating
-    Entity projEntity = new Entity("Project");
+    Entity projEntity = new Entity(DataUtils.PROJECT);
 
     if (!isCreateMode) {
       // Must be owner to update
-      Key projKey = KeyFactory.stringToKey(projId);
-      projEntity = DataUtils.getProjectEntity(projKey, uEmail, false, false);
+      projEntity = DataUtils.getProjectEntity(projId, uEmail, false, false);
 
       // Delete overrides all other updates
       Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
@@ -136,7 +135,8 @@ public class ProjectServlet extends HttpServlet {
     }
 
     datastore.put(projEntity);
-    response.sendRedirect("/"); // placeholder: should redirect to projects gallery
+    response.sendRedirect("/projects.html"); // placeholder: should redirect to 
+                                             // projects gallery
   }
 
   @Override
@@ -164,9 +164,8 @@ public class ProjectServlet extends HttpServlet {
     if (!DataUtils.isEmptyParameter(projId)) {
       // Project must be public or User must be an owner or editor for private
       // projects
-      Key projKey = KeyFactory.stringToKey(projId);
       Entity projEntity =
-          DataUtils.getProjectEntity(projKey, uEmail, true, true);
+          DataUtils.getProjectEntity(projId, uEmail, true, true);
       projects.add(projEntity);
     }
 

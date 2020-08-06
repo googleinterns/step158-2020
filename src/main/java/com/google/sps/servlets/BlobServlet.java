@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.annotation.WebServlet;
@@ -77,11 +76,11 @@ public class BlobServlet extends HttpServlet {
 
     String uEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
-    Key projKey = KeyFactory.stringToKey(projId);
+    Entity projEntity =
+        DataUtils.getProjectEntity(projId, uEmail, true, false);
+    Key projKey = projEntity.getKey();
     Key assetParentKey = projKey;
     Entity imgEntity = new Entity(DataUtils.IMAGE, projKey);
-    Entity projEntity =
-        DataUtils.getProjectEntity(projKey, uEmail, true, false);
 
     // Asset to update must already exist
     if (isMask) {
@@ -191,9 +190,9 @@ public class BlobServlet extends HttpServlet {
     }
 
     String projId = request.getParameter("proj-id");
-    Key projKey = KeyFactory.stringToKey(projId);
 
-    Entity projEntity = DataUtils.getProjectEntity(projKey, uEmail, true, true);
+    Entity projEntity = DataUtils.getProjectEntity(projId, uEmail, true, true);
+    Key projKey = projEntity.getKey();
 
     Boolean withMasks =
         Boolean.parseBoolean(request.getParameter("with-masks"));

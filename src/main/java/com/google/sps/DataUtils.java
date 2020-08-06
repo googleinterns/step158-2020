@@ -4,6 +4,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.Filter;
@@ -77,23 +78,26 @@ public final class DataUtils {
 
   /**
    * Retrieves project Entity with respect to access restrictions.
-   * @param     {Key}           projKey         the Datastore key for the
-   *                                            working project
+   * @param     {String}        projId          the Datastore key String for
+   *                                            the working project
    * @param     {String}        uEmail          the User's email
    * @param     {Boolean}       accessIfEditor  whether editors can access
-   * @param     {Boolean}       accessIfPublic  whether the project can be 
-                                                used for the current action 
+   * @param     {Boolean}       accessIfPublic  whether the project can be
+                                                used for the current action
                                                 given it is public
    * @return    {Entity}
    */
-  public static Entity getProjectEntity(Key projKey, String uEmail,
+  public static Entity getProjectEntity(String projId, String uEmail,
                                         Boolean accessIfEditor,
                                         Boolean accessIfPublic)
       throws IOException {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
     Entity projEntity = new Entity(PROJECT);
+    Key projKey = projEntity.getKey();
+
     try {
+      projKey = KeyFactory.stringToKey(projId);
       projEntity = datastore.get(projKey);
     } catch (Exception e) {
       throw new IOException(
