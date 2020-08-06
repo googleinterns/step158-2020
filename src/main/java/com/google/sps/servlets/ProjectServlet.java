@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -36,40 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/projects")
 public class ProjectServlet extends HttpServlet {
 
-  private static final String ASCENDING_SORT = "asc";
-  private static final String DESCENDING_SORT = "dsc";
-  private static final String PRIVATE = "private";
-  private static final String PUBLIC = "public";
-
-  /**
-   * Determines if the given request parameter is empty
-   * @param     {String}    param   request parameter
-   * @return    {Boolean}
-   */
-  private Boolean isEmptyParameter(String param) {
-    return param == null || param.isEmpty();
-  }
-
-  /**
-   * Removes duplicate values with a hash set
-   * @param     {ArrayList<String>} al   all values
-   * @return    {List<String>}
-   */
-  List<String> withDuplicatesRemoved(ArrayList<String> al) {
-    LinkedHashSet<String> lhs = new LinkedHashSet<String>(al);
-    return new ArrayList<String>(lhs);
-  }
-
-  /**
-   * Parses comma-separated list of emails into array
-   * @param     {String}            emails   unseparated emails
-   * @return    {ArrayList<String>}
-   */
-  ArrayList<String> parseEmails(String emails) {
-    return new ArrayList(
-        Arrays.asList(emails.toLowerCase().split("\\s*,\\s*")));
-  }
-
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
@@ -78,18 +43,12 @@ public class ProjectServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/");
+      response.sendRedirect("/[login page]"); // placeholder for login page
       return;
     }
 
     // Mode is a required parameter
-    String mode = request.getParameter("mode");
-    if (isEmptyParameter(mode) || (!mode.toLowerCase().equals("create") &&
-                                   !mode.toLowerCase().equals("update"))) {
-      response.sendRedirect("/");
-      return;
-    }
-    Boolean isCreateMode = (mode.toLowerCase().equals("create"));
+    Boolean isCreateMode = DataUtils.parseMode(request, response);
 
     String uEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
@@ -99,26 +58,9 @@ public class ProjectServlet extends HttpServlet {
     Entity projEntity = new Entity("Project");
 
     if (!isCreateMode) {
-      // Need project ID to update a project
-      if (isEmptyParameter(projId)) {
-        response.sendRedirect("/");
-        return;
-      }
-
       // Must be owner to update
-      Key projKey = KeyFactory.stringToKey(projId);
-      try {
-        projEntity = datastore.get(projKey);
-      } catch (Exception e) {
-        response.sendRedirect("/");
-        return;
-      }
-      ArrayList<String> owners =
-          (ArrayList<String>)projEntity.getProperty("owners");
-      if (!owners.contains(uEmail)) {
-        response.sendRedirect("/");
-        return;
-      }
+      Key projKey = KeyFactory.stringToKey(projId); 
+      projEntity = DataUtils.getProjectEntity(projKey, uEmail, false, false);
 
       // Delete overrides all other updates
       Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
@@ -137,7 +79,7 @@ public class ProjectServlet extends HttpServlet {
 
     // Set the project name if provided
     // If creating and nothing provided, set name to Untitled-{current UTC time}
-    if (!isEmptyParameter(projName)) {
+    if (!DataUtils.isEmptyParameter(projName)) {
       projEntity.setProperty("name", projName);
     } else {
       if (isCreateMode) {
@@ -148,12 +90,12 @@ public class ProjectServlet extends HttpServlet {
 
     // Default visibility to private (only owners and editors can view)
     String visibility = request.getParameter("visibility");
-    if (isEmptyParameter(visibility) && isCreateMode) {
-      visibility = PRIVATE;
+    if (DataUtils.isEmptyParameter(visibility) && isCreateMode) {
+      visibility = DataUtils.PRIVATE;
     }
-    if (!isEmptyParameter(visibility) &&
-        (visibility.toLowerCase().equals(PUBLIC) ||
-         visibility.toLowerCase().equals(PRIVATE))) {
+    if (!DataUtils.isEmptyParameter(visibility) &&
+        (visibility.toLowerCase().equals(DataUtils.PUBLIC) ||
+         visibility.toLowerCase().equals(DataUtils.PRIVATE))) {
       projEntity.setProperty("visibility", visibility);
     }
 
@@ -166,21 +108,21 @@ public class ProjectServlet extends HttpServlet {
     // if updating:
     //      owners are current User and any people in parameter
     //      if no one provided, change nothing
-    if (isCreateMode || !isEmptyParameter(ownersString)) {
+    if (isCreateMode || !DataUtils.isEmptyParameter(ownersString)) {
       ArrayList<String> listOwnerEmails = new ArrayList<String>();
-      if (!isEmptyParameter(ownersString)) {
-        listOwnerEmails = parseEmails(ownersString);
+      if (!DataUtils.isEmptyParameter(ownersString)) {
+        listOwnerEmails = DataUtils.parseEmails(ownersString);
       }
       listOwnerEmails.add(uEmail);
-      projEntity.setIndexedProperty("owners",
-                                    withDuplicatesRemoved(listOwnerEmails));
+      projEntity.setIndexedProperty(
+          "owners", DataUtils.withDuplicatesRemoved(listOwnerEmails));
     }
 
     // If anything provided for editors, overwrite current editors
-    if (!isEmptyParameter(editorsString)) {
-      ArrayList<String> listEditorEmails = parseEmails(editorsString);
-      projEntity.setIndexedProperty("editors",
-                                    withDuplicatesRemoved(listEditorEmails));
+    if (!DataUtils.isEmptyParameter(editorsString)) {
+      ArrayList<String> listEditorEmails = DataUtils.parseEmails(editorsString);
+      projEntity.setIndexedProperty(
+          "editors", DataUtils.withDuplicatesRemoved(listEditorEmails));
     }
 
     // Use URL-safe key as project ID
@@ -218,27 +160,11 @@ public class ProjectServlet extends HttpServlet {
     ArrayList<Entity> projects = new ArrayList<Entity>();
 
     // Searching for one project with a project ID
-    if (!isEmptyParameter(projId)) {
+    if (!DataUtils.isEmptyParameter(projId)) {
       // Project must be public or User must be an owner or editor for private
       // projects
       Key projKey = KeyFactory.stringToKey(projId);
-      Entity projEntity = new Entity("Project");
-      try {
-        projEntity = datastore.get(projKey);
-      } catch (Exception e) {
-        response.sendRedirect("/");
-        return;
-      }
-      ArrayList<String> owners =
-          (ArrayList<String>)projEntity.getProperty("owners");
-      ArrayList<String> editors =
-          (ArrayList<String>)projEntity.getProperty("editors");
-      String existingVis = (String)projEntity.getProperty("visibility");
-      if (!owners.contains(uEmail) && !editors.contains(uEmail) &&
-          !existingVis.equals(PUBLIC)) {
-        response.sendRedirect("/");
-        return;
-      }
+      Entity projEntity = DataUtils.getProjectEntity(projKey, uEmail, true, true);
       projects.add(projEntity);
     }
 
@@ -246,14 +172,15 @@ public class ProjectServlet extends HttpServlet {
     else {
       String sort = request.getParameter("sort");
       // Sorted in descending chronological order by default
-      if (isEmptyParameter(sort)) {
-        sort = DESCENDING_SORT;
+      if (DataUtils.isEmptyParameter(sort)) {
+        sort = DataUtils.DESCENDING_SORT;
       }
       sort = sort.toLowerCase();
 
       Query projQuery = new Query("Project").addSort(
-          "utc", sort.equals(ASCENDING_SORT) ? Query.SortDirection.ASCENDING
-                                             : Query.SortDirection.DESCENDING);
+          "utc", sort.equals(DataUtils.ASCENDING_SORT)
+                     ? Query.SortDirection.ASCENDING
+                     : Query.SortDirection.DESCENDING);
 
       // Add relevant filters to array based on parameters
       ArrayList<Filter> allFilters = new ArrayList<Filter>();
@@ -263,7 +190,7 @@ public class ProjectServlet extends HttpServlet {
       // Global overrides visibility and role
       Boolean global = Boolean.parseBoolean(request.getParameter("global"));
       if (global) {
-        visibility = PUBLIC;
+        visibility = DataUtils.PUBLIC;
         role = "viewer";
       }
 
@@ -275,7 +202,7 @@ public class ProjectServlet extends HttpServlet {
           CompositeFilterOperator.OR, Arrays.asList(ownFilter, editFilter));
 
       // By default, filter to only projects the User owns or edits
-      if (isEmptyParameter(role)) {
+      if (DataUtils.isEmptyParameter(role)) {
         allFilters.add(ownOrEditFilter);
       } else if (role.toLowerCase().equals("owner")) {
         allFilters.add(ownFilter);
@@ -284,9 +211,9 @@ public class ProjectServlet extends HttpServlet {
       }
 
       // Don't filter by visibility by default
-      if (!isEmptyParameter(visibility) &&
-          (visibility.toLowerCase().equals(PUBLIC) ||
-           visibility.toLowerCase().equals(PRIVATE))) {
+      if (!DataUtils.isEmptyParameter(visibility) &&
+          (visibility.toLowerCase().equals(DataUtils.PUBLIC) ||
+           visibility.toLowerCase().equals(DataUtils.PRIVATE))) {
         Filter visFilter =
             new FilterPredicate("visibility", FilterOperator.EQUAL, visibility);
         allFilters.add(visFilter);
@@ -295,7 +222,7 @@ public class ProjectServlet extends HttpServlet {
       // Don't filter by search term if not provided
       // No partial matching/regex
       String searchTerm = request.getParameter("search-term");
-      if (!isEmptyParameter(searchTerm)) {
+      if (!DataUtils.isEmptyParameter(searchTerm)) {
         Filter searchFilter = new FilterPredicate("name", FilterOperator.EQUAL,
                                                   searchTerm.toLowerCase());
         allFilters.add(searchFilter);
