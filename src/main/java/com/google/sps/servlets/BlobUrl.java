@@ -10,6 +10,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Returns a Blobstore upload link. 
+ */
 @WebServlet("/blob-upload")
 public class BlobUrl extends HttpServlet {
   @Override

@@ -13,6 +13,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Hosts Blobs directly.
+ */
 @WebServlet("/blob-host")
 public class BlobHost extends HttpServlet {
   @Override
