@@ -24,20 +24,20 @@ export class MaskDirective {
     const yCoord = e.offsetY;
     this.ctx = this.canvas.nativeElement.getContext('2d');
 
-    // tolerance will come from user input
+    // TODO(shmcaffrey): Tolerance will come from user input.
     const tolerance = 20;
 
-    //  TODO-MASK-maskPixels needs to contain cumulative set of all pixels user clicked and added to the mask
-    // returns an array indices of each pixel in the mask
+    //  TODO-MASK-maskPixels needs to contain cumulative set of all pixels user clicked and added to the mask.
+    // returns an array indices of each pixel in the mask.
     const maskPixels = this.magicWandService.floodfill(this.originalData, Math.floor(xCoord / this.scale), Math.floor(yCoord / this.scale), tolerance);
 
-    // alpha value hardcoded for now
+    // TODO(shmcaffrey): change Alpha value to incorperate user input.
     this.drawMask(maskPixels, this.scaledData, 1);
   }
 
   /**
-   *  Creates a UI mask to the user by reading in all values in the given maskPixels
-   *  Clears the canvas fisrt so the mask can be saved as a new image and then over-
+   *  Creates a UI mask for the user by reading in all values in the given maskPixels.
+   *  First clears the canvas so the mask can be saved as a new image and then over-
    *    lays the mask on top of the scaled image. 
    *  Adds all pixels to mask by giving alpha value of 255, changing global alpha on 
    *    maskImage will multiply 255 by globalAlpha = [0,1]
@@ -46,24 +46,23 @@ export class MaskDirective {
    *  @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask
    */
   private drawMask(maskPixels: Set<number>, scaledData: ImageData, alphaValue: number): void {
-    //clear old context
     this.ctx.clearRect(0,0,this.canvas.nativeElement.width, this.canvas.nativeElement.height);
 
-    //  reset global alpha if image was tinted
+    //  Reset global alpha if image was tinted:
+    //    The max alpha value a pixel can hold is 255*alpha value
+    //    when initialized, alpha value must start at 1 to set properly. 
     this.ctx.globalAlpha = 1;
 
-    // access all pixels in original mask, scale them up to image on UI width
+    // Access all pixels in original mask and add alpha value so their 
     for (let pixel of maskPixels) {
-      let y = this.getY(this.originalData.width, pixel);
-      let x = this.getX(this.originalData.width, pixel, y);
-      this.maskData.data[this.getPixel(x, y, scaledData.width) + 3] = 255;
+      this.maskData.data[pixel + 3] = 255;
     } 
-    // Put the new img data on ctx and save as an img
+    //  Put the new img data on ctx and save as an img, ctx is already scaled so 
+    //    it will scale up the mask as well.
     this.ctx.putImageData(this.maskData, 0, 0);
-    
     const maskUrl = this.canvas.nativeElement.toDataURL();
 
-    // clear canvas again to prepare for image and mask
+    // Clear canvas again to prepare for image and mask.
     this.ctx.clearRect(0,0,this.canvas.nativeElement.width, this.canvas.nativeElement.height);
   
     console.log('adding mask'); 
@@ -72,8 +71,8 @@ export class MaskDirective {
   }
 
   /**
-  * TODO: alpha change causes old mask to get darker as new pixels added
-  * Changes the alpha value of the mask displayed 
+  * TODO(shmcaffrey): alpha change causes old mask to get darker as new pixels added.
+  * Changes the alpha value of the mask displayed.
   * @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask
   */
   private changeAlpha(alphaValue: number): void {
@@ -89,19 +88,17 @@ export class MaskDirective {
   }
 
   /**
-  * draws the original image and updated mask on context
-  * @Param: imgData: ImageData from the original image
-  * @Param: mask: source of new mask 
-  * @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask
+  * Draws the original image and updated mask on context.
+  * @Param: imgData: ImageData from the original image.
+  * @Param: mask: source of new mask.
+  * @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask.
   */
   private drawImageAndMask(scaledData: ImageData, maskUrl: string, alphaValue: number): void {
-    // restore original image (scaledData)
+    // Restore scaled image (scaledData).
     this.ctx.putImageData(scaledData, 0, 0);
-
-    //make a new image to add
     let maskImage = new Image();
 
-    //TODO: alpha change causes old mask to get darker as new pixels added
+    //TODO(shmcaffrey): alpha change causes old mask to get darker as new pixels added
     //this.ctx.globalAlpha = alphaValue;
 
     maskImage.onload = () => {
@@ -109,34 +106,5 @@ export class MaskDirective {
     };
     maskImage.src = maskUrl;
     this.maskImage = maskImage;
-  }
-
-  /** 
-   * Reverses pixel index from floodfill set to get y index
-   * @Param: width: width of the original image
-   * @Param: pixel: pixel index in from the returned floodfill mask
-   */
-  private getY(width: number, pixel: number): number {
-    return Math.floor(pixel / (width*4));
-  }
-
-  /** 
-   * Reverses pixel index from floodfill set to get y index
-   * @Param: width: width of the original image
-   * @Param: pixel: pixel index in from the returned floodfill mask
-   * @Param: y: y value from this.getY();
-   */
-  private getX(width: number, pixel: number, y: number): number {
-    return (pixel / 4) - (y * width);
-  }
-
-  /** 
-  * Convert coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
-  * Returns index of start of pixel at @x, @y
-  * (which represents the red attribute of that pixel)
-  * Important: Returns array of number representing indices.
-  */
-  private getPixel(x: number, y: number, width: number): number {
-    return (x + (y * width)) * 4;
   }
 }
