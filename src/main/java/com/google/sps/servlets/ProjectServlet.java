@@ -28,9 +28,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Handles POST and GET requests for projects
- * Allows creation and update of projects
- * Supports queries for projects based on various parameters
+ * Handles POST and GET requests for projects,
+ * allows creation and update of projects, and
+ * supports queries for projects based on various parameters.
  */
 @WebServlet("/projects")
 public class ProjectServlet extends HttpServlet {
@@ -43,7 +43,7 @@ public class ProjectServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/[login page]"); // placeholder for login page
+      response.sendRedirect("/"); // placeholder: should redirect to login
       return;
     }
 
@@ -59,14 +59,14 @@ public class ProjectServlet extends HttpServlet {
 
     if (!isCreateMode) {
       // Must be owner to update
-      Key projKey = KeyFactory.stringToKey(projId); 
+      Key projKey = KeyFactory.stringToKey(projId);
       projEntity = DataUtils.getProjectEntity(projKey, uEmail, false, false);
 
       // Delete overrides all other updates
       Boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
       if (delete) {
         datastore.delete(projEntity.getKey());
-        response.sendRedirect("/");
+        response.sendRedirect("/"); // placeholder: should redirect to projects gallery
         return;
       }
     }
@@ -120,7 +120,8 @@ public class ProjectServlet extends HttpServlet {
 
     // If anything provided for editors, overwrite current editors
     if (!DataUtils.isEmptyParameter(editorsString)) {
-      ArrayList<String> listEditorEmails = DataUtils.parseCommaList(editorsString);
+      ArrayList<String> listEditorEmails =
+          DataUtils.parseCommaList(editorsString);
       projEntity.setIndexedProperty(
           "editors", DataUtils.withDuplicatesRemoved(listEditorEmails));
     }
@@ -135,7 +136,7 @@ public class ProjectServlet extends HttpServlet {
     }
 
     datastore.put(projEntity);
-    response.sendRedirect("/");
+    response.sendRedirect("/"); // placeholder: should redirect to projects gallery
   }
 
   @Override
@@ -164,7 +165,8 @@ public class ProjectServlet extends HttpServlet {
       // Project must be public or User must be an owner or editor for private
       // projects
       Key projKey = KeyFactory.stringToKey(projId);
-      Entity projEntity = DataUtils.getProjectEntity(projKey, uEmail, true, true);
+      Entity projEntity =
+          DataUtils.getProjectEntity(projKey, uEmail, true, true);
       projects.add(projEntity);
     }
 
@@ -249,8 +251,12 @@ public class ProjectServlet extends HttpServlet {
       String curProjName = (String)entity.getProperty("name");
       String timestamp = (String)entity.getProperty("utc");
       String curVis = (String)entity.getProperty("visibility");
-      projectInfoList.add(
-          new ProjectInfo(curProjId, curProjName, timestamp, curVis));
+      ArrayList<String> projOwners =
+          (ArrayList<String>)entity.getProperty("owners");
+      ArrayList<String> projEditors =
+          (ArrayList<String>)entity.getProperty("editors");
+      projectInfoList.add(new ProjectInfo(curProjId, curProjName, timestamp,
+                                          curVis, projOwners, projEditors));
     }
 
     Gson gson =

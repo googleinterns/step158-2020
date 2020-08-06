@@ -3,8 +3,8 @@ package com.google.sps.servlets;
 import java.util.ArrayList;
 
 /**
- * Holds relevant image info to return to front end
- * Allows for easy creation of JSON response
+ * Holds relevant image info to return to front end and
+ * allows for easy creation of JSON response.
  */
 class ImageInfo {
   String url;

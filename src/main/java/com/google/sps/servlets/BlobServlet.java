@@ -34,9 +34,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Handles POST and GET requests for images
- * Allows creation and update of images and masks
- * Supports queries for images based on various parameters
+ * Handles POST and GET requests for images,
+ * allows creation and update of images and masks, and
+ * supports queries for images based on various parameters.
  */
 @WebServlet("/blobs")
 public class BlobServlet extends HttpServlet {
@@ -49,7 +49,8 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/[login page]"); // placeholder for login page
+      response.sendRedirect(
+          "/[login page]"); // placeholder: should redirect to login
       return;
     }
 
@@ -60,12 +61,18 @@ public class BlobServlet extends HttpServlet {
     String parentImg = request.getParameter("parent-img");
     Boolean isMask = !DataUtils.isEmptyParameter(parentImg);
 
+    String now = Instant.now().toString();
+
     // Get the image name entered by the user
+    // When creating, default image name if not provided is
+    // Untitled-{current UTC time}
     String imgName = request.getParameter("img-name");
-    if (DataUtils.isEmptyParameter(
-            imgName)) { // TODO don't fail on create, assign Untitled name a la
-                        // projects
-      throw new IOException("Image name must be provided.");
+    if (DataUtils.isEmptyParameter(imgName)) {
+      if (isCreateMode) {
+        imgName = "Untitled-" + now;
+      } else {
+        throw new IOException("Image name must be provided.");
+      }
     }
 
     String uEmail = userService.getCurrentUser().getEmail();
@@ -108,8 +115,8 @@ public class BlobServlet extends HttpServlet {
         throw new IOException("Only owners can delete assets.");
       } else {
         datastore.delete(imgEntity.getKey());
-        response.sendRedirect(
-            "/[project homepage]"); // placeholder for project homepage
+        response.sendRedirect("/"); // placeholder: should redirect to 
+                                    // project homepage
         return;
       }
     }
@@ -125,9 +132,11 @@ public class BlobServlet extends HttpServlet {
       if (isCreateMode) {
         throw new IOException("Form submitted without a file.");
       }
-    } else if (!isCreateMode && !isMask) {
-      blobstoreService.delete(blobKeys.get(0));
-      hasNonEmptyImage = true;
+    } else {
+      if (!isCreateMode && !isMask) {
+        blobstoreService.delete(blobKeys.get(0));
+        hasNonEmptyImage = false;
+      }
     }
 
     BlobKey blobKey = blobKeys.get(0);
@@ -138,36 +147,32 @@ public class BlobServlet extends HttpServlet {
       }
     }
 
-    String now = Instant.now().toString();
-    imgEntity.setProperty("name", imgName); // TODO check for duplicates before
-                                            // setting here and add time if dupe
     imgEntity.setProperty("utc", now);
     projEntity.setProperty("utc", now);
 
     String tags = request.getParameter("tags");
     if (!DataUtils.isEmptyParameter(tags)) {
       ArrayList<String> listTags =
-          new ArrayList(Arrays.asList(DataUtils.parseCommaList(tags)));
-      imgEntity.setProperty("tags", DataUtils.withDuplicatesRemoved(listTags));
+          new ArrayList<String>(DataUtils.parseCommaList(tags));
+      imgEntity.setIndexedProperty("tags",
+                                   DataUtils.withDuplicatesRemoved(listTags));
     }
 
-    if (!isCreateMode) {
-      String newName = request.getParameter("new-name");
-      if (!DataUtils.isEmptyParameter(newName)) {
-        try {
-          getAssetEntity((isMask) ? DataUtils.MASK : DataUtils.IMAGE,
-                         assetParentKey, newName);
-          newName += now;
-          imgEntity.setProperty("name", newName);
-        } catch (Exception e) {
-          imgEntity.setProperty("name", newName);
-        }
-      }
+    String newName = request.getParameter("new-name");
+    boolean rename = isCreateMode && !DataUtils.isEmptyParameter(newName);
+    String checkedName = (rename) ? newName : imgName;
+    try {
+        getAssetEntity((isMask) ? DataUtils.MASK : DataUtils.IMAGE,
+                        assetParentKey, checkedName);
+        checkedName += "-" + now;
+        imgEntity.setProperty("name", checkedName);
+    } catch (Exception e) {
+        imgEntity.setProperty("name", checkedName);
     }
 
     datastore.put(Arrays.asList(imgEntity, projEntity));
     response.sendRedirect(
-        "/imgupload.html"); // placeholder for redirect after successful upload
+        "/imgupload.html"); // placeholder: should redirect to image upload page
   }
 
   @Override

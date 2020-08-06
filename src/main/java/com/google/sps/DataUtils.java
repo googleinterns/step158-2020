@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Provides utilities for servlets interacting with the database
+ * Provides utilities for servlets interacting with the database.
  */
 public final class DataUtils {
   public static final String ASCENDING_SORT = "asc";
@@ -30,7 +30,7 @@ public final class DataUtils {
   public static final String MASK = "Mask";
 
   /**
-   * Determines if the given request parameter is empty
+   * Determines if the given request parameter is empty.
    * @param     {String}    param   request parameter
    * @return    {Boolean}
    */
@@ -39,7 +39,7 @@ public final class DataUtils {
   }
 
   /**
-   * Removes duplicate values with a hash set
+   * Removes duplicate values with a hash set.
    * @param     {ArrayList<String>} al   all values
    * @return    {List<String>}
    */
@@ -49,15 +49,21 @@ public final class DataUtils {
   }
 
   /**
-   * Parses comma-separated list into array
+   * Parses comma-separated list into array.
    * @param     {String}            list   unseparated text
    * @return    {ArrayList<String>}
    */
-  public static ArrayList<String> parseCommaList(String list) throws IOException {
-    return new ArrayList(
-        Arrays.asList(list.toLowerCase().split("\\s*,\\s*")));
+  public static ArrayList<String> parseCommaList(String list)
+      throws IOException {
+    return new ArrayList(Arrays.asList(list.toLowerCase().split("\\s*,\\s*")));
   }
 
+  /**
+   * Parses mode for POST requests and returns whether the mode is create.
+   * @param     {HttpServeletRequest}   request   the HTTP request
+   * @param     {HttpServeletResponse}  response   the HTTP response
+   * @return    {Boolean}
+   */
   public static Boolean parseMode(HttpServletRequest request,
                                   HttpServletResponse response)
       throws IOException {
@@ -69,6 +75,17 @@ public final class DataUtils {
     return mode.toLowerCase().equals("create");
   }
 
+  /**
+   * Retrieves project Entity with respect to access restrictions.
+   * @param     {Key}           projKey         the Datastore key for the
+   *                                            working project
+   * @param     {String}        uEmail          the User's email
+   * @param     {Boolean}       accessIfEditor  whether editors can access
+   * @param     {Boolean}       accessIfPublic  whether the project can be 
+                                                used for the current action 
+                                                given it is public
+   * @return    {Entity}
+   */
   public static Entity getProjectEntity(Key projKey, String uEmail,
                                         Boolean accessIfEditor,
                                         Boolean accessIfPublic)
@@ -90,7 +107,8 @@ public final class DataUtils {
     String existingVis = (String)projEntity.getProperty("visibility");
 
     Boolean isOwner = owners.contains(uEmail);
-    Boolean isEditor = accessIfEditor && editors != null && editors.contains(uEmail);
+    Boolean isEditor =
+        accessIfEditor && editors != null && editors.contains(uEmail);
     Boolean isPublic = accessIfPublic && existingVis.equals(PUBLIC);
 
     if (!isOwner && !isEditor && !isPublic) {
