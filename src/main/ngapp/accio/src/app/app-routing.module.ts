@@ -7,6 +7,7 @@ import { TopBarComponent } from './top-bar/top-bar.component';
 
 const routes: Routes = [
   { path: 'gallery', component: GalleryComponent },
+  { path: 'gallery/:proj-id', component: GalleryComponent },
   { path: 'editor', component: EditorComponent },
   { path: 'home', component: HomeComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },

@@ -17,6 +17,7 @@ export class HomeComponent implements OnInit {
   filterSort: string;
 
   projectPath: string;
+  projects: Array<any>;
 
   constructor(
       private router: Router) { }
@@ -35,37 +36,15 @@ export class HomeComponent implements OnInit {
     const response = await fetch(url);
     /**Request @returns a list of objects:
      * {name: string,
-     * projId: string,
+     * projId: string,z
      * timestamp: string,
      * visibility: string,
      * owners: list<string>,
      * editors: list<string>}
      */
     const content = await response.json();
-
-    const contentListElement = document.getElementById("list-container");
-    contentListElement.innerHTML = '';
-    for (let i = 0; i < content.length; i++) {
-      const project: object = content[i];
-      contentListElement.appendChild(
-          this.createProjListElement(project['name'],
-          project['timestamp'],
-          project['projId']));
-          const x = 'hardcodedId'
-    }
-  }
-
-  // Dynamically add html: <li> and provides redir link to correct project
-  createProjListElement(name: string, timestamp: string, projId: string): HTMLLIElement {
-    const liElement = document.createElement('li');
-    this.projectPath = '/gallery?proj-id=' + projId;
-    liElement.innerHTML =
-        `Project: ${name}\n
-        Timestamp: ${timestamp}\n
-        <button mat-raised-button (click)="gotoProject("${projId}")">
-        Open ${name}
-        </button>`;
-    return liElement;
+    console.log('content is: ' + content[0]['projId']);
+    this.projects = content;
   }
 
   gotoProject(projId: string): void {

@@ -20,7 +20,6 @@
   <mat-form-field appearance="fill">
     <mat-label>Role</mat-label>
     <mat-select [(ngModel)]="filterRole">
-      <mat-option value="both">both</mat-option>
       <mat-option value="owner">owner</mat-option>
       <mat-option value="editor">editor</mat-option>
     </mat-select>
@@ -44,4 +43,9 @@
   <button mat-raised-button (click)="getProjects()">Update filter(s)</button>
 </div>
 
-<ul id="list-container"></ul>
+<div id="gallery">
+  <div *ngFor="let project of projects" class="gallery-item">
+    Project: <a [routerLink]="['/gallery', project['projId']]">{{ project['name'] }}</a>
+    Timestamp: {{ project['timestamp'] }}
+  </div>
+</div>
