@@ -27,18 +27,14 @@ export class CreateProjectComponent implements OnInit {
     let response = await fetch(url, {method: 'POST'});
     // content holds 'proj-id' attribute
     console.log('finished fetch...');
-    let projId = await response.text();
-    console.log('converted content to text...');
-    // TODO: returned content is html Error 404, using .text for now.
-    // Need to figure out how to resolve error and return proper json
-    // for 'proj-id' attribute...uncomment line below once resolved.
-    // const projId: string = content['proj-id'];
+    let projId: string = await response.json();
+    console.log('converted content to json...');
     console.log('projId: ' + projId);
 
     // TODO: Change path to /images after UI team refactors and adds
     // images component
-    let toGallery = '/gallery';
+    const toGallery: string = '/gallery';
     console.log('navigating to  ' + toGallery);
-    this.router.navigate(['/gallery'], { queryParams: { 'proj-id': projId } });
+    this.router.navigate([toGallery], { queryParams: { 'proj-id': projId } });
   }
 }
