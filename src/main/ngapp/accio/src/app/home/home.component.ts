@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import * as $ from 'jquery';
 
 @Component({
   selector: 'app-home',
@@ -28,7 +29,7 @@ export class HomeComponent implements OnInit {
       'proj-id': this.filterId
     });
     const response = await fetch(url);
-    /**@returns a list of objects:
+    /**Request @returns a list of objects:
      * {name: string,
      * projId: string,
      * timestamp: string,
@@ -41,15 +42,21 @@ export class HomeComponent implements OnInit {
     const contentListElement = document.getElementById("list-container");
     contentListElement.innerHTML = '';
     for (let i = 0; i < content.length; i++) {
+      const project: object = content[i];
       contentListElement.appendChild(
-          this.createListElement(content['name'], content['timestamp'])
-          );
+          this.createProjListElement(project['name'],
+          project['timestamp'],
+          project['projId']));
+          const x = 'hardcodedId'
     }
   }
 
-  createListElement(name: string, timestamp: string): HTMLLIElement {
+  // Dynamically add html: <li> and provides redir link to correct project
+  createProjListElement(name: string, timestamp: string, projId: string): HTMLLIElement {
     const liElement = document.createElement('li');
-    liElement.innerText = name + '\n' + timestamp;
+    liElement.innerHTML =
+        `Project: <a href="/gallery">${name}</a>\n
+        Timestamp: ${timestamp}`;
     return liElement;
   }
 }
