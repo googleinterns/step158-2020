@@ -75,10 +75,11 @@ public class BlobServlet extends HttpServlet {
 
     String uEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
-    Entity projEntity =
-        DataUtils.getProjectEntity(projId, uEmail, true, false);
+    Entity projEntity = DataUtils.getProjectEntity(projId, uEmail, true, false);
     Key projKey = projEntity.getKey();
     Key assetParentKey = projKey;
+
+    // Default case: creating a new base iamge
     Entity imgEntity = new Entity(DataUtils.IMAGE, projKey);
 
     // Asset to update must already exist
@@ -113,7 +114,7 @@ public class BlobServlet extends HttpServlet {
         throw new IOException("Only owners can delete assets.");
       } else {
         datastore.delete(imgEntity.getKey());
-        response.sendRedirect("/"); // placeholder: should redirect to 
+        response.sendRedirect("/"); // placeholder: should redirect to
                                     // project homepage
         return;
       }
@@ -123,21 +124,25 @@ public class BlobServlet extends HttpServlet {
         BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get("image");
+    BlobKey blobKey = blobKeys.get(0);
+    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+
+    // Check for blob size as well since no upload doesn't guarantee an empty
+    // BlobKey List 
+    boolean hasNonEmptyImage =
+        !(blobKeys == null || blobKeys.isEmpty() || blobInfo.getSize() == 0);
 
     // User submitted form without selecting a file
-    boolean hasNonEmptyImage = blobKeys != null && !blobKeys.isEmpty();
     if (!hasNonEmptyImage) {
       if (isCreateMode) {
         throw new IOException("Form submitted without a file.");
       }
     } else {
       if (!isCreateMode && !isMask) {
-        blobstoreService.delete(blobKeys.get(0));
+        blobstoreService.delete(blobKey);
         hasNonEmptyImage = false;
       }
     }
-
-    BlobKey blobKey = blobKeys.get(0);
 
     if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
       if (isValidFile(blobKey, isMask)) {
@@ -145,9 +150,11 @@ public class BlobServlet extends HttpServlet {
       }
     }
 
+    // Last-modified time
     imgEntity.setProperty("utc", now);
     projEntity.setProperty("utc", now);
 
+    // Add indexed tags
     String tags = request.getParameter("tags");
     if (!DataUtils.isEmptyParameter(tags)) {
       ArrayList<String> listTags =
@@ -156,21 +163,30 @@ public class BlobServlet extends HttpServlet {
                                    DataUtils.withDuplicatesRemoved(listTags));
     }
 
+    // Set/update name, ensuring uniqueness
     String newName = request.getParameter("new-name");
-    boolean rename = isCreateMode && !DataUtils.isEmptyParameter(newName);
+    boolean rename = !isCreateMode && !DataUtils.isEmptyParameter(newName) &&
+                     !imgName.equals(newName);
     String checkedName = (rename) ? newName : imgName;
-    try {
+    if (isCreateMode || rename) {
+      try {
         getAssetEntity((isMask) ? DataUtils.MASK : DataUtils.IMAGE,
-                        assetParentKey, checkedName);
+                       assetParentKey, checkedName);
         checkedName += "-" + now;
         imgEntity.setProperty("name", checkedName);
-    } catch (Exception e) {
+      } catch (Exception e) {
         imgEntity.setProperty("name", checkedName);
+      }
     }
 
     datastore.put(Arrays.asList(imgEntity, projEntity));
-    response.sendRedirect(
-        "/imgupload.html"); // placeholder: should redirect to image upload page
+
+    // Return the image URL and name
+    response.setContentType("application/json");
+    String url = "blob-host?blobkey=" + (String)imgEntity.getProperty("blobkey");
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    String jsonImgInfo = gson.toJson(new blobPostReturn(url, checkedName));
+    response.getWriter().println(jsonImgInfo);
   }
 
   @Override
@@ -183,8 +199,9 @@ public class BlobServlet extends HttpServlet {
 
     String uEmail = userService.getCurrentUser().getEmail();
 
+    // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/");
+      response.sendRedirect("/"); // placeholder: should redirect to login
       return;
     }
 
@@ -195,6 +212,8 @@ public class BlobServlet extends HttpServlet {
 
     boolean withMasks =
         Boolean.parseBoolean(request.getParameter("with-masks"));
+
+    // TODO: tag for masks
     String tag = request.getParameter("tag");
     Query imageQuery = new Query(DataUtils.IMAGE).setAncestor(projKey);
     if (!DataUtils.isEmptyParameter(tag) && !withMasks) {
@@ -203,11 +222,24 @@ public class BlobServlet extends HttpServlet {
     }
     PreparedQuery storedImages = datastore.prepare(imageQuery);
 
+      String sort = request.getParameter("sort");
+      // Sorted in descending chronological order by default
+      if (DataUtils.isEmptyParameter(sort)) {
+        sort = DataUtils.DESCENDING_SORT;
+      }
+      sort = sort.toLowerCase();
+
+      Query projQuery = new Query(DataUtils.PROJECT).addSort(
+          "utc", sort.equals(DataUtils.ASCENDING_SORT)
+                     ? Query.SortDirection.ASCENDING
+                     : Query.SortDirection.DESCENDING);
+
+
     ArrayList<ImageInfo> imageObjects = new ArrayList<ImageInfo>();
 
     for (Entity imageEntity : storedImages.asIterable()) {
       String imageUrl =
-          "/blob-host?blobkey=" + (String)imageEntity.getProperty("url");
+          "/blob-host?blobkey=" + (String)imageEntity.getProperty("blobkey");
       String imageName = (String)imageEntity.getProperty("name");
       String imageTime = (String)imageEntity.getProperty("utc");
       ArrayList<String> imageTags =
@@ -221,7 +253,7 @@ public class BlobServlet extends HttpServlet {
 
         for (Entity maskEntity : storedMasks.asIterable()) {
           String maskUrl =
-              "/blob-host?blobkey=" + (String)maskEntity.getProperty("url");
+              "/blob-host?blobkey=" + (String)maskEntity.getProperty("blobkey");
           String maskName = (String)maskEntity.getProperty("name");
           String maskTime = (String)maskEntity.getProperty("utc");
           ArrayList<String> maskTags =
@@ -246,21 +278,22 @@ public class BlobServlet extends HttpServlet {
     Optional parameters
     tag
     img-name
+    sort
     with-masks	boolean
-    Default return: JSON of all image links and names for given project if it
-    belongs to logged-in user or is public Name, owners, and time last updated
-    included as first element E.g. [ {name: myProject, owners: dtjanaka, time:
-    2020-07-29T20:09:02+0000}, {link: abc.xyz, name: alphabet}, {link:
-    google.com, name: g} ] proj-id + img-name provided: JSON of image link and
-    name
+
     + with-masks = “true”: image and mask links and names (with-masks = “false”
     by default) First index is for the image
 
-    tag: without masks, filters for images; with masks (and necessarily
-    img-name), filters masks for img-name
+    tag: without masks, filters for images; with masks, filters masks for collection of all images that match other filters
     */
   }
 
+  /**
+   * Checks if the file uploaded to Blobstore has a valid file extension.
+   * @param     {BlobKey}   blobKey   key for the file in question 
+   * @param     {boolean}   isMask    mask or image
+   * @return    {boolean}
+   */
   private boolean isValidFile(BlobKey blobKey, boolean isMask)
       throws IOException {
     BlobstoreService blobstoreService =
@@ -276,12 +309,19 @@ public class BlobServlet extends HttpServlet {
     String extension = splitFilename[splitFilename.length - 1].toLowerCase();
     if (blobInfo.getSize() == 0 || !validExtensions.contains(extension)) {
       blobstoreService.delete(blobKey);
-      throw new IOException("Blobkeys invalid or file not supported.");
+      throw new IOException("Invalid Blobkey or file not supported.");
     }
 
     return true;
   }
 
+  /**
+   * Retrieves asset Entity based on parameters.
+   * @param     {String}    kind        asset kind
+   * @param     {Key}       ancestor    parent of asset
+   * @param     {String}    name        name of the desired asset
+   * @return    {Entity}
+   */
   private Entity getAssetEntity(String kind, Key ancestor, String name)
       throws IOException {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -297,4 +337,17 @@ public class BlobServlet extends HttpServlet {
 
     return existingImgQuery.asSingleEntity();
   }
+}
+
+/**
+ * Holds the values url and name of an image after a successful POST request.
+ */
+class blobPostReturn {
+    String url;
+    String name;
+
+    public blobPostReturn(String url, String name) {
+        this.url = url;
+        this.name = name;
+    }
 }

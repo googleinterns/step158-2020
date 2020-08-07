@@ -21,6 +21,10 @@ public class Login extends HttpServlet {
     response.setContentType("application/json");
 
     String page = request.getParameter("page");
+    if (DataUtils.isEmptyParameter(page)) {
+        page = "";
+    }
+    
     String userInfo = new String();
 
     UserService userService = UserServiceFactory.getUserService();

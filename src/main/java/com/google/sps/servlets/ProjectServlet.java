@@ -135,8 +135,12 @@ public class ProjectServlet extends HttpServlet {
     }
 
     datastore.put(projEntity);
-    response.sendRedirect("/projects.html"); // placeholder: should redirect to 
-                                             // projects gallery
+
+    // Return the project ID
+    response.setContentType("application/json");
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    String jsonProjId = gson.toJson(KeyFactory.keyToString(projEntity.getKey()));
+    response.getWriter().println(jsonProjId);
   }
 
   @Override
@@ -149,7 +153,7 @@ public class ProjectServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/");
+      response.sendRedirect("/"); // placeholder: should redirect to login
       return;
     }
 
@@ -178,7 +182,7 @@ public class ProjectServlet extends HttpServlet {
       }
       sort = sort.toLowerCase();
 
-      Query projQuery = new Query("Project").addSort(
+      Query projQuery = new Query(DataUtils.PROJECT).addSort(
           "utc", sort.equals(DataUtils.ASCENDING_SORT)
                      ? Query.SortDirection.ASCENDING
                      : Query.SortDirection.DESCENDING);
