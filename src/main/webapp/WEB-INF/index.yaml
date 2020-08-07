@@ -1,4 +1,4 @@
-#gcloud datastore indexes create ~/step/portfolio/src/main/webapp/WEB-INF/index.yaml
+#gcloud datastore indexes create ~/accio/src/main/webapp/WEB-INF/index.yaml
 
 indexes:
 
