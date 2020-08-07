@@ -33,7 +33,7 @@ export class CreateProjectComponent implements OnInit {
 
     // TODO: Change path to /images after UI team refactors and adds
     // images component
-    const toGallery: string = '/gallery';
+    const toGallery: string = '/img-gallery';
     console.log('navigating to  ' + toGallery);
     this.router.navigate([toGallery], { queryParams: { 'proj-id': projId } });
   }

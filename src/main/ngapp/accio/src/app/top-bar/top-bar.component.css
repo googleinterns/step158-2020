@@ -1,10 +1,20 @@
 #header {
+<<<<<<< HEAD
     top: 0;
     right: 0;
     left: 0;
     width:100%;
     height:100px;
     background-color: #F5F5F5;
+=======
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  width:100%;
+  height:100px;
+  background-color: #F5F5F5;
+>>>>>>> c9013bdbb5a1d6528acac6857bff1c1ca4fc97ee
 }
 
 .login-button {
