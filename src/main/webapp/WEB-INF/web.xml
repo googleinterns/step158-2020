@@ -16,13 +16,4 @@ xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/
     <exception-type>java.lang.Throwable</exception-type>
     <location>/error</location>
   </error-page>
-  <security-constraint>
-    <web-resource-collection>
-        <web-resource-name></web-resource-name>
-        <url-pattern></url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-        <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
 </web-app>
