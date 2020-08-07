@@ -6,9 +6,9 @@ import { MagicWandService } from './magic-wand.service';
 })
 export class MaskDirective {
   @Input() scale: number;
-  @Input() originalData: ImageData;
+  @Input() originalImageData: ImageData;
   @Input() scaledData: ImageData;
-  @Input() maskData: ImageData;
+  @Input() maskImageData: ImageData;
 
   // create direct reference of canvas on editor.html
   constructor(
@@ -29,7 +29,7 @@ export class MaskDirective {
 
     //  TODO-MASK-maskPixels needs to contain cumulative set of all pixels user clicked and added to the mask.
     // returns an array indices of each pixel in the mask.
-    const maskPixels = this.magicWandService.floodfill(this.originalData, Math.floor(xCoord / this.scale), Math.floor(yCoord / this.scale), tolerance);
+    const maskPixels = this.magicWandService.floodfill(this.originalImageData, Math.floor(xCoord / this.scale), Math.floor(yCoord / this.scale), tolerance);
 
     // TODO(shmcaffrey): change Alpha value to incorperate user input.
     this.drawMask(maskPixels, this.scaledData, 1);
@@ -55,11 +55,11 @@ export class MaskDirective {
 
     // Access all pixels in the original mask and add alpha value so they're visable.
     for (let pixel of maskPixels) {
-      this.maskData.data[pixel + 3] = 255;
+      this.maskImageData.data[pixel + 3] = 255;
     } 
     //  Put the new img data on ctx and save as an img, ctx is already scaled so 
     //    it will scale up the mask as well.
-    this.ctx.putImageData(this.maskData, 0, 0);
+    this.ctx.putImageData(this.maskImageData, 0, 0);
     const maskUrl = this.canvas.nativeElement.toDataURL();
 
     // Clear canvas again to prepare for image and mask.

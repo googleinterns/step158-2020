@@ -32,7 +32,7 @@ export class EditorComponent implements OnInit {
   private scaleFactor = .9;
   private image: HTMLImageElement;
   private innerHeight: number;
-  private maskData: ImageData;
+  private maskImageData: ImageData;
 
   ngOnInit() {
     this.image = new Image();
@@ -91,7 +91,7 @@ export class EditorComponent implements OnInit {
     this.ctx.scale(this.scaleFactor, this.scaleFactor); 
 
     //  Initalize transparent black image data to use for mask.
-    this.maskData = new ImageData(imgWidth,  imgHeight);
+    this.maskImageData = new ImageData(imgWidth,  imgHeight);
     
     this.image.onload = () => {
       this.ctx.drawImage(this.image, 0, 0, imgWidth, imgHeight);
@@ -105,13 +105,13 @@ export class EditorComponent implements OnInit {
   }
 
   /** Returns the original images data for reference in mask making. */
-  public getImgData(): ImageData {
+  public getOriginalImageData(): ImageData {
     return this.hiddenCtx.getImageData(0,0, this.image.width, this.image.height);
   }
 
   /** Returns black transparent ImageData for single mask image. */
-  public getMaskData(): ImageData {
-    return this.maskData;
+  public getMaskImageData(): ImageData {
+    return this.maskImageData;
   }
 
   /** Returns the scaled images data for reference printing scaled image after mask. */

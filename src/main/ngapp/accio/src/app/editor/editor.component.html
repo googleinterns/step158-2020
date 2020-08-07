@@ -1,6 +1,11 @@
-<div id="img-editor">
-  <canvas #canvas appMask [scale]="getScaleFactor()" [originalData]="getImgData()" [scaledData]="getScaledData()" [maskData]="getMaskData()">
+<mat-drawer-container id="img-editor">
+   <mat-drawer id="toolbar" mode="side" opened><app-toolbar></app-toolbar></mat-drawer>
+  <mat-drawer-content>
+  <canvas #canvas appMask 
+      [scale]="getScaleFactor()" [originalImageData]="getOriginalImageData()" 
+      [scaledData]="getScaledData()" [maskImageData]="getMaskImageData()">
   </canvas>
   <canvas #hiddenCanvas style="display:none">
   </canvas>
-</div>
+  </mat-drawer-content>
+</mat-drawer-container>
