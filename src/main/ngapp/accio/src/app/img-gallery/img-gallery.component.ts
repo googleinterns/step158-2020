@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { imageUrls } from '../images'
 
 @Component({
-  selector: 'app-gallery',
-  templateUrl: './gallery.component.html',
-  styleUrls: ['./gallery.component.css']
+  selector: 'app-img-gallery',
+  templateUrl: './img-gallery.component.html',
+  styleUrls: ['./img-gallery.component.css']
 })
-export class GalleryComponent implements OnInit {
+export class ImgGalleryComponent implements OnInit {
   imageUrls = imageUrls;
   constructor() { }
 
