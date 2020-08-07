@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import * as $ from 'jquery';
 
 @Component({
@@ -15,7 +16,10 @@ export class HomeComponent implements OnInit {
   filterId: string;
   filterSort: string;
 
-  constructor() { }
+  projectPath: string;
+
+  constructor(
+      private router: Router) { }
 
   ngOnInit(): void {
   }
@@ -54,9 +58,21 @@ export class HomeComponent implements OnInit {
   // Dynamically add html: <li> and provides redir link to correct project
   createProjListElement(name: string, timestamp: string, projId: string): HTMLLIElement {
     const liElement = document.createElement('li');
+    this.projectPath = '/gallery?proj-id=' + projId;
     liElement.innerHTML =
-        `Project: <a href="/gallery">${name}</a>\n
-        Timestamp: ${timestamp}`;
+        `Project: ${name}\n
+        Timestamp: ${timestamp}\n
+        <button mat-raised-button (click)="gotoProject("${projId}")">
+        Open ${name}
+        </button>`;
     return liElement;
+  }
+
+  gotoProject(projId: string): void {
+    // TODO: Change path to /images after UI team refactors and adds
+    // images component
+    const toGallery: string = '/gallery';
+    console.log('navigating to  ' + toGallery);
+    this.router.navigate([toGallery], { queryParams: { 'proj-id': projId } });
   }
 }
