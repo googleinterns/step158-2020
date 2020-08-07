@@ -339,6 +339,9 @@ public class BlobServlet extends HttpServlet {
   }
 }
 
+/**
+ * Holds the values url and name of an image after a successful POST request.
+ */
 class blobPostReturn {
     String url;
     String name;
