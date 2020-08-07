@@ -1,7 +1,18 @@
-#gcloud datastore indexes create ~/accio/src/main/webapp/WEB-INF/index.yaml
+#gcloud datastore indexes create ~/step/portfolio/src/main/webapp/WEB-INF/index.yaml
 
 indexes:
 
+- kind: Comment
+  properties:
+  - name: uid
+  - name: utc
+    direction: desc
+
+- kind: Comment
+  properties:
+  - name: uid
+  - name: utc
+
 - kind: Project
   properties:
   - name: owners
@@ -47,4 +58,48 @@ indexes:
 - kind: Project
   properties:
   - name: visibility
+  - name: utc
+
+- kind: Image
+  ancestor: yes
+  properties:
+  - name: utc
+    direction: desc
+
+- kind: Image
+  ancestor: yes
+  properties:
+  - name: utc
+
+- kind: Mask
+  ancestor: yes
+  properties:
+  - name: utc
+    direction: desc
+
+- kind: Mask
+  ancestor: yes
+  properties:
+  - name: utc
+
+- kind: Mask
+  properties:
+  - name: tags
+  - name: utc
+    direction: desc
+    
+- kind: Mask
+  properties:
+  - name: tags
+  - name: utc
+
+- kind: Image
+  properties:
+  - name: tags
+  - name: utc
+    direction: desc
+
+- kind: Image
+  properties:
+  - name: tags
   - name: utc

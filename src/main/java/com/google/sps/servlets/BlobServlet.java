@@ -128,7 +128,7 @@ public class BlobServlet extends HttpServlet {
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
 
     // Check for blob size as well since no upload doesn't guarantee an empty
-    // BlobKey List 
+    // BlobKey List
     boolean hasNonEmptyImage =
         !(blobKeys == null || blobKeys.isEmpty() || blobInfo.getSize() == 0);
 
@@ -183,7 +183,8 @@ public class BlobServlet extends HttpServlet {
 
     // Return the image URL and name
     response.setContentType("application/json");
-    String url = "blob-host?blobkey=" + (String)imgEntity.getProperty("blobkey");
+    String url =
+        "blob-host?blobkey=" + (String)imgEntity.getProperty("blobkey");
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     String jsonImgInfo = gson.toJson(new blobPostReturn(url, checkedName));
     response.getWriter().println(jsonImgInfo);
@@ -206,34 +207,50 @@ public class BlobServlet extends HttpServlet {
     }
 
     String projId = request.getParameter("proj-id");
-
     Entity projEntity = DataUtils.getProjectEntity(projId, uEmail, true, true);
     Key projKey = projEntity.getKey();
 
     boolean withMasks =
         Boolean.parseBoolean(request.getParameter("with-masks"));
 
-    // TODO: tag for masks
+    String sortImg = request.getParameter("sort-img");
+    // Sorted in descending chronological order by default
+    if (DataUtils.isEmptyParameter(sortImg)) {
+      sortImg = DataUtils.DESCENDING_SORT;
+    }
+    sortImg = sortImg.toLowerCase();
+
+    Query imageQuery =
+        new Query(DataUtils.IMAGE)
+            .setAncestor(projKey)
+            .addSort("utc", sortImg.equals(DataUtils.ASCENDING_SORT)
+                                ? Query.SortDirection.ASCENDING
+                                : Query.SortDirection.DESCENDING);
+
+    ArrayList<Filter> allImgFilters = new ArrayList<Filter>();
+
     String tag = request.getParameter("tag");
-    Query imageQuery = new Query(DataUtils.IMAGE).setAncestor(projKey);
     if (!DataUtils.isEmptyParameter(tag) && !withMasks) {
       Filter tagFilter = new FilterPredicate("tags", FilterOperator.EQUAL, tag);
-      imageQuery.setFilter(tagFilter);
+      allImgFilters.add(tagFilter);
     }
+
+    String imgName = request.getParameter("img-name");
+    if (!DataUtils.isEmptyParameter(imgName)) {
+      Filter nameFilter =
+          new FilterPredicate("name", FilterOperator.EQUAL, imgName);
+      allImgFilters.add(nameFilter);
+    }
+
+    // A composite filter requres more than one filter
+    if (allImgFilters.size() == 1) {
+      imageQuery.setFilter(allImgFilters.get(0));
+    } else if (allImgFilters.size() > 1) {
+      imageQuery.setFilter(
+          new CompositeFilter(CompositeFilterOperator.AND, allImgFilters));
+    }
+
     PreparedQuery storedImages = datastore.prepare(imageQuery);
-
-      String sort = request.getParameter("sort");
-      // Sorted in descending chronological order by default
-      if (DataUtils.isEmptyParameter(sort)) {
-        sort = DataUtils.DESCENDING_SORT;
-      }
-      sort = sort.toLowerCase();
-
-      Query projQuery = new Query(DataUtils.PROJECT).addSort(
-          "utc", sort.equals(DataUtils.ASCENDING_SORT)
-                     ? Query.SortDirection.ASCENDING
-                     : Query.SortDirection.DESCENDING);
-
 
     ArrayList<ImageInfo> imageObjects = new ArrayList<ImageInfo>();
 
@@ -247,8 +264,43 @@ public class BlobServlet extends HttpServlet {
 
       ArrayList<MaskInfo> imageMasks = new ArrayList<MaskInfo>();
       if (withMasks) {
+        String sortMask = request.getParameter("sort-mask");
+        // Sorted in descending chronological order by default
+        if (DataUtils.isEmptyParameter(sortMask)) {
+          sortMask = DataUtils.DESCENDING_SORT;
+        }
+        sortImg = sortImg.toLowerCase();
+
         Query maskQuery =
-            new Query(DataUtils.MASK).setAncestor(imageEntity.getKey());
+            new Query(DataUtils.MASK)
+                .setAncestor(imageEntity.getKey())
+                .addSort("utc", sortMask.equals(DataUtils.ASCENDING_SORT)
+                                    ? Query.SortDirection.ASCENDING
+                                    : Query.SortDirection.DESCENDING);
+
+        ArrayList<Filter> allMaskFilters = new ArrayList<Filter>();
+
+        if (!DataUtils.isEmptyParameter(tag)) {
+          Filter tagFilter =
+              new FilterPredicate("tags", FilterOperator.EQUAL, tag);
+          allMaskFilters.add(tagFilter);
+        }
+
+        String maskNameParam = request.getParameter("mask-name");
+        if (!DataUtils.isEmptyParameter(maskNameParam)) {
+          Filter nameFilter =
+              new FilterPredicate("name", FilterOperator.EQUAL, maskNameParam);
+          allMaskFilters.add(nameFilter);
+        }
+
+        // A composite filter requres more than one filter
+        if (allMaskFilters.size() == 1) {
+          maskQuery.setFilter(allMaskFilters.get(0));
+        } else if(allMaskFilters.size() > 1) {
+          maskQuery.setFilter(
+              new CompositeFilter(CompositeFilterOperator.AND, allMaskFilters));
+        }
+
         PreparedQuery storedMasks = datastore.prepare(maskQuery);
 
         for (Entity maskEntity : storedMasks.asIterable()) {
@@ -270,27 +322,11 @@ public class BlobServlet extends HttpServlet {
         new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     String jsonImages = gson.toJson(imageObjects);
     response.getWriter().println(jsonImages);
-
-    /*
-    Get
-    Required parameters
-    proj-id
-    Optional parameters
-    tag
-    img-name
-    sort
-    with-masks	boolean
-
-    + with-masks = “true”: image and mask links and names (with-masks = “false”
-    by default) First index is for the image
-
-    tag: without masks, filters for images; with masks, filters masks for collection of all images that match other filters
-    */
   }
 
   /**
    * Checks if the file uploaded to Blobstore has a valid file extension.
-   * @param     {BlobKey}   blobKey   key for the file in question 
+   * @param     {BlobKey}   blobKey   key for the file in question
    * @param     {boolean}   isMask    mask or image
    * @return    {boolean}
    */
@@ -343,11 +379,11 @@ public class BlobServlet extends HttpServlet {
  * Holds the values url and name of an image after a successful POST request.
  */
 class blobPostReturn {
-    String url;
-    String name;
+  String url;
+  String name;
 
-    public blobPostReturn(String url, String name) {
-        this.url = url;
-        this.name = name;
-    }
+  public blobPostReturn(String url, String name) {
+    this.url = url;
+    this.name = name;
+  }
 }
