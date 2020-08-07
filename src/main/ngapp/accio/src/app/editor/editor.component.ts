@@ -78,7 +78,7 @@ export class EditorComponent implements OnInit {
     this.hiddenCanvas.nativeElement.width = imgWidth;
     this.hiddenCanvas.nativeElement.height = imgHeight;
 
-    // Used to scale the image to the window size, 1.2 so the image is smaller than the window.
+    // Used to scale the image to the window size, @Param scaledFactor = .9 so the scaled image is smaller than the users window.
     this.scaleFactor = Math.floor(this.innerHeight / imgHeight * this.scaleFactor);
     // TODO(shmcaffrey): add scaling if image is larger than window
     if (this.scaleFactor <= 0) {
@@ -86,7 +86,7 @@ export class EditorComponent implements OnInit {
     }
 
     // Adjust canvas to scaled image width and height, use ctx. 
-    this.canvas.nativeElement.width = imgWidth* this.scaleFactor;
+    this.canvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.canvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.ctx.scale(this.scaleFactor, this.scaleFactor); 
 

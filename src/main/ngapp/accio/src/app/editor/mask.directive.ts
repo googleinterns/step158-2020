@@ -18,6 +18,13 @@ export class MaskDirective {
   private ctx: CanvasRenderingContext2D;
   private maskImage: HTMLImageElement;
 
+  
+  //  TODO(shmcaffrey): directive should create mask based on original image and 
+  //    send mask image data back to editor component to be drawn on the scaled canvas.
+  //    Directive will take in original image data and mask data, compute flood fill, add pixels to the mask
+  //    and return mask image to be scalled and drawn on the canvas with the original image. 
+  //    In this way there will only be one function which draws the image and mask.
+  //    This will also make it easier to change the global alpha.
   @HostListener('click', ['$event'])
   onClick(e: MouseEvent) {
     const xCoord = e.offsetX;
