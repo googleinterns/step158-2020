@@ -167,8 +167,8 @@ public class BlobServlet extends HttpServlet {
     String newName = request.getParameter("new-name");
     boolean rename = !isCreateMode && !DataUtils.isEmptyParameter(newName) &&
                      !imgName.equals(newName);
+    String checkedName = (rename) ? newName : imgName;
     if (isCreateMode || rename) {
-      String checkedName = (rename) ? newName : imgName;
       try {
         getAssetEntity((isMask) ? DataUtils.MASK : DataUtils.IMAGE,
                        assetParentKey, checkedName);
@@ -180,8 +180,13 @@ public class BlobServlet extends HttpServlet {
     }
 
     datastore.put(Arrays.asList(imgEntity, projEntity));
-    response.sendRedirect(
-        "/imgupload.html"); // placeholder: should redirect to image upload page
+
+    // Return the image URL and name
+    response.setContentType("application/json");
+    String url = "blob-host?blobkey=" + (String)imgEntity.getProperty("blobkey");
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    String jsonImgInfo = gson.toJson(new blobPostReturn(url, checkedName));
+    response.getWriter().println(jsonImgInfo);
   }
 
   @Override
@@ -234,7 +239,7 @@ public class BlobServlet extends HttpServlet {
 
     for (Entity imageEntity : storedImages.asIterable()) {
       String imageUrl =
-          "/blob-host?blobkey=" + (String)imageEntity.getProperty("url");
+          "/blob-host?blobkey=" + (String)imageEntity.getProperty("blobkey");
       String imageName = (String)imageEntity.getProperty("name");
       String imageTime = (String)imageEntity.getProperty("utc");
       ArrayList<String> imageTags =
@@ -248,7 +253,7 @@ public class BlobServlet extends HttpServlet {
 
         for (Entity maskEntity : storedMasks.asIterable()) {
           String maskUrl =
-              "/blob-host?blobkey=" + (String)maskEntity.getProperty("url");
+              "/blob-host?blobkey=" + (String)maskEntity.getProperty("blobkey");
           String maskName = (String)maskEntity.getProperty("name");
           String maskTime = (String)maskEntity.getProperty("utc");
           ArrayList<String> maskTags =
@@ -332,4 +337,14 @@ public class BlobServlet extends HttpServlet {
 
     return existingImgQuery.asSingleEntity();
   }
+}
+
+class blobPostReturn {
+    String url;
+    String name;
+
+    public blobPostReturn(String url, String name) {
+        this.url = url;
+        this.name = name;
+    }
 }

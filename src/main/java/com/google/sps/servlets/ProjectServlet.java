@@ -135,8 +135,12 @@ public class ProjectServlet extends HttpServlet {
     }
 
     datastore.put(projEntity);
-    response.sendRedirect("/projects.html"); // placeholder: should redirect to 
-                                             // projects gallery
+
+    // Return the project ID
+    response.setContentType("application/json");
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    String jsonProjId = gson.toJson(KeyFactory.keyToString(projEntity.getKey()));
+    response.getWriter().println(jsonProjId);
   }
 
   @Override
