@@ -1,8 +1,48 @@
-#toolbar {
-  position: absolute;
-  text-align: left;
-  padding: 5px;
-  height: 100%;
-  width: 100px;
-  background-color: #6A6C6E;
+.material-icons { 
+  font-size: 48px; 
+}
+
+.button {
+  color: white;
+  cursor: pointer;
+  border: none;
+  padding: 10px;
+  width: 75px;
+  height: 45px;
+}
+
+.button:hover {
+  background-color: #28292b;
+  color: #cdd1d3;
+}
+
+.mat-button-toggle {
+  border: none;
+  color: white;
+  text-align: center;
+  background-color: #3f4143;
+  height: 70px;
+  width: 95px;
+}
+
+.mat-button-toggle-checked{
+  border: none;
+  color: #cdd1d3;
+  background-color: #28292b;
+}
+
+.large-break {
+  height: 30px;
+  width: 100%;
+  border-top: 3px solid #5e6469;
+  border-bottom: 3px solid #5e6469;
+}
+
+.small-break {
+  height: 10px;
+  width: 100%;
+}
+
+#submit-button {
+  width: 20%;
 }

@@ -12,4 +12,7 @@ export class ToolbarComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  getTolerance(value: number) {
+      console.log(value);
+  }
 }

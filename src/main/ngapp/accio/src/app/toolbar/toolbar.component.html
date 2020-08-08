@@ -1,3 +1,20 @@
-<div id="toolbar">
-this is div
+<mat-button-toggle-group vertical style="border:none">
+  <mat-button-toggle mat-icon-button value="magic-wand" title="Magic Want">
+    <mat-icon>format_color_fill</mat-icon>
+  </mat-button-toggle>
+</mat-button-toggle-group>
+<div class="large-break"></div>
+
+<div id="single-click-buttons">
+  <mat-icon class="button" title="Invert Mask">invert_colors</mat-icon>
+  <div class="small-break"></div>
+  <mat-icon class="button" title="Clear Mask">clear</mat-icon>
 </div>
+<div class="large-break"></div>
+
+<div class="small-break"></div>
+<mat-slider 
+  [displayWith]="getTolerance"
+  title="Mask Tolerance"  
+  vertical min="1" max="127.5" step=".5" value="30">
+</mat-slider>

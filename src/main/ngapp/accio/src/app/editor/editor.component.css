@@ -2,7 +2,7 @@
   height: 100%;
   position: relative;
   text-align: center;
-  top: 200px;
+  top: 100px;
   padding-bottom: 200px;
   padding-top: 200px;
   background-color: #28292b;
@@ -19,10 +19,8 @@ canvas:hover {
 }
 
 #toolbar {
-  width: 75px;
   padding-top: 100px;
-  text-align: left;
+  text-align: center;
   background-color: #3f4143;
   border-right: 10px solid #5e6469;
 }
-
