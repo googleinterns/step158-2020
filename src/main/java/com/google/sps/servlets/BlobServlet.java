@@ -201,7 +201,7 @@ public class BlobServlet extends HttpServlet {
 
   /**
    * Handles GET requests for images and masks.
-   * Responds with JSON string of ImageObjects upon successful GET.
+   * Responds with JSON string of ImageInfo objects upon successful GET.
    * @param     {HttpServletRequest}    request
    * @param     {HttpServletResponse}   response
    * @return    {void}
