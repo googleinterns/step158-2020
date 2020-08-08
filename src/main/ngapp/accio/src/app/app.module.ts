@@ -8,8 +8,9 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MaterialFileInputModule } from 'ngx-material-file-input';
-import {MatInputModule} from '@angular/material/input';
+import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { MatSelectModule } from '@angular/material/select';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -18,6 +19,7 @@ import { ImgGalleryComponent } from './img-gallery/img-gallery.component';
 import { EditorComponent } from './editor/editor.component';
 import { HomeComponent } from './home/home.component';
 import { MaskDirective } from './editor/mask.directive';
+import { CreateProjectComponent } from './create-project/create-project.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 
 @NgModule({
@@ -28,7 +30,8 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
     EditorComponent,
     HomeComponent,
     MaskDirective,
-    ToolbarComponent,
+    CreateProjectComponent,
+    ToolbarComponent
   ],
   imports: [
     BrowserModule,
@@ -39,10 +42,11 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
     MatButtonToggleModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule,
     MaterialFileInputModule,
+    MatInputModule,
     FormsModule,
-    AppRoutingModule
+    MatSelectModule,
+    AppRoutingModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

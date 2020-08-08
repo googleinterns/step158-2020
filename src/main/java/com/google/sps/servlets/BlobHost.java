@@ -13,6 +13,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Hosts Blobs directly.
+ */
 @WebServlet("/blob-host")
 public class BlobHost extends HttpServlet {
   @Override
@@ -27,7 +30,15 @@ public class BlobHost extends HttpServlet {
       return;
     }
 
-    BlobKey blobKey = new BlobKey(request.getParameter("blobkey"));
+    String blobKeyString = request.getParameter("blobkey");
+    if (DataUtils.isEmptyParameter(blobKeyString)) {
+        throw new IOException("You do not have access to that resource.");
+    }
+    BlobKey blobKey = new BlobKey(blobKeyString);
+
+    // TODO(dtjanaka@):
+    // check for access before serving image from blobkey
+    // note: blobkeys are not guessable
 
     BlobstoreService blobstoreService =
         BlobstoreServiceFactory.getBlobstoreService();
