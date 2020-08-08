@@ -20,14 +20,16 @@ export class TopBarComponent implements OnInit {
     this.handleLogin();
   }
 
-  async handleLogin() {
+  // Controls login-button text as well as which link the 
+  // button redirects to.
+  async handleLogin(): Promise<void> {
     console.log('handling login...');
-    let response = await fetch('/login-status?page=');
+    const response = await fetch('/login-status?page=');
     /**Content received contains 
      * {loggedIn: boolean,
      * url: string} 
      */
-    let content = await response.json();
+    const content = await response.json();
 
     // TODO: uncomment this code once UI team creates intro component:
     // If !loggedIn redirect to intro.html

@@ -17,20 +17,24 @@ export class CreateProjectComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  // Makes a new project based on projectName and 
+  // visibility selection by user. 
   async initProject(): Promise<void> {
-    let url = '/projects?' + $.param({
+    const url = '/projects?' + $.param({
       mode: 'create',
       'proj-name': this.projectName,
       'visibility': this.visibility
     });
     console.log(url);
-    let response = await fetch(url, {method: 'POST'});
-    // content holds 'proj-id' attribute
-    console.log('finished fetch...');
-    let projId: string = await response.json();
-    console.log('converted content to json...');
-    console.log('projId: ' + projId);
 
+    const response = await fetch(url, {method: 'POST'});
+    // ^Fetches a single attribute: 'proj-id: string'
+    console.log('finished fetch...');
+    const projId: string = await response.json();
+    console.log('converted content to json...');
+    console.log('proj-id: ' + projId);
+
+    // Navigates to newly created project's page.
     const toGallery: string = '/img-gallery';
     console.log('navigating to  ' + toGallery);
     this.router.navigate([toGallery], { queryParams: { 'proj-id': projId } });

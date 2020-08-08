@@ -2,7 +2,7 @@
 
 <h1>Search by:</h1>
 <div class="container">
-  <mat-form-field hintLabel="Clear this field to remove this filter" appearance="fill">
+  <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
     <mat-label>Project Name</mat-label>
     <input matInput [(ngModel)]="filterTag" placeholder="Ex. MyProject">
   </mat-form-field>
@@ -37,7 +37,7 @@
 
   <mat-form-field hintLabel="Clear this field to remove this filter" appearance="fill">
     <mat-label>Project ID</mat-label>
-    <input matInput [(ngModel)]="filterTag" placeholder="Ex. ajkhweAfdaDFsh">
+    <input matInput [(ngModel)]="filterId" placeholder="Ex. ajkhweAfdaDFsh">
   </mat-form-field>
 
   <button mat-raised-button (click)="getProjects()">Update filter(s)</button>

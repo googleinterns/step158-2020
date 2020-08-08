@@ -26,7 +26,7 @@ export class HomeComponent implements OnInit {
   }
 
   async getProjects(): Promise<any> {
-    let url = '/projects?' + $.param({
+    const url = '/projects?' + $.param({
       'visibility': this.filterVisibility,
       'role': this.filterRole,
       'search-term': this.filterTag,
