@@ -361,7 +361,7 @@ public class BlobServlet extends HttpServlet {
     boolean isImage = kind == DataUtils.IMAGE;
     boolean isTagApplicable = !(isImage && withMasks);
     if (!DataUtils.isEmptyParameter(tag) && isTagApplicable) {
-      Filter tagFilter = new FilterPredicate("tags", FilterOperator.EQUAL, tag);
+      Filter tagFilter = new FilterPredicate("tags", FilterOperator.EQUAL, tag.toLowerCase());
       allImgFilters.add(tagFilter);
     }
 
