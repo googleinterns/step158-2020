@@ -1,3 +1,21 @@
+<form id="upload-image-form">
+  <div style="width:10%">Upload an Image</div>
+  <mat-form-field appearance="fill" style="width:20%">
+    <mat-label>Mask Title</mat-label>
+    <input matInput placeholder="Untitled">
+  </mat-form-field>
+  <mat-form-field appearance="fill" style="width:20%">
+    <ngx-mat-file-input>
+      <input matInput placeholder="Select an Image" value="FileInput">
+    </ngx-mat-file-input>
+  </mat-form-field>
+  <mat-form-field appearance="fill" style="width:40%">
+    <mat-label>Tags (Optional)</mat-label>
+    <input matInput>
+    <mat-hint>Enter list seperated by commas: "tagA, tagB, tagC"</mat-hint>
+  </mat-form-field>
+  <button mat-button id="upload-button" (click)="uploadImage()">Upload</button>
+</form>
 <div id="gallery">
   <div *ngFor="let url of imageUrls; index as imgUrl" class="gallery-item">
     <a [routerLink]="['/editor', imgUrl]">

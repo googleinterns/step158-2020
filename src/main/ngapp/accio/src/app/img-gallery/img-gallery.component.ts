@@ -13,4 +13,7 @@ export class ImgGalleryComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  private uploadImage() {
+    
+  }
 }
