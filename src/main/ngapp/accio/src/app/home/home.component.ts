@@ -46,12 +46,4 @@ export class HomeComponent implements OnInit {
     console.log('content is: ' + content[0]['projId']);
     this.projects = content;
   }
-
-  gotoProject(projId: string): void {
-    // TODO: Change path to /images after UI team refactors and adds
-    // images component
-    const toGallery: string = '/img-gallery';
-    console.log('navigating to  ' + toGallery);
-    this.router.navigate([toGallery], { queryParams: { 'proj-id': projId } });
-  }
 }
