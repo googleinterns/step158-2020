@@ -21,11 +21,12 @@
     "@angular/platform-browser": "~10.0.5",
     "@angular/platform-browser-dynamic": "~10.0.5",
     "@angular/router": "~10.0.5",
-    "ngx-material-file-input": "^2.1.1",
     "@types/jquery": "^3.5.1",
     "ansi-colors": "^4.1.1",
     "jquery": "^3.5.1",
+    "ngx-material-file-input": "^2.1.1",
     "rxjs": "~6.5.5",
+    "symbol-observable": "^1.2.0",
     "tslib": "^2.0.0",
     "zone.js": "~0.10.3"
   },
