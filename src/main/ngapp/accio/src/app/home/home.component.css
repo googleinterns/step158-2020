@@ -1,0 +1,19 @@
+#banner {
+  position: absolute;
+  width: 100%;
+  height: 500px;
+  left: 0px;
+  top: 100px;
+  color: #F5F5F5;
+  text-align: center;
+  background-color: #4285F4;
+  font-family: 'Sail', cursive;
+  font-size: 100px;
+}
+
+#welcome {
+  position: absolute;
+  top: 700px;
+  margin-left: 10vw;
+  margin-right: 10vw;
+}

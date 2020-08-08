@@ -1,1 +1,51 @@
-<p>home works!</p>
+<app-create-project></app-create-project>
+
+<h1>Search by:</h1>
+<div class="container">
+  <mat-form-field hintLabel="Clear this field to remove this filter" appearance="fill">
+    <mat-label>Project Name</mat-label>
+    <input matInput [(ngModel)]="filterTag" placeholder="Ex. MyProject">
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Visibility</mat-label>
+    <mat-select [(ngModel)]="filterVisibility">
+      <mat-option value="all">all</mat-option>
+      <mat-option value="public">public</mat-option>
+      <mat-option value="private">private</mat-option>
+    </mat-select>
+    <mat-hint align="end">Default: all</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Role</mat-label>
+    <mat-select [(ngModel)]="filterRole">
+      <mat-option value="owner">owner</mat-option>
+      <mat-option value="editor">editor</mat-option>
+    </mat-select>
+    <mat-hint align="end">Default: both</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Sort List</mat-label>
+    <mat-select [(ngModel)]="filterSort">
+      <mat-option value="dsc">newest to oldest</mat-option>
+      <mat-option value="asc">oldest to newest</mat-option>
+    </mat-select>
+    <mat-hint align="end">Default: newest</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field hintLabel="Clear this field to remove this filter" appearance="fill">
+    <mat-label>Project ID</mat-label>
+    <input matInput [(ngModel)]="filterTag" placeholder="Ex. ajkhweAfdaDFsh">
+  </mat-form-field>
+
+  <button mat-raised-button (click)="getProjects()">Update filter(s)</button>
+</div>
+
+<div id="gallery">
+  <div *ngFor="let project of projects" class="gallery-item">
+    Project: <a [routerLink]="['/img-gallery', project['projId']]">{{ project['name'] }}</a>
+    Timestamp: {{ project['timestamp'] }}
+  </div>
+</div>

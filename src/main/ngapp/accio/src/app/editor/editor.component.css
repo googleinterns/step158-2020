@@ -1,7 +1,19 @@
 #img-editor {
   height: 80%;
-  width:90%;
-  position: absolute;
+  position: relative;
   text-align: center;
-  padding: 200px 100px 200px 100px;
+  top: 200px;
+  padding-bottom: 100px;
+  padding-top: 100px;
+  background-color: #333333;
+  border: 10px solid #6a6c6e;
+}
+
+canvas {
+  border: 1px solid black;
+  background-color: white;
+}
+
+canvas:hover {
+  cursor: pointer;
 }
