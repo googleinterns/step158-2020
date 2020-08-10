@@ -112,7 +112,7 @@ public class BlobServlet extends HttpServlet {
     boolean isOwner = owners.contains(uEmail);
 
     if (isCreateMode && !isOwner && !isMask) {
-      throw new IOException("You do not have permission to do that.");
+      throw new IOException("You do not have permission to to upload an image to this project.");
     }
 
     boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
@@ -152,9 +152,8 @@ public class BlobServlet extends HttpServlet {
 
     // Set blobkey property
     if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
-      if (isValidFile(blobKey, isMask)) {
-        imgEntity.setProperty("blobkey", blobKey.getKeyString());
-      }
+      checkFileValidity(blobKey, isMask);
+      imgEntity.setProperty("blobkey", blobKey.getKeyString());
     }
 
     // Last-modified time
@@ -299,9 +298,9 @@ public class BlobServlet extends HttpServlet {
    * Checks if the file uploaded to Blobstore has a valid file extension.
    * @param     {BlobKey}   blobKey   key for the file in question
    * @param     {boolean}   isMask    mask or image
-   * @return    {boolean}
+   * @return    {void}
    */
-  private boolean isValidFile(BlobKey blobKey, boolean isMask)
+  private void checkFileValidity(BlobKey blobKey, boolean isMask)
       throws IOException {
     BlobstoreService blobstoreService =
         BlobstoreServiceFactory.getBlobstoreService();
@@ -314,12 +313,13 @@ public class BlobServlet extends HttpServlet {
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     String[] splitFilename = blobInfo.getFilename().split("\\.");
     String extension = splitFilename[splitFilename.length - 1].toLowerCase();
-    if (blobInfo.getSize() == 0 || !validExtensions.contains(extension)) {
+    if (blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
-      throw new IOException("Invalid Blobkey or file not supported.");
+      throw new IOException("Invalid Blobkey.");
+    } else if (!validExtensions.contains(extension)) {
+      blobstoreService.delete(blobKey);
+      throw new IOException("File not supported.");
     }
-
-    return true;
   }
 
   /**
