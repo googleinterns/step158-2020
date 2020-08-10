@@ -99,10 +99,12 @@ public class ProjectServlet extends HttpServlet {
     if (DataUtils.isEmptyParameter(visibility) && isCreateMode) {
       visibility = DataUtils.PRIVATE;
     }
-    if (!DataUtils.isEmptyParameter(visibility) &&
-        (visibility.toLowerCase().equals(DataUtils.PUBLIC) ||
-         visibility.toLowerCase().equals(DataUtils.PRIVATE))) {
-      projEntity.setProperty("visibility", visibility);
+    if (!DataUtils.isEmptyParameter(visibility)) {
+      visibility = visibility.toLowerCase();
+      if (visibility.equals(DataUtils.PUBLIC) ||
+          visibility.equals(DataUtils.PRIVATE)) {
+        projEntity.setProperty("visibility", visibility);
+      }
     }
 
     String ownersString = request.getParameter("owners");
@@ -146,7 +148,8 @@ public class ProjectServlet extends HttpServlet {
     // Return the project ID
     response.setContentType("application/json");
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    String jsonProjId = gson.toJson(KeyFactory.keyToString(projEntity.getKey()));
+    String jsonProjId =
+        gson.toJson(KeyFactory.keyToString(projEntity.getKey()));
     response.getWriter().println(jsonProjId);
   }
 
@@ -196,10 +199,11 @@ public class ProjectServlet extends HttpServlet {
       }
       sort = sort.toLowerCase();
 
-      Query projQuery = new Query(DataUtils.PROJECT).addSort(
-          "utc", sort.equals(DataUtils.ASCENDING_SORT)
-                     ? Query.SortDirection.ASCENDING
-                     : Query.SortDirection.DESCENDING);
+      Query projQuery =
+          new Query(DataUtils.PROJECT)
+              .addSort("utc", sort.equals(DataUtils.ASCENDING_SORT)
+                                  ? Query.SortDirection.ASCENDING
+                                  : Query.SortDirection.DESCENDING);
 
       // Add relevant filters to array based on parameters
       ArrayList<Filter> allFilters = new ArrayList<Filter>();
