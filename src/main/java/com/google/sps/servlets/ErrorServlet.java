@@ -66,8 +66,8 @@ public class ErrorServlet extends HttpServlet {
     }
 
     response.getWriter().println("<h1>" + statusCode + "</h1>"
-                                 + "<p>" + throwable.getMessage() + "</p>" + "</ br>"
-                                 + "<p>" + "on" servletName + "</p>" + "</ br>"
-                                 + "<p>" + "when accessing" requestUri + "</p>");
+                                 + "<p>" + throwable.getMessage() + "</p>"
+                                 + "<p>" + "on" servletName + "</p>"
+                                 + "<p>" + "when accessing" + requestUri + "</p>");
   }
 }
