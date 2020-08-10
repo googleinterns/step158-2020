@@ -45,3 +45,6 @@ img.gallery-img:hover {
   opacity: .8;
 }
 
+.hidden {
+  display: none;
+}
