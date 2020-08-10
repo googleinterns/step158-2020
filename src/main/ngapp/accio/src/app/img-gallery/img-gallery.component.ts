@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { FormGroup, FormControl } from '@angular/forms';
 import { imageUrls } from '../images'
 import { HttpClient } from '@angular/common/http'
 import * as $ from 'jquery';
@@ -10,6 +11,8 @@ import * as $ from 'jquery';
   styleUrls: ['./img-gallery.component.css']
 })
 export class ImgGalleryComponent implements OnInit {
+  uploadImageForm: FormGroup;
+
   imageUrls = imageUrls;
 
   display: boolean = false;
@@ -21,6 +24,7 @@ export class ImgGalleryComponent implements OnInit {
   projectId: string; 
   tags: string;
   mode: string = 'create';
+  image;
 
   // Holds images fetched from datastore
   imageArray: Array<any>;
@@ -28,6 +32,11 @@ export class ImgGalleryComponent implements OnInit {
   constructor(private http: HttpClient, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
+    this.uploadImageForm = new FormGroup({
+      imgName: new FormControl(),
+      image: new FormControl(),
+      tags: new FormControl()
+    });
     //creates the form data of parameters to be sent to servlet
      this.formData = new FormData();
 
@@ -100,31 +109,45 @@ export class ImgGalleryComponent implements OnInit {
    * Sends post request to created blob URL to save image entity 
    * Both methods produce a 404 error
   */
-  async onUpload(): Promise<void> {
-    // Creates form data to send by post to blob servlet
-    // console.log('ready to submit');
-    // this.formData.append('mode', this.mode);
-    // this.formData.append('img-name', this.imageName);
-    // console.log('FORM DATA img-name ' + this.imageName);
-    // this.formData.append('proj-id', this.projectId);
-    // console.log('FORM DATA proj-id ' + this.projectId);
-    // this.formData.append('tags', this.tags);
-    // console.log('FORM DATA tags ' + this.tags);
-
-    // this.http.post<any>(this.actionUrl, this.formData).subscribe(
-    //   (res) => console.log('res ' + res),
-    //   (err) => console.log('err ' + err['name'] + 'action url= ' + this.actionUrl)
-    // );
-    // console.log('made it to fetch');
+  onUpload() {
+    console.log('formData: ');
+    console.log(this.formData);
+    this.http.post<any>(this.actionUrl, this.formData).subscribe(
+      (res) => console.log('res ' + res),
+      (err) => console.log('err ' + err['name'] + 'action url= ' + this.actionUrl)
+    );
+    console.log('made it through fetch');
     
-    let response = await fetch(this.actionUrl, {method: 'POST'});
-    console.log('finish fetch blob');
-    let content = await response.text();
-    console.log('converted to json');
-   console.log(content);
+
+
+  //   let response = await fetch(this.actionUrl, {method: 'POST'});
+  //   console.log('finish fetch blob');
+  //   let content = await response.text();
+  //   console.log('converted to json');
+  //  console.log(content);
   }
 
   getProjId(): string {
     return this.projectId;
+  }
+
+  onSubmit() {
+    // Creates form data to send by post to blob servlet
+    console.log('ready to submit');
+    this.formData.append('mode', this.mode);
+
+    this.formData.append('img-name', this.uploadImageForm.get('imgName').value);
+    console.log('FORM DATA img-name ' + this.uploadImageForm.get('imgName').value);
+
+    this.formData.append('image', this.uploadImageForm.get('image').value);
+    console.log('FORM DATA image ' + this.uploadImageForm.get('image').value);
+
+    this.formData.append('tags', this.uploadImageForm.get('tags').value);
+    console.log('FORM DATA tags ' + this.uploadImageForm.get('tags').value);
+
+    this.formData.append('proj-id', this.projectId);
+    console.log('FORM DATA proj-id ' + this.projectId);
+
+    this.onUpload();
   }
 }

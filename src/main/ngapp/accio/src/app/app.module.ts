@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MaterialFileInputModule } from 'ngx-material-file-input';
 import { MatInputModule } from '@angular/material/input';
+import { ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { HttpClientModule } from '@angular/common/http'
@@ -47,6 +48,7 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
     MatFormFieldModule,
     MaterialFileInputModule,
     MatInputModule,
+    ReactiveFormsModule,
     FormsModule,
     MatSelectModule,
     HttpClientModule,
