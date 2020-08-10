@@ -118,4 +118,20 @@ export class EditorComponent implements OnInit {
   public getScaledData(): ImageData {
     return this.ctx.getImageData(0, 0, this.image.width * this.scaleFactor, this.image.height * this.scaleFactor);
   }
+
+  /** 
+   * Clears canvas to get mask Image as url to store and redraws
+   *  original image for possibility user makes more edits. 
+   * @return Url for the mask image to be stored in blobstore.  
+   */
+  private getMaskUrl(): string {
+    //  Clear canvas and put mask data to return mask as Image, 
+    this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
+    this.hiddenCtx.putImageData(this.maskImageData, 0, 0);
+    const maskImage = this.hiddenCanvas.nativeElement.toDataURL();
+    //  Redraw original image if user adds more to mask
+    this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
+    this.hiddenCtx.drawImage(this.image, 0, 0);
+    return maskImage;
+  }
 }
