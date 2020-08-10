@@ -10,9 +10,20 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Returns a Blobstore upload link. 
+ */
 @WebServlet("/blob-upload")
 public class BlobUrl extends HttpServlet {
-  @Override
+  
+  /**
+   * Handles GET requests for Blobstore upload links.
+   * Responds with a string containing the URL upon successful GET.
+   * @param     {HttpServletRequest}    request
+   * @param     {HttpServletResponse}   response
+   * @return    {void}
+   */  
+  @Override  
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     response.setContentType("application/json");
