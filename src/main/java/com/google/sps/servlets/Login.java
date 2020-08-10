@@ -31,20 +31,15 @@ public class Login extends HttpServlet {
       throws IOException {
     response.setContentType("application/json");
 
-    String page = request.getParameter("page");
-    if (DataUtils.isEmptyParameter(page)) {
-        page = "";
-    }
-    
     String userInfo = new String();
 
     UserService userService = UserServiceFactory.getUserService();
     if (userService.isUserLoggedIn()) {
-      String logoutUrl = userService.createLogoutURL("/" + page);
+      String logoutUrl = userService.createLogoutURL("/");
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       userInfo = gson.toJson(new UserInfo(true, logoutUrl));
     } else {
-      String loginUrl = userService.createLoginURL("/" + page);
+      String loginUrl = userService.createLoginURL("#/logout");
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       userInfo = gson.toJson(new UserInfo(false, loginUrl));
     }
