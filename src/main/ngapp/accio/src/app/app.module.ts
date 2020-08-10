@@ -11,6 +11,9 @@ import { MaterialFileInputModule } from 'ngx-material-file-input';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
+import { HttpClientModule } from '@angular/common/http'
+import { MatDialogModule } from '@angular/material/dialog';
+import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -31,7 +34,7 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
     HomeComponent,
     MaskDirective,
     CreateProjectComponent,
-    ToolbarComponent
+    ToolbarComponent,
   ],
   imports: [
     BrowserModule,
@@ -46,9 +49,11 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
     MatInputModule,
     FormsModule,
     MatSelectModule,
+    HttpClientModule,
+    MatDialogModule,
     AppRoutingModule,
   ],
-  providers: [],
+  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
