@@ -12,19 +12,15 @@ import * as $ from 'jquery';
 })
 export class ImgGalleryComponent implements OnInit {
   uploadImageForm: FormGroup;
+  formData: FormData;
+  actionUrl: string;
+  mode: string = 'create';
+  projectId: string;
 
   imageUrls = imageUrls;
 
-  display: boolean = false;
-
-  actionUrl: string;
-  formData: FormData;
-
-  imageName: string; 
-  projectId: string; 
-  tags: string;
-  mode: string = 'create';
-  image;
+  displayUpload: boolean = false;
+  displayImages: boolean = false;
 
   // Holds images fetched from datastore
   imageArray: Array<any>;
@@ -37,6 +33,7 @@ export class ImgGalleryComponent implements OnInit {
       image: new FormControl(),
       tags: new FormControl()
     });
+
     //creates the form data of parameters to be sent to servlet
      this.formData = new FormData();
 
@@ -57,10 +54,12 @@ export class ImgGalleryComponent implements OnInit {
 
     // Get the blobstore url initalized and show the form
     this.fetchBlob();
+    this.getImages();
   }
 
   async getImages(): Promise<any> {
-    let fetchUrl = '/images' + $.param({
+    console.log('fetching from projectID: ' + this.projectId);
+    let fetchUrl = '/blobs?' + $.param({
       'proj-id': this.projectId
       /* add ability to sort by:
       *     tag
@@ -72,66 +71,41 @@ export class ImgGalleryComponent implements OnInit {
       */
     });
 
-    // Returns a list of image objects, url, name, utc, tags, masks
+    // fetchUrl returns a list of image objects: 'url', 'name', 'utc', 'tags[]', 'masks[]'
     const response = await fetch(fetchUrl);
     const imageContent = await response.json();
     this.imageArray = imageContent;
+
+    if (this.imageArray.length > 0) {
+      this.displayImages = true;
+    }
   }
 
   /**
-   * Fetch server to get blob upload url and set action url
-   * Called before user can see the form
+   * @param actionUrl is set to the blobuploadUrl where the user's image will be posted to
+   * Fetch server to get blobUploadUrl and set actionUrl.
+   * Called before user can see the form then displays form.
    */
   async fetchBlob(): Promise<void> {
     let response = await fetch('/blob-upload');
     let blobUploadUrl = await response.json();
     console.log('blob upload url: ' + blobUploadUrl);
     this.actionUrl = blobUploadUrl;
-    this.display = true;
+    this.displayUpload = true;
     console.log('actionURL: ' + this.actionUrl);
     console.log('upload ready');
-
-    //  Fetch blob using fetch instead of await, same action as above, can be deleted once working
-    // fetch('/blob-upload') 
-    // .then((response) => {
-    //   return response.text();
-    // })
-    // .then((blobUploadUrl) => {
-    //   console.log(blobUploadUrl);
-    //   this.actionUrl = blobUploadUrl;
-    //   this.display = true;
-    //   console.log('actionURL: ' + this.actionUrl);
-    //   console.log('upload ready');
-    // })
   }
-  
+
   /** 
-   * Sends post request to created blob URL to save image entity 
-   * Both methods produce a 404 error
-  */
-  onUpload() {
-    console.log('formData: ');
-    console.log(this.formData);
-    this.http.post<any>(this.actionUrl, this.formData).subscribe(
-      (res) => console.log('res ' + res),
-      (err) => console.log('err ' + err['name'] + 'action url= ' + this.actionUrl)
-    );
-    console.log('made it through fetch');
-    
-
-
-  //   let response = await fetch(this.actionUrl, {method: 'POST'});
-  //   console.log('finish fetch blob');
-  //   let content = await response.text();
-  //   console.log('converted to json');
-  //  console.log(content);
-  }
-
-  getProjId(): string {
-    return this.projectId;
-  }
-
+   *  @param formData is initalized with values given by user.
+   *  Called when the user clicks submit.
+   */
   onSubmit() {
+    // uploadImageForm 'image' contains a file, so the value is a file array
+    // To serve the blob we have to access the first file in the array
+    const fileArray = this.uploadImageForm.get('image').value;
+    const imageFile = fileArray.files[0];
+
     // Creates form data to send by post to blob servlet
     console.log('ready to submit');
     this.formData.append('mode', this.mode);
@@ -139,8 +113,8 @@ export class ImgGalleryComponent implements OnInit {
     this.formData.append('img-name', this.uploadImageForm.get('imgName').value);
     console.log('FORM DATA img-name ' + this.uploadImageForm.get('imgName').value);
 
-    this.formData.append('image', this.uploadImageForm.get('image').value);
-    console.log('FORM DATA image ' + this.uploadImageForm.get('image').value);
+    this.formData.append('image', imageFile);
+    console.log('FORM DATA image ' + imageFile);
 
     this.formData.append('tags', this.uploadImageForm.get('tags').value);
     console.log('FORM DATA tags ' + this.uploadImageForm.get('tags').value);
@@ -149,5 +123,22 @@ export class ImgGalleryComponent implements OnInit {
     console.log('FORM DATA proj-id ' + this.projectId);
 
     this.onUpload();
+  }
+
+  /** 
+   * Fetches the blobUploadURL to post image data to datastore
+   */
+  private onUpload() {
+
+    this.http.post<any>(this.actionUrl, this.formData).subscribe(
+      (res) => console.log('res ' + res),
+      (err) => console.log('err ' + err)
+    );
+    console.log('SUCCESS: Image uploaded to server.');
+
+    //reset form values and form
+    this.formData = new FormData;
+    this.uploadImageForm.reset();
+    this.getImages();
   }
 }

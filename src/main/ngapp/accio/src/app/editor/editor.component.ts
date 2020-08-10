@@ -39,9 +39,9 @@ export class EditorComponent implements OnInit {
     this.innerHeight = window.innerHeight;
     // Returns url user clicked in gallery component.
     this.route.paramMap.subscribe(params => {
-      let index = Number(params.get('imgUrl'));
-      this.checkImageUrl(index);
-      this.url = imageUrls[index];
+      console.log(params);
+      this.url = params.get('imgUrl');
+      console.log(this.url);
     });
 
     this.ctx = this.canvas.nativeElement.getContext('2d');

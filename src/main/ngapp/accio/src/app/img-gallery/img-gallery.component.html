@@ -1,22 +1,18 @@
-<!-- <form  novalidate  (ngSubmit)="onSubmit()" #uploadImageForm="ngForm" *ngIf="display" id="upload-image-form" method="POST" enctype="multipart/form-data"> -->
-<form  novalidate [formGroup]="uploadImageForm" (ngSubmit)="onSubmit()" *ngIf="display" id="upload-image-form" method="POST" enctype="multipart/form-data">
+<form  novalidate [formGroup]="uploadImageForm" (ngSubmit)="onSubmit()" *ngIf="displayUpload" id="upload-image-form" method="POST" enctype="multipart/form-data">
   <div style="width:10%">Upload an Image</div>
   
   <mat-form-field appearance="fill" style="width:20%">
     <mat-label>Image Title</mat-label>
-    <!-- <input matInput placeholder="Untitled" name="img-name" [(ngModel)]="imageName"/> -->
     <input matInput formControlName="imgName" placeholder="Untitled"/>
   </mat-form-field>
   
   <mat-form-field appearance="fill" style="width:20%">
-    <!-- <ngx-mat-file-input name="image" [(ngModel)]="image"> -->
     <ngx-mat-file-input formControlName="image">
     </ngx-mat-file-input>
   </mat-form-field>
  
   <mat-form-field appearance="fill" style="width:40%">
     <mat-label>Tags (Optional)</mat-label>
-    <!-- <input matInput name="tags" [(ngModel)]="tags"/> -->
     <input matInput formControlName="tags"/>
     <mat-hint>Enter list seperated by commas: "tagA, tagB, tagC"</mat-hint>
   </mat-form-field>
@@ -25,15 +21,10 @@
 
 </form>
 
-<div id="gallery">
-  <!-- <div *ngFor="let image of imageArray" class="gallery-item">
+<div id="gallery" *ngIf="displayImages">
+  <div *ngFor="let image of imageArray" class="gallery-item">
     <a [routerLink]="['/editor', image['url']]">
       <img class="gallery-img" [src]="image['url']">
-    </a>
-  </div> -->
-  <div *ngFor="let url of imageUrls; index as imgUrl" class="gallery-item">
-    <a [routerLink]="['/editor', imgUrl]">
-      <img class="gallery-img" [src]="url" alt="hardcoded img">
     </a>
   </div>
 </div>
