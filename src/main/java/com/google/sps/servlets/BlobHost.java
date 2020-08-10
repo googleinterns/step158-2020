@@ -26,11 +26,19 @@ public class BlobHost extends HttpServlet {
     UserService userService = UserServiceFactory.getUserService();
 
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/imgmanip.html");
+      response.sendRedirect("/");
       return;
     }
 
-    BlobKey blobKey = new BlobKey(request.getParameter("blobkey"));
+    String blobKeyString = request.getParameter("blobkey");
+    if (DataUtils.isEmptyParameter(blobKeyString)) {
+        throw new IOException("You do not have access to that resource.");
+    }
+    BlobKey blobKey = new BlobKey(blobKeyString);
+
+    // TODO(dtjanaka@):
+    // check for access before serving image from blobkey
+    // note: blobkeys are not guessable
 
     BlobstoreService blobstoreService =
         BlobstoreServiceFactory.getBlobstoreService();
