@@ -55,7 +55,7 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/"); // placeholder: should redirect to login
+      response.sendRedirect("/");
       return;
     }
 
@@ -121,8 +121,7 @@ public class BlobServlet extends HttpServlet {
         throw new IOException("Only owners can delete assets.");
       } else {
         datastore.delete(imgEntity.getKey());
-        response.sendRedirect("/"); // placeholder: should redirect to
-                                    // project homepage
+        response.sendRedirect("/");
         return;
       }
     }
@@ -218,7 +217,7 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/"); // placeholder: should redirect to login
+      response.sendRedirect("/");
       return;
     }
 
