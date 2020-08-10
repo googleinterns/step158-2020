@@ -26,7 +26,7 @@ public class BlobHost extends HttpServlet {
     UserService userService = UserServiceFactory.getUserService();
 
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/imgmanip.html");
+      response.sendRedirect("/");
       return;
     }
 

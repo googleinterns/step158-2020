@@ -1,3 +1,6 @@
 <div id="img-editor">
-  <img src="assets/images/pic1.jpg" alt="Image editor">
+  <canvas #canvas appMask [scale]="getScaleFactor()" [originalData]="getImgData()" [scaledData]="getScaledData()" [maskData]="getMaskData()">
+  </canvas>
+  <canvas #hiddenCanvas style="display:none">
+  </canvas>
 </div>

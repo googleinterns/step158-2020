@@ -1,11 +1,7 @@
 <div id="header">
-  <div *ngIf="!loggedIn">
-    <button routerLink="gallery" class="login-button" (click)=toggleButton()>Sign In</button>
-  </div>
-  <div *ngIf="loggedIn">
-    <button routerLink="" class="login-button" (click)=toggleButton()>Sign Out</button>
-  </div>
-    <a href="home">
-        <img height="100%" src="assets/images/logo.png">
-    </a>
+  <button routerLink="/img-gallery" class="login-button">Sign In</button>
+  
+  <a href="home">
+    <img height="100%" src="assets/images/logo.png">
+  </a>
 </div>

@@ -1,0 +1,7 @@
+<div id="gallery">
+  <div *ngFor="let url of imageUrls; index as imgUrl" class="gallery-item">
+    <a [routerLink]="['/editor', imgUrl]">
+      <img class="gallery-img" [src]="url" alt="hardcoded img">
+    </a>
+  </div>
+</div>

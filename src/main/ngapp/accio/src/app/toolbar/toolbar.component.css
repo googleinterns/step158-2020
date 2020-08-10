@@ -1,0 +1,8 @@
+#toolbar {
+  position: absolute;
+  text-align: left;
+  padding: 5px;
+  height: 100%;
+  width: 100px;
+  background-color: #6A6C6E;
+}
