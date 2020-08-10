@@ -14,11 +14,10 @@ export class CreateProjectComponent implements OnInit {
   constructor(
       private router: Router) { }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void { }
 
-  // Makes a new project based on projectName and 
-  // visibility selection by user. 
+  // Makes a new project based on this.projectName and this.visibility 
+  // selection by user and redirects to new project's page. 
   async initProject(): Promise<void> {
     const url = '/projects?' + $.param({
       mode: 'create',

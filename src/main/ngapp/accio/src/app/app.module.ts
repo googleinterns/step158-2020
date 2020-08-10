@@ -17,6 +17,7 @@ import { CreateProjectComponent } from './create-project/create-project.componen
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaskDirective } from './mask.directive';
 import { ToolbarComponent } from './toolbar/toolbar.component';
+import { IntroComponent } from './intro/intro.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
     HomeComponent,
     CreateProjectComponent,
     MaskDirective,
-    ToolbarComponent
+    ToolbarComponent,
+    IntroComponent
   ],
   imports: [
     BrowserModule,

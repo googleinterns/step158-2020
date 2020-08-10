@@ -11,7 +11,7 @@ export class TopBarComponent implements OnInit {
   SIGN_OUT = 'Sign Out';
   SIGN_IN = 'Sign In';
 
-  buttonText: string = 'login-server: fetch() failed';
+  buttonText = 'login-server: fetch() failed';
   buttonLink: string;
 
   constructor() { }
@@ -31,11 +31,7 @@ export class TopBarComponent implements OnInit {
      */
     const content = await response.json();
 
-    // TODO: uncomment this code once UI team creates intro component:
-    // If !loggedIn redirect to intro.html
     if (!content.loggedIn) {
-      // location.href = '/intro';
-      // TODO: remove once UI team creates intro component
       this.buttonText = this.SIGN_IN;
     } else if (content.loggedIn) {
       this.buttonText = this.SIGN_OUT;
@@ -44,6 +40,8 @@ export class TopBarComponent implements OnInit {
     document.getElementById('login-button').onclick = () => {
       console.log('click registered...');
       this.toggleButton(content.loggedIn, content.url);
+      // Uses location.href because @angular/router doesn't support
+      // redirects to external links.
       location.href = this.buttonLink;
     };
   }

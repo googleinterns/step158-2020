@@ -8,8 +8,8 @@ import * as $ from 'jquery';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  // TODO: add filter global once talk w/ DB team to understand it.
-  // Also add it as attribute in getProject's url var.
+  // TODO: Add filter global once talk w/ DB team to understand it.
+  //       Also add it as attribute in getProject's url var.
   filterVisibility: string;
   filterRole: string;
   filterTag: string;
@@ -23,9 +23,27 @@ export class HomeComponent implements OnInit {
       private router: Router) { }
 
   ngOnInit(): void {
+    this.handleLoggedOut();
+  }
+  
+  // Redirects user to intro page if not logged in
+  async handleLoggedOut(): Promise<void> {
+    console.log('handling login...');
+    const response = await fetch('/login-status?page=');
+    /**Content received contains 
+     * {loggedIn: boolean,
+     * url: string} 
+     */
+    const content = await response.json();
+
+    if (!content.loggedIn) {
+      this.router.navigate(['/intro']);
+    }
   }
 
-  async getProjects(): Promise<any> {
+  // Fetches a list of projects based on user's choice of filters.
+  // Result is stored in this.projects
+  async fetchProjects(): Promise<void> {
     const url = '/projects?' + $.param({
       'visibility': this.filterVisibility,
       'role': this.filterRole,
@@ -36,7 +54,7 @@ export class HomeComponent implements OnInit {
     const response = await fetch(url);
     /**Request @returns a list of objects:
      * {name: string,
-     * projId: string,z
+     * projId: string,
      * timestamp: string,
      * visibility: string,
      * owners: list<string>,
