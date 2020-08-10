@@ -50,7 +50,7 @@ public class ProjectServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/"); // placeholder: should redirect to login
+      response.sendRedirect("/");
       return;
     }
 
@@ -72,7 +72,7 @@ public class ProjectServlet extends HttpServlet {
       boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
       if (delete) {
         datastore.delete(projEntity.getKey());
-        response.sendRedirect("/"); // placeholder: should redirect to projects gallery
+        response.sendRedirect("/"); // TODO: should redirect to projects gallery
         return;
       }
     }
@@ -167,7 +167,7 @@ public class ProjectServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/"); // placeholder: should redirect to login
+      response.sendRedirect("/");
       return;
     }
 
