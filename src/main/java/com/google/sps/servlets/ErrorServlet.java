@@ -23,8 +23,17 @@ public class ErrorServlet extends HttpServlet {
       throws ServletException, IOException {
     processError(request, response);
   }
+
+  /**
+   * Responds with information about errors and exceptions thrown during runtime.
+   * @param     {HttpServletRequest}    request
+   * @param     {HttpServletResponse}   response
+   * @return    {void}
+   */
   private void processError(HttpServletRequest request,
                             HttpServletResponse response) throws IOException {
+    response.setContentType("text/html");
+
     String code = request.getParameter("code");
     if (!DataUtils.isEmptyParameter(code)) {
       response.getWriter().println("<h1>" + code + "</h1>");
@@ -55,9 +64,10 @@ public class ErrorServlet extends HttpServlet {
     if (DataUtils.isEmptyParameter(requestUri)) {
       requestUri = "Unknown";
     }
-    response.setContentType("text/html");
 
     response.getWriter().println("<h1>" + statusCode + "</h1>"
-                                 + "<p>" + throwable.getMessage() + "</p>");
+                                 + "<p>" + throwable.getMessage() + "</p>" + "</ br>"
+                                 + "<p>" + "on" servletName + "</p>" + "</ br>"
+                                 + "<p>" + "when accessing" requestUri + "</p>");
   }
 }
