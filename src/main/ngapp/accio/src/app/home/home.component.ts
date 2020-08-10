@@ -23,6 +23,7 @@ export class HomeComponent implements OnInit {
       private router: Router) { }
 
   ngOnInit(): void {
+    this.getProjects();
   }
 
   async getProjects(): Promise<any> {
