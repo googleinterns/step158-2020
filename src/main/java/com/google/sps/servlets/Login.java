@@ -35,11 +35,11 @@ public class Login extends HttpServlet {
 
     UserService userService = UserServiceFactory.getUserService();
     if (userService.isUserLoggedIn()) {
-      String logoutUrl = userService.createLogoutURL("/");
+      String logoutUrl = userService.createLogoutURL("/#/logout");
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       userInfo = gson.toJson(new UserInfo(true, logoutUrl));
     } else {
-      String loginUrl = userService.createLoginURL("#/logout");
+      String loginUrl = userService.createLoginURL("/");
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       userInfo = gson.toJson(new UserInfo(false, loginUrl));
     }
