@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
-//import { HttpClient } from '@angular/common/http'///////////
 import { PostBlobsService } from '../post-blobs.service';
 import * as $ from 'jquery';
 
@@ -13,7 +12,6 @@ import * as $ from 'jquery';
 export class ImgGalleryComponent implements OnInit {
   uploadImageForm: FormGroup;
   formData: FormData;
-  //actionUrl: string;////////
   mode: string = 'create';
   projectId: string;
 
@@ -24,7 +22,6 @@ export class ImgGalleryComponent implements OnInit {
   imageArray: Array<any>;
 
   constructor(
-    //private http: HttpClient, /////////
     private route: ActivatedRoute,
     private postBlobsService: PostBlobsService,
   ) { }
@@ -56,7 +53,6 @@ export class ImgGalleryComponent implements OnInit {
 
     // Get the blobstore url initalized and show the form
     this.postBlobsService.fetchBlob();
-    //this.actionUrl = this.postBlobsService.getActionUrl();////////
     this.displayUpload = true;
     this.getImages();
   }
@@ -84,37 +80,6 @@ export class ImgGalleryComponent implements OnInit {
       this.displayImages = true;
     }
   }
-
-  //   /**
-  //  * @param actionUrl is set to the blobuploadUrl where the user's image will be posted to//////////////
-  //  * Fetch server to get blobUploadUrl and set actionUrl.
-  //  * Called before user can see the form then displays form.
-  //  */
-  // async fetchBlob(): Promise<void> {
-  //   let response = await fetch('/blob-upload');
-  //   let blobUploadUrl = await response.json();
-  //   console.log('blob upload url: ' + blobUploadUrl);
-  //  // this.actionUrl = blobUploadUrl;
-  //   //this.displayUpload = true;
-  //  // console.log('actionURL: ' + this.actionUrl);
-  //   console.log('upload ready');
-  //   return blobUploadURL;
-  // }
-
-  // /** 
-  //  * Fetches the blobUploadURL to post image data to datastore
-  //  */
-  // private onUpload(actionUrl: string, formData: FormData, uploadForm) {
-
-  //   this.http.post<any>(actionUrl, formData).subscribe(
-  //     (res) => console.log('res ' + res),
-  //     (err) => console.log('err ' + err)
-  //   );
-  //   console.log('SUCCESS: Image uploaded to server.');
-
-  //   // Reset form values, object passed by Ref.
-  //   uploadForm.reset();
-  // }
 
   /** 
    *  @param formData is initalized with values given by user.

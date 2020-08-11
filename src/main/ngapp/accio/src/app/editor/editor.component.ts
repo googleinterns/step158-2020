@@ -25,6 +25,7 @@ export class EditorComponent implements OnInit {
   uploadMaskForm: FormGroup;
   formData: FormData;
   parentName: string;
+  blobMask;
 
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
@@ -35,7 +36,7 @@ export class EditorComponent implements OnInit {
   hiddenCanvas: ElementRef<HTMLCanvasElement>; 
   private hiddenCtx: CanvasRenderingContext2D;
 
-  //  @Param scaleFactor is used to trim image scale so image 
+  //  @param scaleFactor is used to trim image scale so image 
   //    is smaller than width and height of the users screen.
   private scaleFactor = .9;
   private image: HTMLImageElement;
@@ -48,8 +49,13 @@ export class EditorComponent implements OnInit {
     // Returns url user clicked in gallery component.
     this.route.paramMap.subscribe(params => {
       console.log(params);
+
+      this.projectId = params.get('proj-id ');
+      this.parentName = params.get('parent-img ');
       this.url = params.get('imgUrl');
-      console.log(this.url);
+      
+      console.log('image url: ' + this.url);
+      console.log('proj id for mask: ' + this.projectId);
     });
 
     this.ctx = this.canvas.nativeElement.getContext('2d');
@@ -62,18 +68,6 @@ export class EditorComponent implements OnInit {
     this.display = true;
   }
   
-  /**
-   * Checks that route for editor URL is in bounds of array of Urls and is a number
-   * Redirects to gallery component if not, does not complete editor component
-   * index: the route from the editor url passed through gallery.ts 
-   * Obsolete in implementation where user uploads image////////
-   */
-  private checkImageUrl(index: number): void {
-    if (Number.isNaN(index) || index >= imageUrls.length || index < 0) {    
-      console.log('Index: ' + index + 'Not a number or greater than number of images, returning to Gallery');
-      this.router.navigate(['/gallery']);
-    }
-  }
   /**  
    * Draws the image user selects from gallery on Canvas
    *    and creates a hidden canvas to store the original image 
@@ -138,27 +132,19 @@ export class EditorComponent implements OnInit {
    *  original image for possibility user makes more edits. 
    * @return Url for the mask image to be stored in blobstore.  
    */
-  private getMaskBlob() {
+  async getMaskBlob(): Promise<void> {
     //  Clear canvas and put mask data to return mask as Image, 
     this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
     this.hiddenCtx.putImageData(this.maskImageData, 0, 0);
 
-    // let link = document.createElement('a');
-    // link.download("image/png");
+    let maskUrl = this.hiddenCanvas.nativeElement.toDataURL();
+    this.blobMask = await fetch(maskUrl).then(response => response.blob());
+    this.blobMask.lastModifiedDate = new Date();
+    this.blobMask.name = this.parentName + 'Mask.png';
 
-    console.log('created link element');
-    let blobMask;
-
-    this.hiddenCanvas.nativeElement.toBlob(function(blob){
-      console.log(blob);
-      blobMask = blob;
-    },('image/png'));
-  
     //  Redraw original image if user adds more to mask
     this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
     this.hiddenCtx.drawImage(this.image, 0, 0);
-
-    return blobMask;
   }
 
   /** 
@@ -171,23 +157,18 @@ export class EditorComponent implements OnInit {
     });
 
     this.formData = new FormData();
-    this.route.paramMap.subscribe(params => {
-      this.projectId = params.get('proj-id');
-      this.parentName = params.get('parent-img')
-      console.log('proj id for mask: ' + this.projectId)
-    });
   }
 
-  onSubmit() {
-    
+  async onSubmit(): Promise<void> {
+    await this.getMaskBlob();
     this.formData.append('mode', this.mode);    
     this.formData.append('proj-id', this.projectId);
-
     this.formData.append('img-name',  this.uploadMaskForm.get('maskName').value);
     this.formData.append('parent-img', this.parentName);
-    this.formData.append('image', this.getMaskBlob());
 
+    //  Set the filename to parents name + mask.png.
+    this.formData.append('image', this.blobMask, this.parentName + 'Mask.png');
+    
     this.postBlobsService.onUpload(this.formData, this.uploadMaskForm);
   }
-
 }

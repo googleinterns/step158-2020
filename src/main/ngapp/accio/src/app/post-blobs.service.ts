@@ -17,9 +17,8 @@ export class PostBlobsService {
   async fetchBlob(): Promise<void> {
     let response = await fetch('/blob-upload');
     let blobUploadUrl = await response.json();
-    console.log('blob upload url: ' + blobUploadUrl);
     this.actionUrl = blobUploadUrl;
-   // this.displayUpload = true;
+
     console.log('actionURL: ' + this.actionUrl);
     console.log('upload ready');
   }
@@ -34,15 +33,9 @@ export class PostBlobsService {
       (err) => console.log('err ' + err)
     );
     console.log('SUCCESS: Image uploaded to server.');
+    window.alert('Image was saved!');
 
     // Reset form values, object passed by Ref.
     uploadForm.reset();
   }
-
-  // /** 
-  //  *  @returns the URL for the image/mask to be posted to. 
-  //  */
-  // getActionUrl(): string {
-  //   return this.actionUrl;
-  // }
 }
