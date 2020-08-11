@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
-import { imageUrls } from '../images'
-import { HttpClient } from '@angular/common/http'
+//import { HttpClient } from '@angular/common/http'///////////
+import { PostBlobsService } from '../post-blobs.service';
 import * as $ from 'jquery';
 
 @Component({
@@ -13,11 +13,9 @@ import * as $ from 'jquery';
 export class ImgGalleryComponent implements OnInit {
   uploadImageForm: FormGroup;
   formData: FormData;
-  actionUrl: string;
+  //actionUrl: string;////////
   mode: string = 'create';
   projectId: string;
-
-  imageUrls = imageUrls;
 
   displayUpload: boolean = false;
   displayImages: boolean = false;
@@ -25,7 +23,11 @@ export class ImgGalleryComponent implements OnInit {
   // Holds images fetched from datastore
   imageArray: Array<any>;
 
-  constructor(private http: HttpClient, private route: ActivatedRoute) { }
+  constructor(
+    //private http: HttpClient, /////////
+    private route: ActivatedRoute,
+    private postBlobsService: PostBlobsService,
+  ) { }
 
   ngOnInit(): void {
     this.uploadImageForm = new FormGroup({
@@ -35,7 +37,7 @@ export class ImgGalleryComponent implements OnInit {
     });
 
     //creates the form data of parameters to be sent to servlet
-     this.formData = new FormData();
+    this.formData = new FormData();
 
     // Set the project id, first try if the 
     //    project is a new project and there are query keys
@@ -53,7 +55,9 @@ export class ImgGalleryComponent implements OnInit {
     console.log('now fetching...')
 
     // Get the blobstore url initalized and show the form
-    this.fetchBlob();
+    this.postBlobsService.fetchBlob();
+    //this.actionUrl = this.postBlobsService.getActionUrl();////////
+    this.displayUpload = true;
     this.getImages();
   }
 
@@ -81,20 +85,36 @@ export class ImgGalleryComponent implements OnInit {
     }
   }
 
-  /**
-   * @param actionUrl is set to the blobuploadUrl where the user's image will be posted to
-   * Fetch server to get blobUploadUrl and set actionUrl.
-   * Called before user can see the form then displays form.
-   */
-  async fetchBlob(): Promise<void> {
-    let response = await fetch('/blob-upload');
-    let blobUploadUrl = await response.json();
-    console.log('blob upload url: ' + blobUploadUrl);
-    this.actionUrl = blobUploadUrl;
-    this.displayUpload = true;
-    console.log('actionURL: ' + this.actionUrl);
-    console.log('upload ready');
-  }
+  //   /**
+  //  * @param actionUrl is set to the blobuploadUrl where the user's image will be posted to//////////////
+  //  * Fetch server to get blobUploadUrl and set actionUrl.
+  //  * Called before user can see the form then displays form.
+  //  */
+  // async fetchBlob(): Promise<void> {
+  //   let response = await fetch('/blob-upload');
+  //   let blobUploadUrl = await response.json();
+  //   console.log('blob upload url: ' + blobUploadUrl);
+  //  // this.actionUrl = blobUploadUrl;
+  //   //this.displayUpload = true;
+  //  // console.log('actionURL: ' + this.actionUrl);
+  //   console.log('upload ready');
+  //   return blobUploadURL;
+  // }
+
+  // /** 
+  //  * Fetches the blobUploadURL to post image data to datastore
+  //  */
+  // private onUpload(actionUrl: string, formData: FormData, uploadForm) {
+
+  //   this.http.post<any>(actionUrl, formData).subscribe(
+  //     (res) => console.log('res ' + res),
+  //     (err) => console.log('err ' + err)
+  //   );
+  //   console.log('SUCCESS: Image uploaded to server.');
+
+  //   // Reset form values, object passed by Ref.
+  //   uploadForm.reset();
+  // }
 
   /** 
    *  @param formData is initalized with values given by user.
@@ -115,6 +135,8 @@ export class ImgGalleryComponent implements OnInit {
 
     this.formData.append('image', imageFile);
     console.log('FORM DATA image ' + imageFile);
+    console.log(imageFile);
+
 
     this.formData.append('tags', this.uploadImageForm.get('tags').value);
     console.log('FORM DATA tags ' + this.uploadImageForm.get('tags').value);
@@ -122,23 +144,7 @@ export class ImgGalleryComponent implements OnInit {
     this.formData.append('proj-id', this.projectId);
     console.log('FORM DATA proj-id ' + this.projectId);
 
-    this.onUpload();
-  }
-
-  /** 
-   * Fetches the blobUploadURL to post image data to datastore
-   */
-  private onUpload() {
-
-    this.http.post<any>(this.actionUrl, this.formData).subscribe(
-      (res) => console.log('res ' + res),
-      (err) => console.log('err ' + err)
-    );
-    console.log('SUCCESS: Image uploaded to server.');
-
-    //reset form values and form
-    this.formData = new FormData;
-    this.uploadImageForm.reset();
-    this.getImages();
+    this.postBlobsService.onUpload(this.formData, this.uploadImageForm);
+    // upload reset and call page refresh
   }
 }
