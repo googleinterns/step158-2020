@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 
@@ -13,11 +14,12 @@ import { ImgGalleryComponent } from './img-gallery/img-gallery.component';
 import { EditorComponent } from './editor/editor.component';
 import { HomeComponent } from './home/home.component';
 import { CreateProjectComponent } from './create-project/create-project.component';
+import { ToolbarComponent } from './toolbar/toolbar.component';
+import { LogoutComponent } from './logout/logout.component';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaskDirective } from './mask.directive';
-import { ToolbarComponent } from './toolbar/toolbar.component';
-import { IntroComponent } from './intro/intro.component';
+import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -29,18 +31,19 @@ import { IntroComponent } from './intro/intro.component';
     CreateProjectComponent,
     MaskDirective,
     ToolbarComponent,
-    IntroComponent
+    LogoutComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     MatFormFieldModule,
     MatInputModule,
+    MatProgressSpinnerModule,
     MatSelectModule,
     BrowserAnimationsModule,
     FormsModule
   ],
-  providers: [],
+  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
