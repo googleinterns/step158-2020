@@ -35,6 +35,13 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/projects")
 public class ProjectServlet extends HttpServlet {
 
+  /**
+   * Handles POST requests for projects.
+   * Responds with project ID upon successful POST.
+   * @param     {HttpServletRequest}    request
+   * @param     {HttpServletResponse}   response
+   * @return    {void}
+   */
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
@@ -43,7 +50,7 @@ public class ProjectServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/"); // placeholder: should redirect to login
+      response.sendRedirect("/");
       return;
     }
 
@@ -65,7 +72,7 @@ public class ProjectServlet extends HttpServlet {
       boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
       if (delete) {
         datastore.delete(projEntity.getKey());
-        response.sendRedirect("/"); // placeholder: should redirect to projects gallery
+        response.sendRedirect("/"); // TODO: should redirect to projects gallery
         return;
       }
     }
@@ -92,10 +99,12 @@ public class ProjectServlet extends HttpServlet {
     if (DataUtils.isEmptyParameter(visibility) && isCreateMode) {
       visibility = DataUtils.PRIVATE;
     }
-    if (!DataUtils.isEmptyParameter(visibility) &&
-        (visibility.toLowerCase().equals(DataUtils.PUBLIC) ||
-         visibility.toLowerCase().equals(DataUtils.PRIVATE))) {
-      projEntity.setProperty("visibility", visibility);
+    if (!DataUtils.isEmptyParameter(visibility)) {
+      visibility = visibility.toLowerCase();
+      if (visibility.equals(DataUtils.PUBLIC) ||
+          visibility.equals(DataUtils.PRIVATE)) {
+        projEntity.setProperty("visibility", visibility);
+      }
     }
 
     String ownersString = request.getParameter("owners");
@@ -139,10 +148,18 @@ public class ProjectServlet extends HttpServlet {
     // Return the project ID
     response.setContentType("application/json");
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    String jsonProjId = gson.toJson(KeyFactory.keyToString(projEntity.getKey()));
+    String jsonProjId =
+        gson.toJson(KeyFactory.keyToString(projEntity.getKey()));
     response.getWriter().println(jsonProjId);
   }
 
+  /**
+   * Handles GET requests for projects.
+   * Responds with JSON string of ProjectInfo objects upon successful GET.
+   * @param     {HttpServletRequest}    request
+   * @param     {HttpServletResponse}   response
+   * @return    {void}
+   */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
@@ -153,7 +170,7 @@ public class ProjectServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/"); // placeholder: should redirect to login
+      response.sendRedirect("/");
       return;
     }
 
@@ -182,10 +199,11 @@ public class ProjectServlet extends HttpServlet {
       }
       sort = sort.toLowerCase();
 
-      Query projQuery = new Query(DataUtils.PROJECT).addSort(
-          "utc", sort.equals(DataUtils.ASCENDING_SORT)
-                     ? Query.SortDirection.ASCENDING
-                     : Query.SortDirection.DESCENDING);
+      Query projQuery =
+          new Query(DataUtils.PROJECT)
+              .addSort("utc", sort.equals(DataUtils.ASCENDING_SORT)
+                                  ? Query.SortDirection.ASCENDING
+                                  : Query.SortDirection.DESCENDING);
 
       // Add relevant filters to array based on parameters
       ArrayList<Filter> allFilters = new ArrayList<Filter>();

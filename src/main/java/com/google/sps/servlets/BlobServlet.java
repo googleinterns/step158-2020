@@ -40,6 +40,13 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/blobs")
 public class BlobServlet extends HttpServlet {
 
+  /**
+   * Handles POST requests for images and masks.
+   * Responds with image URL and name upon successful POST.
+   * @param     {HttpServletRequest}    request
+   * @param     {HttpServletResponse}   response
+   * @return    {void}
+   */
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
@@ -48,7 +55,7 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/"); // placeholder: should redirect to login
+      response.sendRedirect("/");
       return;
     }
 
@@ -105,7 +112,7 @@ public class BlobServlet extends HttpServlet {
     boolean isOwner = owners.contains(uEmail);
 
     if (isCreateMode && !isOwner && !isMask) {
-      throw new IOException("You do not have permission to do that.");
+      throw new IOException("You do not have permission to to upload an image to this project.");
     }
 
     boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
@@ -114,8 +121,7 @@ public class BlobServlet extends HttpServlet {
         throw new IOException("Only owners can delete assets.");
       } else {
         datastore.delete(imgEntity.getKey());
-        response.sendRedirect("/"); // placeholder: should redirect to
-                                    // project homepage
+        response.sendRedirect("/");
         return;
       }
     }
@@ -144,10 +150,10 @@ public class BlobServlet extends HttpServlet {
       }
     }
 
+    // Set blobkey property
     if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
-      if (isValidFile(blobKey, isMask)) {
-        imgEntity.setProperty("blobkey", blobKey.getKeyString());
-      }
+      checkFileValidity(blobKey, isMask);
+      imgEntity.setProperty("blobkey", blobKey.getKeyString());
     }
 
     // Last-modified time
@@ -163,7 +169,7 @@ public class BlobServlet extends HttpServlet {
                                    DataUtils.withDuplicatesRemoved(listTags));
     }
 
-    // Set/update name, ensuring uniqueness
+    // Set/update name, ensuring uniqueness under parent
     String newName = request.getParameter("new-name");
     boolean rename = !isCreateMode && !DataUtils.isEmptyParameter(newName) &&
                      !imgName.equals(newName);
@@ -179,9 +185,10 @@ public class BlobServlet extends HttpServlet {
       }
     }
 
+    // Batch operation
     datastore.put(Arrays.asList(imgEntity, projEntity));
 
-    // Return the image URL and name
+    // Send the image URL and name
     response.setContentType("application/json");
     String url =
         "blob-host?blobkey=" + (String)imgEntity.getProperty("blobkey");
@@ -190,6 +197,13 @@ public class BlobServlet extends HttpServlet {
     response.getWriter().println(jsonImgInfo);
   }
 
+  /**
+   * Handles GET requests for images and masks.
+   * Responds with JSON string of ImageInfo objects upon successful GET.
+   * @param     {HttpServletRequest}    request
+   * @param     {HttpServletResponse}   response
+   * @return    {void}
+   */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
@@ -202,7 +216,7 @@ public class BlobServlet extends HttpServlet {
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
-      response.sendRedirect("/"); // placeholder: should redirect to login
+      response.sendRedirect("/");
       return;
     }
 
@@ -225,30 +239,8 @@ public class BlobServlet extends HttpServlet {
             .setAncestor(projKey)
             .addSort("utc", sortImg.equals(DataUtils.ASCENDING_SORT)
                                 ? Query.SortDirection.ASCENDING
-                                : Query.SortDirection.DESCENDING);
-
-    ArrayList<Filter> allImgFilters = new ArrayList<Filter>();
-
-    String tag = request.getParameter("tag");
-    if (!DataUtils.isEmptyParameter(tag) && !withMasks) {
-      Filter tagFilter = new FilterPredicate("tags", FilterOperator.EQUAL, tag);
-      allImgFilters.add(tagFilter);
-    }
-
-    String imgName = request.getParameter("img-name");
-    if (!DataUtils.isEmptyParameter(imgName)) {
-      Filter nameFilter =
-          new FilterPredicate("name", FilterOperator.EQUAL, imgName);
-      allImgFilters.add(nameFilter);
-    }
-
-    // A composite filter requres more than one filter
-    if (allImgFilters.size() == 1) {
-      imageQuery.setFilter(allImgFilters.get(0));
-    } else if (allImgFilters.size() > 1) {
-      imageQuery.setFilter(
-          new CompositeFilter(CompositeFilterOperator.AND, allImgFilters));
-    }
+                                : Query.SortDirection.DESCENDING)
+            .setFilter(combinedGetFilters(request, withMasks, DataUtils.IMAGE));
 
     PreparedQuery storedImages = datastore.prepare(imageQuery);
 
@@ -276,30 +268,8 @@ public class BlobServlet extends HttpServlet {
                 .setAncestor(imageEntity.getKey())
                 .addSort("utc", sortMask.equals(DataUtils.ASCENDING_SORT)
                                     ? Query.SortDirection.ASCENDING
-                                    : Query.SortDirection.DESCENDING);
-
-        ArrayList<Filter> allMaskFilters = new ArrayList<Filter>();
-
-        if (!DataUtils.isEmptyParameter(tag)) {
-          Filter tagFilter =
-              new FilterPredicate("tags", FilterOperator.EQUAL, tag);
-          allMaskFilters.add(tagFilter);
-        }
-
-        String maskNameParam = request.getParameter("mask-name");
-        if (!DataUtils.isEmptyParameter(maskNameParam)) {
-          Filter nameFilter =
-              new FilterPredicate("name", FilterOperator.EQUAL, maskNameParam);
-          allMaskFilters.add(nameFilter);
-        }
-
-        // A composite filter requres more than one filter
-        if (allMaskFilters.size() == 1) {
-          maskQuery.setFilter(allMaskFilters.get(0));
-        } else if(allMaskFilters.size() > 1) {
-          maskQuery.setFilter(
-              new CompositeFilter(CompositeFilterOperator.AND, allMaskFilters));
-        }
+                                    : Query.SortDirection.DESCENDING)
+                .setFilter(combinedGetFilters(request, withMasks, DataUtils.MASK));
 
         PreparedQuery storedMasks = datastore.prepare(maskQuery);
 
@@ -328,9 +298,9 @@ public class BlobServlet extends HttpServlet {
    * Checks if the file uploaded to Blobstore has a valid file extension.
    * @param     {BlobKey}   blobKey   key for the file in question
    * @param     {boolean}   isMask    mask or image
-   * @return    {boolean}
+   * @return    {void}
    */
-  private boolean isValidFile(BlobKey blobKey, boolean isMask)
+  private void checkFileValidity(BlobKey blobKey, boolean isMask)
       throws IOException {
     BlobstoreService blobstoreService =
         BlobstoreServiceFactory.getBlobstoreService();
@@ -343,12 +313,13 @@ public class BlobServlet extends HttpServlet {
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     String[] splitFilename = blobInfo.getFilename().split("\\.");
     String extension = splitFilename[splitFilename.length - 1].toLowerCase();
-    if (blobInfo.getSize() == 0 || !validExtensions.contains(extension)) {
+    if (blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
-      throw new IOException("Invalid Blobkey or file not supported.");
+      throw new IOException("Invalid Blobkey.");
+    } else if (!validExtensions.contains(extension)) {
+      blobstoreService.delete(blobKey);
+      throw new IOException("File not supported.");
     }
-
-    return true;
   }
 
   /**
@@ -372,6 +343,41 @@ public class BlobServlet extends HttpServlet {
     }
 
     return existingImgQuery.asSingleEntity();
+  }
+
+  /**
+   * Combines all applicable filters based on parameters.
+   * Returns a Filter, CompositeFilter, or null.
+   * @param     {HttpServletRequest}    request
+   * @param     {boolean}               withMasks
+   * @param     {String}                kind        either IMAGE or MASK
+   * @return    {Filter}
+   */
+  private Filter combinedGetFilters(HttpServletRequest request, boolean withMasks, String kind) {
+    ArrayList<Filter> allImgFilters = new ArrayList<Filter>();
+
+    String tag = request.getParameter("tag");
+    boolean isImage = kind == DataUtils.IMAGE;
+    boolean isTagApplicable = !(isImage && withMasks);
+    if (!DataUtils.isEmptyParameter(tag) && isTagApplicable) {
+      Filter tagFilter = new FilterPredicate("tags", FilterOperator.EQUAL, tag.toLowerCase());
+      allImgFilters.add(tagFilter);
+    }
+
+    String imgName = request.getParameter(isImage ? "img-name" : "mask-name");
+    if (!DataUtils.isEmptyParameter(imgName)) {
+      Filter nameFilter =
+          new FilterPredicate("name", FilterOperator.EQUAL, imgName);
+      allImgFilters.add(nameFilter);
+    }
+
+    // A composite filter requres more than one filter
+    if (allImgFilters.size() == 1) {
+      return allImgFilters.get(0);
+    } else if (allImgFilters.size() > 1) {
+      return new CompositeFilter(CompositeFilterOperator.AND, allImgFilters);
+    }
+    return null;
   }
 }
 
