@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { FormGroup, FormControl } from '@angular/forms';
 
+import { PostBlobsService } from '../post-blobs.service';
 import { imageUrls } from '../images';
 
 @Component({
@@ -13,10 +15,16 @@ export class EditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private postBlobsService: PostBlobsService,
   ) { }
 
-  // Define urls within component.
-  url;
+  url: string;
+  display: boolean = false;
+  projectId: string;
+  mode: string = 'create';
+  uploadMaskForm: FormGroup;
+  formData: FormData;
+  parentName: string;
 
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
@@ -32,7 +40,7 @@ export class EditorComponent implements OnInit {
   private scaleFactor = .9;
   private image: HTMLImageElement;
   private innerHeight: number;
-  private maskImageData: ImageData;
+  maskImageData: ImageData;
 
   ngOnInit() {
     this.image = new Image();
@@ -47,12 +55,18 @@ export class EditorComponent implements OnInit {
     this.ctx = this.canvas.nativeElement.getContext('2d');
     this.hiddenCtx = this.hiddenCanvas.nativeElement.getContext('2d');
     this.draw();
-  }   
+
+    this.initForm();
+
+    this.postBlobsService.fetchBlob();
+    this.display = true;
+  }
   
   /**
    * Checks that route for editor URL is in bounds of array of Urls and is a number
    * Redirects to gallery component if not, does not complete editor component
    * index: the route from the editor url passed through gallery.ts 
+   * Obsolete in implementation where user uploads image////////
    */
   private checkImageUrl(index: number): void {
     if (Number.isNaN(index) || index >= imageUrls.length || index < 0) {    
@@ -124,14 +138,56 @@ export class EditorComponent implements OnInit {
    *  original image for possibility user makes more edits. 
    * @return Url for the mask image to be stored in blobstore.  
    */
-  private getMaskUrl(): string {
+  private getMaskBlob() {
     //  Clear canvas and put mask data to return mask as Image, 
     this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
     this.hiddenCtx.putImageData(this.maskImageData, 0, 0);
-    const maskImage = this.hiddenCanvas.nativeElement.toDataURL();
+
+    // let link = document.createElement('a');
+    // link.download("image/png");
+
+    console.log('created link element');
+    let blobMask;
+
+    this.hiddenCanvas.nativeElement.toBlob(function(blob){
+      console.log(blob);
+      blobMask = blob;
+    },('image/png'));
+  
     //  Redraw original image if user adds more to mask
     this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
     this.hiddenCtx.drawImage(this.image, 0, 0);
-    return maskImage;
+
+    return blobMask;
   }
+
+  /** 
+   * Initializes Form group and data as new
+   * Initializes @param projectId
+   */
+  private initForm() {
+    this.uploadMaskForm = new FormGroup({
+      maskName: new FormControl(),
+    });
+
+    this.formData = new FormData();
+    this.route.paramMap.subscribe(params => {
+      this.projectId = params.get('proj-id');
+      this.parentName = params.get('parent-img')
+      console.log('proj id for mask: ' + this.projectId)
+    });
+  }
+
+  onSubmit() {
+    
+    this.formData.append('mode', this.mode);    
+    this.formData.append('proj-id', this.projectId);
+
+    this.formData.append('img-name',  this.uploadMaskForm.get('maskName').value);
+    this.formData.append('parent-img', this.parentName);
+    this.formData.append('image', this.getMaskBlob());
+
+    this.postBlobsService.onUpload(this.formData, this.uploadMaskForm);
+  }
+
 }
