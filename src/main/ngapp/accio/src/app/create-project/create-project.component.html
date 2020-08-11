@@ -1,0 +1,17 @@
+<div class="container">
+  <mat-form-field hintLabel="All characters are valid" appearance="fill">
+    <mat-label>Enter project name</mat-label>
+    <input matInput [(ngModel)]="projectName" placeholder="Ex. MyProject">
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Select visibility</mat-label>
+    <mat-select [(ngModel)]="visibility">
+      <mat-option value="public">public</mat-option>
+      <mat-option value="private">private</mat-option>
+    </mat-select>
+    <mat-hint align="end">Default: public</mat-hint>
+  </mat-form-field>
+
+  <button mat-raised-button (click)="initProject()">Create Project</button>
+</div>

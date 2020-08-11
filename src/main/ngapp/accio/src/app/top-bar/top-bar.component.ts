@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener, Directive } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-top-bar',
@@ -8,28 +9,48 @@ import { Component, OnInit, HostListener, Directive } from '@angular/core';
 
 
 export class TopBarComponent implements OnInit {
+  SIGN_OUT = 'Sign Out';
+  SIGN_IN = 'Sign In';
 
-  constructor() { }
+  buttonText = '';
+  buttonLink: string;
 
-  userSignedIn = false;
-  ngOnInit(): void {}
+  constructor(
+      private router: Router) { }
 
-  // TODO: Button on topbar stays as "Sign In" 
-  //       When looking at the browser console 
-  //       the log says 'signed out' immediately 
-  //       following 'signed in'
-  //  To fix once user API is integrated 
-  toggleButton(): string {
-    if (!this.userSignedIn) { 
-      console.log('User Signed in');
-      this.userSignedIn = true;
-      return SIGN_IN;
+  ngOnInit(): void {
+    this.handleLogin();
+  }
+
+  // Controls login-button text as well as which link the 
+  // button redirects to.
+  async handleLogin(): Promise<void> {
+    console.log('handling login...');
+    const response = await fetch('/login-status');
+    // Content received contains 
+    // {loggedIn: boolean,
+    // url: string} 
+    const content = await response.json();
+
+    if (!content.loggedIn) {
+      this.buttonText = this.SIGN_IN;
+    } else if (content.loggedIn) {
+      this.buttonText = this.SIGN_OUT;
     }
-    console.log('User Signed out');
-    this.userSignedIn = false;
-    return SIGN_OUT;
+
+    document.getElementById('login-button').onclick = () => {
+      console.log('click registered...');
+      this.toggleButton(content.loggedIn, content.url);
+        // Uses location.href because @angular/router doesn't support
+        // redirects to external links.
+        location.href = this.buttonLink;
+    };
+  }
+
+  // Sets the appropriate text and redirects url for the button
+  // based on if the user is logged in or not.
+  toggleButton(loggedIn: boolean, url: string): void {
+    this.buttonText = loggedIn ? this.SIGN_OUT : this.SIGN_IN;
+    this.buttonLink = url;
   }
 }
-
-export const SIGN_IN = 'Sign In';
-export const SIGN_OUT = 'Sign Out';
