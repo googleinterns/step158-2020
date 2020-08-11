@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import * as $ from 'jquery';
 
 @Component({
@@ -8,8 +7,8 @@ import * as $ from 'jquery';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  // TODO: add filter global once talk w/ DB team to understand it.
-  // Also add it as attribute in getProject's url var.
+  // TODO(shmcaffrey): Add filter global 
+  //       Also add it as attribute in getProject's url var.
   filterVisibility: string;
   filterRole: string;
   filterTag: string;
@@ -19,15 +18,16 @@ export class HomeComponent implements OnInit {
   projectPath: string;
   projects: Array<any>;
 
-  constructor(
-      private router: Router) { }
+  constructor() { }
 
   ngOnInit(): void {
-    this.getProjects();
+    this.fetchProjects();
   }
 
-  async getProjects(): Promise<any> {
-    let url = '/projects?' + $.param({
+  // Fetches a list of projects based on user's choice of filters.
+  // Result is stored in this.projects
+  async fetchProjects(): Promise<void> {
+    const url = '/projects?' + $.param({
       'visibility': this.filterVisibility,
       'role': this.filterRole,
       'search-term': this.filterTag,
@@ -35,14 +35,13 @@ export class HomeComponent implements OnInit {
       'proj-id': this.filterId
     });
     const response = await fetch(url);
-    /**Request @returns a list of objects:
-     * {name: string,
-     * projId: string,z
-     * timestamp: string,
-     * visibility: string,
-     * owners: list<string>,
-     * editors: list<string>}
-     */
+    // Request @returns a list of objects:
+    // {name: string,
+    // projId: string,
+    // timestamp: string,
+    // visibility: string,
+    // owners: list<string>,
+    // editors: list<string>} 
     const content = await response.json();
     console.log('content is: ' + content[0]['projId']);
     this.projects = content;

@@ -1,8 +1,19 @@
+<div>
+  <div id="banner">
+    <h1>Accio!</h1>
+  </div>
+
+  <div id="welcome">
+    Welcome to the ultimate magic wand tool! Command your wand to "summon" all 
+    your necessary masks with speedy and succinct incantations!
+  </div>
+</div>
+
 <app-create-project></app-create-project>
 
 <h1>Search by:</h1>
 <div class="container">
-  <mat-form-field hintLabel="Clear this field to remove this filter" appearance="fill">
+  <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
     <mat-label>Project Name</mat-label>
     <input matInput [(ngModel)]="filterTag" placeholder="Ex. MyProject">
   </mat-form-field>
@@ -37,10 +48,10 @@
 
   <mat-form-field hintLabel="Clear this field to remove this filter" appearance="fill">
     <mat-label>Project ID</mat-label>
-    <input matInput [(ngModel)]="filterTag" placeholder="Ex. ajkhweAfdaDFsh">
+    <input matInput [(ngModel)]="filterId" placeholder="Ex. ajkhweAfdaDFsh">
   </mat-form-field>
 
-  <button mat-raised-button (click)="getProjects()">Update filter(s)</button>
+  <button mat-raised-button (click)="fetchProjects()">Update filter(s)</button>
 </div>
 
 <div id="gallery">

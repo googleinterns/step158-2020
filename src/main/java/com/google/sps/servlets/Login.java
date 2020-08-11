@@ -15,25 +15,31 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet("/login-status")
 public class Login extends HttpServlet {
+
+  /**
+   * Handles GET requests for login status.
+   * Responds with JSON string of UserInfo object upon successful GET.
+   * UserInfo object contains:
+   *    {boolean}   loggedIn    login status
+   *    {String}    url         login/logout link    
+   * @param     {HttpServletRequest}    request
+   * @param     {HttpServletResponse}   response
+   * @return    {void}
+   */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     response.setContentType("application/json");
 
-    String page = request.getParameter("page");
-    if (DataUtils.isEmptyParameter(page)) {
-        page = "";
-    }
-    
     String userInfo = new String();
 
     UserService userService = UserServiceFactory.getUserService();
     if (userService.isUserLoggedIn()) {
-      String logoutUrl = userService.createLogoutURL("/" + page);
+      String logoutUrl = userService.createLogoutURL("/#/logout");
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       userInfo = gson.toJson(new UserInfo(true, logoutUrl));
     } else {
-      String loginUrl = userService.createLoginURL("/" + page);
+      String loginUrl = userService.createLoginURL("/");
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       userInfo = gson.toJson(new UserInfo(false, loginUrl));
     }

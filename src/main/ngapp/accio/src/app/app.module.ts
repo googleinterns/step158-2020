@@ -11,6 +11,7 @@ import { MaterialFileInputModule } from 'ngx-material-file-input';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { HttpClientModule } from '@angular/common/http'
 import { MatDialogModule } from '@angular/material/dialog';
@@ -25,6 +26,7 @@ import { HomeComponent } from './home/home.component';
 import { MaskDirective } from './editor/mask.directive';
 import { CreateProjectComponent } from './create-project/create-project.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
+import { LogoutComponent } from './logout/logout.component';
 
 @NgModule({
   declarations: [
@@ -36,6 +38,8 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
     MaskDirective,
     CreateProjectComponent,
     ToolbarComponent,
+    ToolbarComponent,
+    LogoutComponent
   ],
   imports: [
     BrowserModule,
@@ -50,6 +54,7 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
     MatInputModule,
     ReactiveFormsModule,
     FormsModule,
+    MatProgressSpinnerModule,
     MatSelectModule,
     HttpClientModule,
     MatDialogModule,
