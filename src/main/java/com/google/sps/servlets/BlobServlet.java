@@ -310,15 +310,26 @@ public class BlobServlet extends HttpServlet {
                  : Arrays.asList("png", "jpg", "jpeg", "jfif", "pjpeg", "pjp",
                                  "gif", "bmp", "ico", "cur", "svg", "webp"));
 
+    ArrayList<String> validMimeTypes = new ArrayList<String>(
+        (isMask) ? Arrays.asList("png")
+                 : Arrays.asList("image/png", "image/jpeg", "image/pjpeg", 
+                                 "image/gif", "image/bmp",  "image/x-icon", 
+                                 "image/svg+xml", "image/webp"));
+    )
+
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     String[] splitFilename = blobInfo.getFilename().split("\\.");
     String extension = splitFilename[splitFilename.length - 1].toLowerCase();
+    String mimeType = blobInfo.getContentType().toLowerCase(); 
+
     if (blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
       throw new IOException("Invalid Blobkey.");
-    } else if (!validExtensions.contains(extension)) {
+    } else if (!validExtensions.contains(extension) && 
+               !validMimeTypes.contains(mimeType)) {
       blobstoreService.delete(blobKey);
-      throw new IOException("File not supported.");
+      throw new IOException("File not supported; extension: " + extension + 
+                            "; MIME type: " + mimeType);
     }
   }
 
