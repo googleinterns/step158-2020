@@ -315,7 +315,6 @@ public class BlobServlet extends HttpServlet {
                  : Arrays.asList("image/png", "image/jpeg", "image/pjpeg", 
                                  "image/gif", "image/bmp",  "image/x-icon", 
                                  "image/svg+xml", "image/webp"));
-    )
 
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     String[] splitFilename = blobInfo.getFilename().split("\\.");
