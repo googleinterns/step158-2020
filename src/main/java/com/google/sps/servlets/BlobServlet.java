@@ -193,8 +193,8 @@ public class BlobServlet extends HttpServlet {
     // Send the image URL and name
     response.setContentType("application/json");
     String url =
-        "blob-host?blobkey=" + (String)imgEntity.getProperty("blobkey");
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        "/blob-host?blobkey=" + (String)imgEntity.getProperty("blobkey");
+    Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     String jsonImgInfo = gson.toJson(new blobPostReturn(url, checkedName));
     response.getWriter().println(jsonImgInfo);
   }
