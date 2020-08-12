@@ -22,12 +22,12 @@ export class ImgGalleryComponent implements OnInit {
   displayUpload: boolean = false;
   displayImages: boolean = false;
 // KEEP--->
-  imgName: string;
-  maskName: string;
-  withMasks: boolean;
-  sortImg: string;
-  sortMask: string;
-  tag: string;
+  imgName: string = '';
+  maskName: string = '';
+  withMasks: boolean = false;
+  sortImg: string = '';
+  sortMask: string = '';
+  tag: string = '';
 // <---KEEP
   // Holds images fetched from datastore
   imageArray: Array<any>;
