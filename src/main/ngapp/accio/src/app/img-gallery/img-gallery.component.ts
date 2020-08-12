@@ -20,6 +20,14 @@ export class ImgGalleryComponent implements OnInit {
   displayUpload: boolean = false;
   displayImages: boolean = false;
 
+  // Filters for fetching images
+  imgName: string = '';
+  maskName: string = '';
+  withMasks: boolean = false;
+  sortImg: string = '';
+  sortMask: string = '';
+  tag: string = '';
+
   //  Holds images fetched from datastore.
   imageArray: Array<any>;
 
@@ -62,15 +70,13 @@ export class ImgGalleryComponent implements OnInit {
   async getImages(): Promise<any> {
     console.log('fetching from projectId: ' + this.projectId);
     let fetchUrl = '/blobs?' + $.param({
-      'proj-id': this.projectId
-      /* add ability to sort by:
-      *     tag
-      *     img-name
-      *     mask-name
-      *     with-masks	Boolean
-      *     sort-img	“asc” or “dsc”
-      *     sort-mask	"asc” or “dsc” 
-      */
+      'proj-id': this.projectId,
+      'img-name': this.imgName,
+      'mask-name': this.maskName,
+      'with-masks': this.withMasks,
+      'sort-img': this.sortImg,
+      'sort-mask': this.sortMask,
+      'tag': this.tag
     });
 
     //  fetchUrl returns a list of image objects: 'url', 'name', 'utc', 'tags[]', 'masks[]'

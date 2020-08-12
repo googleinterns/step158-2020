@@ -23,10 +23,74 @@
   <button type="submit" mat-button  id="upload-button">Upload</button>
 </form>
 
-<div id="gallery" *ngIf="displayImages">
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<!--Filter Bar-->
+<h1>Search by:</h1>
+<div class="container">
+  <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
+    <mat-label>Image Name</mat-label>
+    <input matInput [(ngModel)]="imgName" placeholder="Ex. MyImage">
+  </mat-form-field>
+
+  <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
+    <mat-label>Mask Name</mat-label>
+    <input matInput [(ngModel)]="maskName" placeholder="Ex. MyMask">
+  </mat-form-field>
+
+  <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
+    <mat-label>Filter Tag</mat-label>
+    <input matInput [(ngModel)]="tag" placeholder="Ex. river">
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Sort Images</mat-label>
+    <mat-select [(ngModel)]="sortImg">
+      <mat-option value="dsc">newest to oldest</mat-option>
+      <mat-option value="asc">oldest to newest</mat-option>
+    </mat-select>
+    <mat-hint align="end">Default: newest</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Show masks for Image: {{ imgName }}</mat-label>
+    <mat-select [(ngModel)]="withMasks">
+      <mat-option value="false">Don't show masks</mat-option>
+      <mat-option value="true">Show masks for: {{ imgName }}</mat-option>
+    </mat-select>
+    <mat-hint align="end">Default: no masks</mat-hint>
+  </mat-form-field>
+
+  <button mat-raised-button (click)="getImages()">Update filter(s)</button>
+</div>
+<!--Filter Bar-->
+
+<!--Fetched Images-->
+<div class="gallery">
   <div *ngFor="let image of imageArray" class="gallery-item">
     <a [routerLink]="['/editor', projectId, image['name'], image['url']]">
       <img class="gallery-img" [src]="image['url']">
+      <p>{{ image['name'] }}</p>
     </a>
   </div>
 </div>
+
+<div class="gallery">
+  <ng-container *ngFor="let image of imageArray">
+    <div *ngFor="let mask of imageArray[0]['masks']" class="gallery-item">
+      <a [routerLink]="['/editor', projectId, mask['name'], mask['url']]">
+        <img class="gallery-img" [src]="mask['url']">
+        <p>{{ mask['name'] }}</p>
+      </a>
+    </div>
+  </ng-container>
+</div>
+<!--Fetched Images-->

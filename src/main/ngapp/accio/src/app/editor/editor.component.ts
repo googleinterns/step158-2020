@@ -63,7 +63,9 @@ export class EditorComponent implements OnInit {
     //  Draws initial user image
     this.ctx = this.canvas.nativeElement.getContext('2d');
     this.hiddenCtx = this.hiddenCanvas.nativeElement.getContext('2d');
-    this.draw();
+    this.image.onload = () => {
+      this.draw();
+    }
     
     //  Initializes mask upolad form
     this.initMaskForm();
@@ -106,10 +108,8 @@ export class EditorComponent implements OnInit {
     //  Initalize transparent black image data to use for mask.
     this.maskImageData = new ImageData(imgWidth,  imgHeight);
     
-    this.image.onload = () => {
-      this.ctx.drawImage(this.image, 0, 0, imgWidth, imgHeight);
-      this.hiddenCtx.drawImage(this.image, 0, 0)
-    }
+    this.ctx.drawImage(this.image, 0, 0, imgWidth, imgHeight);
+    this.hiddenCtx.drawImage(this.image, 0, 0);
   }
 
   /**  Returns the calculated scale for the image loaded. */

@@ -18,7 +18,7 @@ mat-form-field {
   color: white;
 }
 
-#gallery {
+.gallery {
   position: relative;
   background-color: black;
   display: grid;
