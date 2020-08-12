@@ -14,14 +14,13 @@ export class ImgGalleryComponent implements OnInit {
   uploadImageForm: FormGroup;
   formData: FormData;
 
-  // mode and projectId are binded with the upload form input.
- // imageBlob: ImageBlob;
+  //  ProjectId is binded with the upload form input.
   projectId: string;
 
   displayUpload: boolean = false;
   displayImages: boolean = false;
 
-  // Holds images fetched from datastore
+  //  Holds images fetched from datastore.
   imageArray: Array<any>;
 
   constructor(
@@ -36,15 +35,15 @@ export class ImgGalleryComponent implements OnInit {
       tags: new FormControl()
     });
 
-    //creates the form data of parameters to be sent to servlet
+    //  Creates the form data of parameters to be sent to servlet.
     this.formData = new FormData();
 
-    // Set the project id, first try if the 
-    //    project is a new project and there are query keys
+    //  Set the project id, first try if the 
+    //     project is a new project and there are query keys.
     this.route.queryParams.subscribe(params => {
       this.projectId = params['proj-id'];
     });
-    //if no keys then just get the url params
+    //  If there are no keys then just get the url params.
     if (!this.projectId) {
       this.route.paramMap.subscribe(params => {
         this.projectId = params.get('proj-id');
@@ -54,7 +53,7 @@ export class ImgGalleryComponent implements OnInit {
     console.log('projID ' + this.projectId);
     console.log('now fetching...')
 
-    // Get the blobstore url initalized and show the form
+    //  Get the blobstore url initalized and show the form.
     this.postBlobsService.fetchBlob();
     this.displayUpload = true;
     this.getImages();
@@ -74,7 +73,7 @@ export class ImgGalleryComponent implements OnInit {
       */
     });
 
-    // fetchUrl returns a list of image objects: 'url', 'name', 'utc', 'tags[]', 'masks[]'
+    //  fetchUrl returns a list of image objects: 'url', 'name', 'utc', 'tags[]', 'masks[]'
     const response = await fetch(fetchUrl);
     const imageContent = await response.json();
     this.imageArray = imageContent;
@@ -85,21 +84,22 @@ export class ImgGalleryComponent implements OnInit {
   }
 
  /** 
-  * Builds ImageBlob to be appended to form and posted.
-  * If a parameter isn't applicaple, it has a default value but must be filled
-  *    if a value later in the constructor is applicable 
-  *   projectIdIn: string, 
-  *   imageNameIn: string, 
-  *   modeIn: string, 
-  *   imageIn: any = '',
-  *   parentImageNameIn: string = '',
-  *   newImageNameIn: string = '',
-  *   tagsIn: string = '',
-  *   deleteIn: string = 'delete'
+  *   Builds ImageBlob to be appended to form and posted.
+  *   If a parameter isn't applicaple, it has a default value but must be filled
+  *      if a value later in the constructor is applicable.
+  *
+  *         projectIdIn: string, 
+  *         imageNameIn: string, 
+  *         modeIn: string, 
+  *         imageIn: any = '',
+  *         parentImageNameIn: string = '',
+  *         newImageNameIn: string = '',
+  *         tagsIn: string = '',
+  *         deleteIn: string = 'delete'
   */
   onSubmit() {
-    // uploadImageForm 'image' contains a file, so the value is a file array
-    // To serve the blob we have to access the first file in the array
+    //  uploadImageForm 'image' contains a file, so the value is a file array.
+    //  To serve the blob we have to access the first file in the array.
     const fileArray = this.uploadImageForm.get('image').value;
     const imageFile = fileArray.files[0];
     console.log(imageFile);
@@ -115,7 +115,7 @@ export class ImgGalleryComponent implements OnInit {
 
     this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);
 
-    // Reset form values.
+    //  Reset form values.
     this.uploadImageForm.reset;
   }
 }

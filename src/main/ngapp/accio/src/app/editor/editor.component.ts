@@ -22,12 +22,11 @@ export class EditorComponent implements OnInit {
   url: string;
   display: boolean = false;
   projectId: string;
-  //mode: string = 'create';
+  
   uploadMaskForm: FormGroup;
   formData: FormData;
   parentName: string;
   blobMask;
-  imageBlob: ImageBlob;
 
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
@@ -49,7 +48,7 @@ export class EditorComponent implements OnInit {
     this.image = new Image();
     this.innerHeight = window.innerHeight;
     
-    // Set query params
+    //  Set query params
     this.route.paramMap.subscribe(params => {
       console.log(params);
 
@@ -61,26 +60,26 @@ export class EditorComponent implements OnInit {
       console.log('proj id for mask: ' + this.projectId);
     });
     
-    // Draws initial user image
+    //  Draws initial user image
     this.ctx = this.canvas.nativeElement.getContext('2d');
     this.hiddenCtx = this.hiddenCanvas.nativeElement.getContext('2d');
     this.draw();
     
-    // Initializes mask upolad form
+    //  Initializes mask upolad form
     this.initMaskForm();
     
-    // Fetch blob for mask upload and show maskUploadForm
+    //  Fetch blob for mask upload and show maskUploadForm
     this.postBlobsService.fetchBlob();
     this.display = true;
   }
   
   /**  
-   * Draws the image user selects from gallery on Canvas
+   *  Draws the image user selects from gallery on Canvas
    *    and creates a hidden canvas to store the original image 
    *    as a reference when scaling the imageUI
-   * TODO(shmcaffrey): Currently, editor can require user to 
-   * scroll to access the entire photo, need to make it 
-   * so the editor is fixed to screen size.
+   *  TODO(shmcaffrey): Currently, editor can require user to 
+   *  scroll to access the entire photo, need to make it 
+   *  so the editor is fixed to screen size.
    */
   private draw(): void {
     this.image.src = this.url;
@@ -88,18 +87,18 @@ export class EditorComponent implements OnInit {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
-    // Initialize hidden canvas width and height to original images width and height.
+    //  Initialize hidden canvas width and height to original images width and height.
     this.hiddenCanvas.nativeElement.width = imgWidth;
     this.hiddenCanvas.nativeElement.height = imgHeight;
 
-    // Used to scale the image to the window size, @Param scaledFactor = .9 so the scaled image is smaller than the users window.
+    //  Used to scale the image to the window size, @Param scaledFactor = .9 so the scaled image is smaller than the users window.
     this.scaleFactor = Math.floor(this.innerHeight / imgHeight * this.scaleFactor);
-    // TODO(shmcaffrey): add scaling if image is larger than window
+    //  TODO(shmcaffrey): add scaling if image is larger than window
     if (this.scaleFactor <= 0) {
       this.scaleFactor =  1;
     }
 
-    // Adjust canvas to scaled image width and height, use ctx. 
+    //  Adjust canvas to scaled image width and height, use ctx. 
     this.canvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.canvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.ctx.scale(this.scaleFactor, this.scaleFactor); 
@@ -113,29 +112,29 @@ export class EditorComponent implements OnInit {
     }
   }
 
-  /** Returns the calculated scale for the image loaded. */
+  /**  Returns the calculated scale for the image loaded. */
   public getScaleFactor(): number {
     return this.scaleFactor;
   }
 
-  /** Returns the original images data for reference in mask making. */
+  /**  Returns the original images data for reference in mask making. */
   public getOriginalImageData(): ImageData {
     return this.hiddenCtx.getImageData(0,0, this.image.width, this.image.height);
   }
 
-  /** Returns black transparent ImageData for single mask image. */
+  /**  Returns black transparent ImageData for single mask image. */
   public getMaskImageData(): ImageData {
     return this.maskImageData;
   }
 
-  /** Returns the scaled images data for reference printing scaled image after mask. */
+  /**  Returns the scaled images data for reference printing scaled image after mask. */
   public getScaledData(): ImageData {
     return this.ctx.getImageData(0, 0, this.image.width * this.scaleFactor, this.image.height * this.scaleFactor);
   }
 
   /** 
-   * Clears canvas to get mask Image as url to store and redraws
-   *  original image for possibility user makes more edits. 
+   *  Clears canvas to get mask Image as url to store and redraws
+   *    original image for possibility user makes more edits. 
    * @return Url for the mask image to be stored in blobstore.  
    */
   async getMaskBlob(): Promise<void> {
@@ -154,8 +153,8 @@ export class EditorComponent implements OnInit {
   }
 
   /** 
-   * Initializes Form group and data as new
-   * Initializes @param projectId
+   *  Initializes Form group and data as new
+   *  Initializes @param projectId
    */
   private initMaskForm() {
     this.uploadMaskForm = new FormGroup({
@@ -165,17 +164,17 @@ export class EditorComponent implements OnInit {
     this.formData = new FormData();
   }
 
-  /** 
-   * Builds ImageBlob to be appended to form and posted.
-    *   projectIdIn: string, 
-    *   imageNameIn: string, 
-    *   modeIn: string, 
-    *   imageIn: any = '',
-    *   parentImageNameIn: string = '',
-    *   newImageNameIn: string = '',
-    *   tagsIn: string = '',
-    *   deleteIn: string = 'delete'
-    */
+ /** 
+  *  Builds ImageBlob to be appended to form and posted.
+  *    projectIdIn: string, 
+  *    imageNameIn: string, 
+  *    modeIn: string, 
+  *    imageIn: any = '',
+  *    parentImageNameIn: string = '',
+  *    newImageNameIn: string = '',
+  *    tagsIn: string = '',
+  *    deleteIn: string = 'delete'
+  */
   async onSubmit(): Promise<void> {
     await this.getMaskBlob();
 
@@ -189,7 +188,7 @@ export class EditorComponent implements OnInit {
 
     this.postBlobsService.buildForm(this.formData, this.imageBlob, this.parentName + 'Mask.png');
 
-    // reset form values
+    //  Reset form values
     this.uploadMaskForm.reset();
   }
 }
