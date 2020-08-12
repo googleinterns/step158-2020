@@ -2,15 +2,15 @@
   position: relative;
   color: black;
   background-color: #F5F5F5;
-  padding: 20px;
-  height: 120px;
   width: 70%;
   left: 15%;
   top: 100px;
+  padding: 10px;
 }
 
-mat-form-field {
-  padding: 2%;
+.user-input {
+  position: relative;
+  width: 300px;
 }
 
 #upload-button {

@@ -159,6 +159,7 @@ export class EditorComponent implements OnInit {
   private initMaskForm() {
     this.uploadMaskForm = new FormGroup({
       maskName: new FormControl(),
+      labels: new FormControl(),
     });
 
     this.formData = new FormData();
@@ -183,7 +184,9 @@ export class EditorComponent implements OnInit {
       this.uploadMaskForm.get('maskName').value,
       'create', 
       this.blobMask,
-      this.parentName
+      this.parentName,
+      '', '',
+      this.uploadMaskForm.get('labels').value
     );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, this.parentName + 'Mask.png');

@@ -1,10 +1,15 @@
 <form novalidate [formGroup]="uploadMaskForm" (ngSubmit)="onSubmit()"  
       *ngIf="display" method="POST" enctype="multipart/form-data" id="mask-form">
   <mat-form-field appearance="fill">
-    <mat-label>Mask Title</mat-label>
+    <mat-label>Mask Name</mat-label>
     <input matInput formControlName="maskName" placeholder="Mask Name"/>
   </mat-form-field>
-  <button type="submit" mat-button style="background-color:white" id="save">Save Mask</button>
+  <mat-form-field appearance="fill">
+    <mat-label>Mask Labels</mat-label>
+    <input matInput formControlName="labels" placeholder="Labels (optional)"/>
+    <mat-hint>Enter list seperated by commas: "Label 1, Label 2, Label 3"</mat-hint>
+  </mat-form-field>
+  <button type="submit" mat-button style="background-color:white padding:2%" id="save">Save Mask</button>
 </form>
 <mat-drawer-container id="img-editor">
   <mat-drawer id="toolbar" mode="side" opened><app-toolbar></app-toolbar></mat-drawer>
