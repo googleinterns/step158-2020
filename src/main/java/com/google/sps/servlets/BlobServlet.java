@@ -112,7 +112,8 @@ public class BlobServlet extends HttpServlet {
     boolean isOwner = owners.contains(uEmail);
 
     if (isCreateMode && !isOwner && !isMask) {
-      throw new IOException("You do not have permission to to upload an image to this project.");
+      throw new IOException(
+          "You do not have permission to to upload an image to this project.");
     }
 
     boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
@@ -130,30 +131,31 @@ public class BlobServlet extends HttpServlet {
         BlobstoreServiceFactory.getBlobstoreService();
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get("image");
-    BlobKey blobKey = blobKeys.get(0);
-    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
-
-    // Check for blob size as well since no upload doesn't guarantee an empty
-    // BlobKey List
-    boolean hasNonEmptyImage =
-        !(blobKeys == null || blobKeys.isEmpty() || blobInfo.getSize() == 0);
 
     // User submitted form without selecting a file
-    if (!hasNonEmptyImage) {
+    if (blobKeys.isEmpty() || blobKeys == null) {
       if (isCreateMode) {
         throw new IOException("Form submitted without a file.");
       }
     } else {
+      BlobKey blobKey = blobKeys.get(0);
+      BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+
+      // Check for blob size as well since (experimentally) no upload does not
+      // guarantee an empty BlobKey List
+      boolean hasNonEmptyImage = blobInfo.getSize() != 0;
+
+      // Image cannot be changed after first upload
       if (!isCreateMode && !isMask) {
         blobstoreService.delete(blobKey);
         hasNonEmptyImage = false;
       }
-    }
 
-    // Set blobkey property
-    if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
-      checkFileValidity(blobKey, isMask);
-      imgEntity.setProperty("blobkey", blobKey.getKeyString());
+      // Set blobkey property
+      if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
+        checkFileValidity(blobKey, isMask);
+        imgEntity.setProperty("blobkey", blobKey.getKeyString());
+      }
     }
 
     // Last-modified time
@@ -269,7 +271,8 @@ public class BlobServlet extends HttpServlet {
                 .addSort("utc", sortMask.equals(DataUtils.ASCENDING_SORT)
                                     ? Query.SortDirection.ASCENDING
                                     : Query.SortDirection.DESCENDING)
-                .setFilter(combinedGetFilters(request, withMasks, DataUtils.MASK));
+                .setFilter(
+                    combinedGetFilters(request, withMasks, DataUtils.MASK));
 
         PreparedQuery storedMasks = datastore.prepare(maskQuery);
 
@@ -312,22 +315,22 @@ public class BlobServlet extends HttpServlet {
 
     ArrayList<String> validMimeTypes = new ArrayList<String>(
         (isMask) ? Arrays.asList("png")
-                 : Arrays.asList("image/png", "image/jpeg", "image/pjpeg", 
-                                 "image/gif", "image/bmp",  "image/x-icon", 
+                 : Arrays.asList("image/png", "image/jpeg", "image/pjpeg",
+                                 "image/gif", "image/bmp", "image/x-icon",
                                  "image/svg+xml", "image/webp"));
 
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     String[] splitFilename = blobInfo.getFilename().split("\\.");
     String extension = splitFilename[splitFilename.length - 1].toLowerCase();
-    String mimeType = blobInfo.getContentType().toLowerCase(); 
+    String mimeType = blobInfo.getContentType().toLowerCase();
 
     if (blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
       throw new IOException("Invalid Blobkey.");
-    } else if (!validExtensions.contains(extension) && 
+    } else if (!validExtensions.contains(extension) &&
                !validMimeTypes.contains(mimeType)) {
       blobstoreService.delete(blobKey);
-      throw new IOException("File not supported; extension: " + extension + 
+      throw new IOException("File not supported; extension: " + extension +
                             "; MIME type: " + mimeType);
     }
   }
@@ -363,14 +366,16 @@ public class BlobServlet extends HttpServlet {
    * @param     {String}                kind        either IMAGE or MASK
    * @return    {Filter}
    */
-  private Filter combinedGetFilters(HttpServletRequest request, boolean withMasks, String kind) {
+  private Filter combinedGetFilters(HttpServletRequest request,
+                                    boolean withMasks, String kind) {
     ArrayList<Filter> allImgFilters = new ArrayList<Filter>();
 
     String tag = request.getParameter("tag");
     boolean isImage = kind == DataUtils.IMAGE;
     boolean isTagApplicable = !(isImage && withMasks);
     if (!DataUtils.isEmptyParameter(tag) && isTagApplicable) {
-      Filter tagFilter = new FilterPredicate("tags", FilterOperator.EQUAL, tag.toLowerCase());
+      Filter tagFilter =
+          new FilterPredicate("tags", FilterOperator.EQUAL, tag.toLowerCase());
       allImgFilters.add(tagFilter);
     }
 
