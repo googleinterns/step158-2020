@@ -186,7 +186,7 @@ export class EditorComponent implements OnInit {
       this.parentName
     );
 
-    this.postBlobsService.buildForm(this.formData, this.imageBlob, this.parentName + 'Mask.png');
+    this.postBlobsService.buildForm(this.formData, imageBlob, this.parentName + 'Mask.png');
 
     //  Reset form values
     this.uploadMaskForm.reset();
