@@ -80,9 +80,9 @@ public class BlobServlet extends HttpServlet {
       }
     }
 
-    String uEmail = userService.getCurrentUser().getEmail();
+    String userEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
-    Entity projEntity = DataUtils.getProjectEntity(projId, uEmail, true, false);
+    Entity projEntity = DataUtils.getProjectEntity(projId, userEmail, true, false);
     Key projKey = projEntity.getKey();
     Key assetParentKey = projKey;
 
@@ -109,7 +109,7 @@ public class BlobServlet extends HttpServlet {
     // Owners have additional permissions
     ArrayList<String> owners =
         (ArrayList<String>)projEntity.getProperty("owners");
-    boolean isOwner = owners.contains(uEmail);
+    boolean isOwner = owners.contains(userEmail);
 
     if (isCreateMode && !isOwner && !isMask) {
       throw new IOException(
@@ -214,7 +214,7 @@ public class BlobServlet extends HttpServlet {
     UserService userService = UserServiceFactory.getUserService();
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-    String uEmail = userService.getCurrentUser().getEmail();
+    String userEmail = userService.getCurrentUser().getEmail();
 
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
@@ -223,7 +223,7 @@ public class BlobServlet extends HttpServlet {
     }
 
     String projId = request.getParameter("proj-id");
-    Entity projEntity = DataUtils.getProjectEntity(projId, uEmail, true, true);
+    Entity projEntity = DataUtils.getProjectEntity(projId, userEmail, true, true);
     Key projKey = projEntity.getKey();
 
     boolean withMasks =

@@ -56,29 +56,22 @@ public class BlobHost extends HttpServlet {
     }
 
     String projId = new String();
-    if (isMask) { // if Mask, parent's parent --> Project
-      try {
-        projId = (String)datastore
-                     .get(datastore.get(assetEntity.getParent()).getParent())
-                     .getProperty("proj-id");
-      } catch (Exception e) {
-        throw new IOException(
-            "You do not have permission to access this project.");
+    try {
+      Entity projEntity = datastore.get(assetEntity.getParent());
+      // If Mask, parent's parent --> Project
+      if (isMask) {
+        projEntity = datastore.get(projEntity.getParent());
       }
-    } else { // if Image, get parent --> Project
-      try {
-        projId = (String)datastore.get(assetEntity.getParent())
-                     .getProperty("proj-id");
-      } catch (Exception e) {
-        throw new IOException(
-            "You do not have permission to access this project.");
-      }
+      projId = (String)projEntity.getProperty("proj-id");
+    } catch (Exception e) {
+      throw new IOException(
+          "You do not have permission to access this project.");
     }
 
-    String uEmail = userService.getCurrentUser().getEmail();
+    String userEmail = userService.getCurrentUser().getEmail();
 
     // Check the user is either an owner, editor, or asset is public
-    DataUtils.getProjectEntity(projId, uEmail, true, true);
+    DataUtils.getProjectEntity(projId, userEmail, true, true);
 
     BlobKey blobKey = new BlobKey(blobKeyString);
 
