@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
 import { PostBlobsService } from '../post-blobs.service';
+import { ImageBlob } from '../ImageBlob';
 import * as $ from 'jquery';
 
 @Component({
@@ -12,7 +13,9 @@ import * as $ from 'jquery';
 export class ImgGalleryComponent implements OnInit {
   uploadImageForm: FormGroup;
   formData: FormData;
-  mode: string = 'create';
+
+  // mode and projectId are binded with the upload form input.
+ // imageBlob: ImageBlob;
   projectId: string;
 
   displayUpload: boolean = false;
@@ -58,7 +61,7 @@ export class ImgGalleryComponent implements OnInit {
   }
 
   async getImages(): Promise<any> {
-    console.log('fetching from projectID: ' + this.projectId);
+    console.log('fetching from projectId: ' + this.projectId);
     let fetchUrl = '/blobs?' + $.param({
       'proj-id': this.projectId
       /* add ability to sort by:
@@ -81,35 +84,38 @@ export class ImgGalleryComponent implements OnInit {
     }
   }
 
-  /** 
-   *  @param formData is initalized with values given by user.
-   *  Called when the user clicks submit.
-   */
+ /** 
+  * Builds ImageBlob to be appended to form and posted.
+  * If a parameter isn't applicaple, it has a default value but must be filled
+  *    if a value later in the constructor is applicable 
+  *   projectIdIn: string, 
+  *   imageNameIn: string, 
+  *   modeIn: string, 
+  *   imageIn: any = '',
+  *   parentImageNameIn: string = '',
+  *   newImageNameIn: string = '',
+  *   tagsIn: string = '',
+  *   deleteIn: string = 'delete'
+  */
   onSubmit() {
     // uploadImageForm 'image' contains a file, so the value is a file array
     // To serve the blob we have to access the first file in the array
     const fileArray = this.uploadImageForm.get('image').value;
     const imageFile = fileArray.files[0];
-
-    // Creates form data to send by post to blob servlet
-    console.log('ready to submit');
-    this.formData.append('mode', this.mode);
-
-    this.formData.append('img-name', this.uploadImageForm.get('imgName').value);
-    console.log('FORM DATA img-name ' + this.uploadImageForm.get('imgName').value);
-
-    this.formData.append('image', imageFile);
-    console.log('FORM DATA image ' + imageFile);
     console.log(imageFile);
 
+    let imageBlob = new ImageBlob(
+      this.projectId, 
+      this.uploadImageForm.get('imgName').value,
+      'create',
+      imageFile,
+      '', '',
+      this.uploadImageForm.get('tags').value,
+      );
 
-    this.formData.append('tags', this.uploadImageForm.get('tags').value);
-    console.log('FORM DATA tags ' + this.uploadImageForm.get('tags').value);
+    this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);
 
-    this.formData.append('proj-id', this.projectId);
-    console.log('FORM DATA proj-id ' + this.projectId);
-
-    this.postBlobsService.onUpload(this.formData, this.uploadImageForm);
-    // upload reset and call page refresh
+    // Reset form values.
+    this.uploadImageForm.reset;
   }
 }

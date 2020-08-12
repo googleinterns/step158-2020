@@ -4,7 +4,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
 
 import { PostBlobsService } from '../post-blobs.service';
-import { imageUrls } from '../images';
+import { ImageBlob } from '../ImageBlob';
+
 
 @Component({
   selector: 'app-editor',
@@ -21,11 +22,12 @@ export class EditorComponent implements OnInit {
   url: string;
   display: boolean = false;
   projectId: string;
-  mode: string = 'create';
+  //mode: string = 'create';
   uploadMaskForm: FormGroup;
   formData: FormData;
   parentName: string;
   blobMask;
+  imageBlob: ImageBlob;
 
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
@@ -163,16 +165,31 @@ export class EditorComponent implements OnInit {
     this.formData = new FormData();
   }
 
+  /** 
+   * Builds ImageBlob to be appended to form and posted.
+    *   projectIdIn: string, 
+    *   imageNameIn: string, 
+    *   modeIn: string, 
+    *   imageIn: any = '',
+    *   parentImageNameIn: string = '',
+    *   newImageNameIn: string = '',
+    *   tagsIn: string = '',
+    *   deleteIn: string = 'delete'
+    */
   async onSubmit(): Promise<void> {
     await this.getMaskBlob();
-    this.formData.append('mode', this.mode);    
-    this.formData.append('proj-id', this.projectId);
-    this.formData.append('img-name',  this.uploadMaskForm.get('maskName').value);
-    this.formData.append('parent-img', this.parentName);
 
-    //  Set the filename to parents name + mask.png.
-    this.formData.append('image', this.blobMask, this.parentName + 'Mask.png');
-    
-    this.postBlobsService.onUpload(this.formData, this.uploadMaskForm);
+    let imageBlob = new ImageBlob(
+      this.projectId, 
+      this.uploadMaskForm.get('maskName').value,
+      'create', 
+      this.blobMask,
+      this.parentName
+    );
+
+    this.postBlobsService.buildForm(this.formData, this.imageBlob, this.parentName + 'Mask.png');
+
+    // reset form values
+    this.uploadMaskForm.reset();
   }
 }
