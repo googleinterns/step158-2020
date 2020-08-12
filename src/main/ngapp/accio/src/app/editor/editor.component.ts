@@ -46,7 +46,8 @@ export class EditorComponent implements OnInit {
   ngOnInit() {
     this.image = new Image();
     this.innerHeight = window.innerHeight;
-    // Returns url user clicked in gallery component.
+    
+    // Set query params
     this.route.paramMap.subscribe(params => {
       console.log(params);
 
@@ -57,13 +58,16 @@ export class EditorComponent implements OnInit {
       console.log('image url: ' + this.url);
       console.log('proj id for mask: ' + this.projectId);
     });
-
+    
+    // Draws initial user image
     this.ctx = this.canvas.nativeElement.getContext('2d');
     this.hiddenCtx = this.hiddenCanvas.nativeElement.getContext('2d');
     this.draw();
-
-    this.initForm();
-
+    
+    // Initializes mask upolad form
+    this.initMaskForm();
+    
+    // Fetch blob for mask upload and show maskUploadForm
     this.postBlobsService.fetchBlob();
     this.display = true;
   }
@@ -151,7 +155,7 @@ export class EditorComponent implements OnInit {
    * Initializes Form group and data as new
    * Initializes @param projectId
    */
-  private initForm() {
+  private initMaskForm() {
     this.uploadMaskForm = new FormGroup({
       maskName: new FormControl(),
     });
