@@ -170,7 +170,7 @@ export class EditorComponent implements OnInit {
   *    projectIdIn: string, 
   *    imageNameIn: string, 
   *    modeIn: string, 
-  *    imageIn: any = '',
+  *    imageIn: Blob = '',
   *    parentImageNameIn: string = '',
   *    newImageNameIn: string = '',
   *    tagsIn: string = '',
