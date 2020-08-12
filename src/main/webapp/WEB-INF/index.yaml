@@ -103,3 +103,14 @@ indexes:
   properties:
   - name: tags
   - name: utc
+
+- kind: Image
+  properties: 
+  - name: name 
+  - name: utc 
+    direction: desc
+ 
+- kind: Image
+  properties: 
+  - name: name 
+  - name: utc

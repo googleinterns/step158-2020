@@ -57,7 +57,7 @@ public class ProjectServlet extends HttpServlet {
     // Mode is a required parameter
     boolean isCreateMode = DataUtils.parseMode(request, response);
 
-    String uEmail = userService.getCurrentUser().getEmail();
+    String userEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
 
     // Will be either a new entity for creation or an existing entity for
@@ -66,7 +66,7 @@ public class ProjectServlet extends HttpServlet {
 
     if (!isCreateMode) {
       // Must be owner to update
-      projEntity = DataUtils.getProjectEntity(projId, uEmail, false, false);
+      projEntity = DataUtils.getProjectEntity(projId, userEmail, false, false);
 
       // Delete overrides all other updates
       boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
@@ -121,7 +121,7 @@ public class ProjectServlet extends HttpServlet {
       if (!DataUtils.isEmptyParameter(ownersString)) {
         listOwnerEmails = DataUtils.parseCommaList(ownersString);
       }
-      listOwnerEmails.add(uEmail);
+      listOwnerEmails.add(userEmail);
       projEntity.setIndexedProperty(
           "owners", DataUtils.withDuplicatesRemoved(listOwnerEmails));
     }
@@ -174,7 +174,7 @@ public class ProjectServlet extends HttpServlet {
       return;
     }
 
-    String uEmail = userService.getCurrentUser().getEmail();
+    String userEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
 
     // Will be either a single project based on project ID or one or more
@@ -186,7 +186,7 @@ public class ProjectServlet extends HttpServlet {
       // Project must be public or User must be an owner or editor for private
       // projects
       Entity projEntity =
-          DataUtils.getProjectEntity(projId, uEmail, true, true);
+          DataUtils.getProjectEntity(projId, userEmail, true, true);
       projects.add(projEntity);
     }
 
@@ -218,9 +218,9 @@ public class ProjectServlet extends HttpServlet {
       }
 
       Filter ownFilter =
-          new FilterPredicate("owners", FilterOperator.EQUAL, uEmail);
+          new FilterPredicate("owners", FilterOperator.EQUAL, userEmail);
       Filter editFilter =
-          new FilterPredicate("editors", FilterOperator.EQUAL, uEmail);
+          new FilterPredicate("editors", FilterOperator.EQUAL, userEmail);
       Filter ownOrEditFilter = new CompositeFilter(
           CompositeFilterOperator.OR, Arrays.asList(ownFilter, editFilter));
 
