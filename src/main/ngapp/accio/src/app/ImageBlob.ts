@@ -26,7 +26,7 @@ export class ImageBlob {
   imageName: string;
   mode: string;
 
-  image: any;
+  image: Blob;
   parentImageName: string;
   newImageName: string;
   tags: string;
@@ -37,7 +37,7 @@ export class ImageBlob {
     projectIdIn: string, 
     imageNameIn: string, 
     modeIn: string, 
-    imageIn: Blob = '',
+    imageIn: Blob,
     parentImageNameIn: string = '',
     newImageNameIn: string = '',
     tagsIn: string = '',
