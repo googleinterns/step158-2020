@@ -48,3 +48,7 @@ img.gallery-img:hover {
 .hidden {
   display: none;
 }
+
+h1 {
+  padding-top: 200px;
+}
