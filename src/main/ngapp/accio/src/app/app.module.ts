@@ -18,7 +18,7 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
 import { LogoutComponent } from './logout/logout.component';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MaskDirective } from './mask.directive';
+import { MaskDirective } from './editor/mask.directive';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 @NgModule({
