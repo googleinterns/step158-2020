@@ -19,8 +19,8 @@ export class EditorComponent implements OnInit {
     private postBlobsService: PostBlobsService,
   ) { }
 
-  url: string;
-  display: boolean = false;
+  imageUrl: string;
+  displayMaskForm: boolean = false;
   projectId: string;
   
   uploadMaskForm: FormGroup;
@@ -28,28 +28,33 @@ export class EditorComponent implements OnInit {
   parentName: string;
   blobMask;
 
-  originalImageData: ImageData;
-  scaledImageData: ImageData;
-
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
   canvas: ElementRef<HTMLCanvasElement>; 
   private ctx: CanvasRenderingContext2D;
 
-  @ViewChild('hiddenCanvas', { static: true })
-  hiddenCanvas: ElementRef<HTMLCanvasElement>; 
-  private hiddenCtx: CanvasRenderingContext2D;
+  //  Used to save mask as png so everytime a new mask is added 
+  //    The primary canvas does not have to shrink to image size
+  //    to save the mask as an image.
+  @ViewChild('maskCanvas', { static: true })
+  maskCanvas: ElementRef<HTMLCanvasElement>; 
+  private maskCtx: CanvasRenderingContext2D;
 
-  //  @param scaleFactor is used to trim image scale so image 
+  //  scaleFactor is used to trim image scale so image 
   //    is smaller than width and height of the users screen.
-  private scaleFactor = .9;
+  //   scaleFactor and originalImageData are binded to the their 
+  //      respective inputs in MaskDirective and change in mask.directive
+  //      when they change in editor.component
+  scaleFactor = .9;
+  originalImageData: ImageData;
+
+
   private image: HTMLImageElement;
   private innerHeight: number;
-  maskImageData: ImageData;
+  private maskImageData: ImageData;
 
   ngOnInit() {
     this.image = new Image();
-    this.innerHeight = window.innerHeight;
     
     //  Set query params
     this.route.paramMap.subscribe(params => {
@@ -57,104 +62,131 @@ export class EditorComponent implements OnInit {
 
       this.projectId = params.get('proj-id ');
       this.parentName = params.get('parent-img ');
-      this.url = params.get('imgUrl');
+      this.imageUrl = params.get('imgUrl');
       
-      console.log('image url: ' + this.url);
+      console.log('image url: ' + this.imageUrl);
       console.log('proj id for mask: ' + this.projectId);
     });
-    
-    //  Draws initial user image
-    this.ctx = this.canvas.nativeElement.getContext('2d');
-    this.hiddenCtx = this.hiddenCanvas.nativeElement.getContext('2d');
-    this.draw();
+
+    //image loads after src is set, ensures canvas is initialized properly
+    this.image.onload = () => {
+      this.initCanvas();
+    }
+    this.image.src = this.imageUrl;
 
     //  Initializes mask upolad form
     this.initMaskForm();
     
     //  Fetch blob for mask upload and show maskUploadForm
     this.postBlobsService.fetchBlob();
-    this.display = true;
+    this.displayMaskForm = true;
   }
   
   /**  
    *  Draws the image user selects from gallery on Canvas
    *    and creates a hidden canvas to store the original image 
    *    as a reference when scaling the imageUI
+   *  ASSUMES Image has loaded, ie. image src is set before initCanvas is called
    *  TODO(shmcaffrey): Currently, editor can require user to 
    *  scroll to access the entire photo, need to make it 
    *  so the editor is fixed to screen size.
    */
-  private draw(): void {
-    this.image.src = this.url;
-
+  private initCanvas(): void {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
-    //  Initialize hidden canvas width and height to original images width and height.
-    this.hiddenCanvas.nativeElement.width = imgWidth;
-    this.hiddenCanvas.nativeElement.height = imgHeight;
+    //  Initalize transparent black image data to use for mask size of image
+    this.maskImageData = new ImageData(imgWidth,  imgHeight);
 
-    //  Used to scale the image to the window size, @Param scaledFactor = .9 so the scaled image is smaller than the users window.
-    this.scaleFactor = Math.floor(this.innerHeight / imgHeight * this.scaleFactor);
+    //  Used to scale the image to the window size, 
+    //    scaledFactor = .9 so the scaled image is smaller than the users window.
+    this.scaleFactor = Math.floor(window.innerHeight / imgHeight * this.scaleFactor);
     //  TODO(shmcaffrey): add scaling if image is larger than window
     if (this.scaleFactor <= 0) {
       this.scaleFactor =  1;
     }
 
-    //  Adjust canvas to scaled image width and height, use ctx. 
+    //  Initialize canvas to scaled image width and height and mask to img. 
+    this.maskCanvas.nativeElement.width = imgWidth;
+    this.maskCanvas.nativeElement.height = imgHeight;
     this.canvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.canvas.nativeElement.height = imgHeight * this.scaleFactor;
+
+    this.maskCtx = this.maskCanvas.nativeElement.getContext('2d');
+    this.ctx = this.canvas.nativeElement.getContext('2d');
+    this.ctx.drawImage(this.image, 0, 0);
+    this.originalImageData = this.ctx.getImageData(0, 0, imgWidth, imgHeight);
+    this.clearCanvas();
+
+    this.drawScaledImage(this.image);
+    console.log('put imagedata')
+  }
+  
+ /**
+  *   Clears full canvas.
+  */
+  private clearCanvas() {
+    this.ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+    this.ctx.beginPath();
+  }
+
+ /**
+  *  Draws users image scaled to canvas and restores ctx.
+  *  @param image is either the mask image or image user is making a mask of
+  */
+  private drawScaledImage(image: HTMLImageElement) {
+    this.ctx.save();
     this.ctx.scale(this.scaleFactor, this.scaleFactor); 
+    this.ctx.drawImage(image, 0, 0, image.width, image.height);
+    this.ctx.restore();
+  }
 
-    //  Initalize transparent black image data to use for mask.
-    this.maskImageData = new ImageData(imgWidth,  imgHeight);
-    
-    this.image.onload = () => {
-      this.ctx.drawImage(this.image, 0, 0, imgWidth, imgHeight);
-      this.hiddenCtx.drawImage(this.image, 0, 0);
+ /** 
+  * Draws Mask Data onto unscaled canvas to save as image or blob
+  * @returns url of newly created mask
+  */
+  getMaskUrl(): string {
+    this.maskCtx.clearRect(0, 0, this.maskCanvas.nativeElement.width, this.maskCanvas.nativeElement.height);
+    this.maskCtx.beginPath();
+    this.maskCtx.putImageData(this.maskImageData, 0, 0);
+    return this.maskCanvas.nativeElement.toDataURL();
+  }
+
+ /** 
+  *  Sets new pixels in magenta, clears canvas of previous data 
+  *    and draws image and mask as scaled
+  *  @param maskPixels Output() from mask.directive
+  *                    Gives the new pixels to add to the mask
+  */
+  addToMask(maskPixels: Set<number>) {
+    for (let pixel of maskPixels) {
+      this.maskImageData.data[pixel] = 255;
+      this.maskImageData.data[pixel + 2] = 255;
+      this.maskImageData.data[pixel + 3] = 255;
     }
+
+    // Have to make png of mask in order to see background image
+    //  Execute all three after image loads so 'jolt' of canvas drawn is less extreme
+    let mask = new Image();
+    mask.onload = () => {
+      this.clearCanvas();
+      this.drawScaledImage(this.image);
+      this.drawScaledImage(mask);
+    }
+    mask.src = this.getMaskUrl();
   }
 
-  /**  Returns the calculated scale for the image loaded. */
-  public getScaleFactor(): number {
-    return this.scaleFactor;
-  }
-
-  /**  Returns the original images data for reference in mask making. */
-  public getOriginalImageData(): ImageData {
-    return this.hiddenCtx.getImageData(0,0, this.image.width, this.image.height);
-  }
-
-  /**  Returns black transparent ImageData for single mask image. */
-  public getMaskImageData(): ImageData {
-    return this.maskImageData;
-  }
-
-  /**  Returns the scaled images data for reference printing scaled image after mask. */
-  public getScaledData(): ImageData {
-    return this.ctx.getImageData(0, 0, this.image.width * this.scaleFactor, this.image.height * this.scaleFactor);
-  }
+  // TODO(shmcaffrey): change Alpha value to incorperate user input.
+  // TODO(shmcaffrey): allow user to clear mask
 
   /** 
-   *  Clears hiddeCtx to get mask Image as url to store and redraws
-   *    original image for possibility user makes more edits. 
-   *  getOriginalImageData uses hiddenCtx to pass the image data for drawing
-   *    in the mask Directive. Conflict if getOriginalImageData is called while saving the mask.
-   * @return Url for the mask image to be stored in blobstore.  
+   *  Gets current mask's url and sets the mask as a Blob to be uploaded to server.
    */
   async getMaskBlob(): Promise<void> {
-    //  Clear canvas and put mask data to return mask as Image, 
-    this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
-    this.hiddenCtx.putImageData(this.maskImageData, 0, 0);
-
-    let maskUrl = this.hiddenCanvas.nativeElement.toDataURL();
+    let maskUrl = this.getMaskUrl();
     this.blobMask = await fetch(maskUrl).then(response => response.blob());
     this.blobMask.lastModifiedDate = new Date();
     this.blobMask.name = this.parentName + 'Mask.png';
-
-    //  Redraw original image if user adds more to mask
-    this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
-    this.hiddenCtx.drawImage(this.image, 0, 0);
   }
 
   /** 
@@ -194,6 +226,6 @@ export class EditorComponent implements OnInit {
     this.postBlobsService.buildForm(this.formData, imageBlob, this.parentName + 'Mask.png');
 
     //  Reset form values
-    this.uploadMaskForm.reset();
+    this.initMaskForm();
   }
 }

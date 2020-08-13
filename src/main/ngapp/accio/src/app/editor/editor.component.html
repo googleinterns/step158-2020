@@ -1,5 +1,6 @@
+<!-- Form to save Mask -->
 <form novalidate [formGroup]="uploadMaskForm" (ngSubmit)="onSubmit()"  
-      *ngIf="display" method="POST" enctype="multipart/form-data" id="mask-form">
+      *ngIf="displayMaskForm" method="POST" enctype="multipart/form-data" id="mask-form">
   <mat-form-field appearance="fill">
     <mat-label>Mask Name</mat-label>
     <input required matInput formControlName="maskName" placeholder="Mask Name"/>
@@ -11,14 +12,18 @@
   </mat-form-field>
   <button type="submit" mat-button style="background-color:white padding:2%" id="save">Save Mask</button>
 </form>
+
+<!-- Editor -->
 <mat-drawer-container id="img-editor">
   <mat-drawer id="toolbar" mode="side" opened><app-toolbar></app-toolbar></mat-drawer>
   <mat-drawer-content>
+      <!-- Retrieves new mask via output event emiter -->
     <canvas #canvas appMask 
-        [scale]="getScaleFactor()" [originalImageData]="getOriginalImageData()" 
-        [scaledData]="getScaledData()" [(maskImageData)]="maskImageData">
+      [scale]="scaleFactor"
+      [originalImageData]="originalImageData"
+      (newMaskEvent)="addToMask($event)">
     </canvas>
-    <canvas #hiddenCanvas style="display:none">
+    <canvas #maskCanvas style="display:none">
     </canvas>
   </mat-drawer-content>
 </mat-drawer-container>
