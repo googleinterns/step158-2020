@@ -30,11 +30,18 @@ export class PostBlobsService {
   private onUpload(formData: FormData) {
 
     this.http.post<any>(this.actionUrl, formData).subscribe(
-      (res) => console.log('SUCCESS: Image uploaded to server. ' + res),
-      (err) => console.log('err ' + err)
+      (res) => {
+        console.log('SUCCESS: Image uploaded to server. ');
+        console.log(res);
+        window.alert('Image was saved!');
+      },
+      (err) => {
+        console.log('err ');
+        console.log(err);
+        console.log(err.statusText); //hmtl
+        console.log(err.error); // generic error
+      }
     );
-    console.log('SUCCESS: Image uploaded to server.');
-    window.alert('Image was saved!');
   }
 
   /** 

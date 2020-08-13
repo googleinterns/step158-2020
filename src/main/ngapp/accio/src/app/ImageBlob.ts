@@ -11,7 +11,7 @@ export class ImageBlob {
   imageName: string;
   mode: string;
 
-  image: any;
+  image: Blob;
   parentImageName: string;
   newImageName: string;
   tags: string;

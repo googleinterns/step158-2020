@@ -51,7 +51,6 @@ export class ImgGalleryComponent implements OnInit {
     }
 
     console.log('projID ' + this.projectId);
-    console.log('now fetching...')
 
     //  Get the blobstore url initalized and show the form.
     this.postBlobsService.fetchBlob();
@@ -98,6 +97,11 @@ export class ImgGalleryComponent implements OnInit {
   *         deleteIn: string = 'delete'
   */
   onSubmit() {
+    // Name is a required input. If it's null, do nothing.
+    if(!this.uploadImageForm.get('imgName').value) {
+      return;
+    }
+    
     //  uploadImageForm 'image' contains a file, so the value is a file array.
     //  To serve the blob we have to access the first file in the array.
     const fileArray = this.uploadImageForm.get('image').value;
@@ -110,7 +114,7 @@ export class ImgGalleryComponent implements OnInit {
       'create',
       imageFile,
       '', '',
-      this.uploadImageForm.get('tags').value,
+      this.uploadImageForm.get('tags').value
       );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);
