@@ -4,6 +4,7 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
 import * as $ from 'jquery';
+import {MatDialog, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 
 @Component({
   selector: 'app-img-gallery',
@@ -26,14 +27,11 @@ export class ImgGalleryComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private postBlobsService: PostBlobsService,
+    public dialog: MatDialog,
   ) { }
 
   ngOnInit(): void {
-    this.uploadImageForm = new FormGroup({
-      imgName: new FormControl(),
-      image: new FormControl(),
-      tags: new FormControl()
-    });
+    this.createEmptyFormGroup();
 
     //  Creates the form data of parameters to be sent to servlet.
     this.formData = new FormData();
@@ -53,7 +51,7 @@ export class ImgGalleryComponent implements OnInit {
     console.log('projID ' + this.projectId);
 
     //  Get the blobstore url initalized and show the form.
-    this.postBlobsService.fetchBlob();
+    this.postBlobsService.fetchBlobPost();
     this.displayUpload = true;
     this.getImages();
   }
@@ -122,4 +120,103 @@ export class ImgGalleryComponent implements OnInit {
     //  Reset form values.
     this.uploadImageForm.reset;
   }
+
+  /** 
+  *  Deletes image from server and corresponding masks
+  *  Requires that imageArray is initalized to fetch masks (initialized when gallery loads)
+  *  @param imageName Name of image to be deleted
+  */
+  async deleteImage(imageName: string): Promise<void> {
+    let masks = new Array<any>();
+
+    //  Fetches imageName's masks with 'with-mask' param true and imageName
+    let fetchUrl = this.buildFetchUrl(this.projectId, imageName, '', 'true');
+
+    const response = await fetch(fetchUrl);
+    const maskContent = await response.json();
+    masks = maskContent;
+
+    //  Delete all masks
+    for (let mask of masks) {
+      this.deleteMask(imageName, mask['img-name']);
+      console.log('deleting: ' + mask['img-name']);
+    }
+
+    //  Delete image
+    let deleteImageFormData = new FormData;
+    let imageBlob = new ImageBlob(
+      this.projectId,
+      imageName,
+      'update',
+      null,
+      '','','',
+      'true'
+    );
+    this.postBlobsService.buildForm(deleteImageFormData, imageBlob, null);
+  }
+
+  deleteMask(parentName: string, maskName: string): void {
+    let deleteMaskFormData = new FormData;
+    let imageBlob = new ImageBlob(
+      this.projectId,
+      maskName,
+      'update',
+      null, 
+      parentName,
+      '', '',
+      'true'
+    );
+
+    // file is null, so file name is not needed
+    this.postBlobsService.buildForm(deleteMaskFormData, imageBlob, null);
+  }
+
+ /** 
+  *  @return url to fetch images or masks given parameters. 
+  *  Only requires projectId. 
+  *  @param projectId Is required to fetch images of a specific project.
+  *  @param imgName   If fetching masks under an Image, Parent images name is required.
+  *  @param maskName  If fetching a mask of a specific name the image name and mask name is required.
+  *  @param withMasks Either 'true' or 'false'. Defalult 'false', If 'true' imgName is required. 
+                      Retreives all masks under parent image
+  */
+  buildFetchUrl(projectId: string, imgName: string = '', 
+                maskName: string = '', withMasks: string = 'false', 
+                sortImg: string = '', sortMask: string = '', 
+                tag: string = ''): string {
+
+    return ('/blobs?' + $.param({
+      'proj-id': projectId,
+      'img-name': imgName,
+      'mask-name': maskName,
+      'with-masks': withMasks,
+      'sort-img': sortImg,
+      'sort-mask': sortMask,
+      'tag': tag,
+    }));
+  }
+
+ /** 
+  *  Binds form control values from html uploadImageForm to empty values
+  *  Used to initialize form and to clear form after it's pushed to the server 
+  */
+  private createEmptyFormGroup(): void {
+    this.uploadImageForm = new FormGroup({
+      imgName: new FormControl(),
+      image: new FormControl(),
+      tags: new FormControl()
+    });
+  }
+
+  // checkDelete(type: string, imageName: string) {
+  //   const dialogRef = this.dialog.open(DeleteDialog, {
+  //     width: '250px',
+  //     data: {type: type, image: imageName}
+  //   });
+
+  //   dialogRef.afterClosed().subscribe(result => {
+  //     console.log('The dialog was closed');
+  //     this.animal = result;
+  //   });
+  // }
 }

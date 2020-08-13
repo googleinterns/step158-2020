@@ -6,7 +6,6 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
 
-
 @Component({
   selector: 'app-editor',
   templateUrl: './editor.component.html',
@@ -74,7 +73,7 @@ export class EditorComponent implements OnInit {
     this.initMaskForm();
     
     //  Fetch blob for mask upload and show maskUploadForm
-    this.postBlobsService.fetchBlob();
+    this.postBlobsService.fetchBlobPost();
     this.display = true;
   }
   

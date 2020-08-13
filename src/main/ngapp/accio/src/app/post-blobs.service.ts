@@ -15,7 +15,7 @@ export class PostBlobsService {
    * Fetch server to get blobUploadUrl and set actionUrl.
    * Called before user can see the form then displays form.
    */
-  async fetchBlob(): Promise<void> {
+  async fetchBlobPost(): Promise<void> {
     let response = await fetch('/blob-upload');
     let blobUploadUrl = await response.json();
     this.actionUrl = blobUploadUrl;
