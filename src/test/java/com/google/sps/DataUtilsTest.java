@@ -2,26 +2,39 @@ package com.google.sps.servlets;
 
 import static org.junit.Assert.assertEquals;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 
 @RunWith(JUnit4.class)
 public final class DataUtilsTest {
 
   private MockHttpServletRequest request;
-  private MockHttpServletResponse response;
+
+  private final LocalServiceTestHelper helper =
+      new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
 
   @Before
   public void setUp() {
+    helper.setUp();
     request = new MockHttpServletRequest();
-    response = new MockHttpServletResponse();
+  }
+
+  @After
+  public void tearDown() {
+    helper.tearDown();
   }
 
   /**
