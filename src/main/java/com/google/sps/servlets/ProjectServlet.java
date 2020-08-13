@@ -55,7 +55,7 @@ public class ProjectServlet extends HttpServlet {
     }
 
     // Mode is a required parameter
-    boolean isCreateMode = DataUtils.parseMode(request, response);
+    boolean isCreateMode = DataUtils.parseMode(request);
 
     String userEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");

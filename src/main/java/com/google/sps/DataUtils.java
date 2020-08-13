@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Provides utilities for servlets interacting with the database.
@@ -54,19 +53,16 @@ public final class DataUtils {
    * @param     {String}            list   unseparated text
    * @return    {ArrayList<String>}
    */
-  public static ArrayList<String> parseCommaList(String list)
-      throws IOException {
+  public static ArrayList<String> parseCommaList(String list) {
     return new ArrayList(Arrays.asList(list.toLowerCase().split("\\s*,\\s*")));
   }
 
   /**
    * Parses mode for POST requests and returns whether the mode is create.
    * @param     {HttpServeletRequest}   request   the HTTP request
-   * @param     {HttpServeletResponse}  response   the HTTP response
    * @return    {boolean}
    */
-  public static boolean parseMode(HttpServletRequest request,
-                                  HttpServletResponse response)
+  public static boolean parseMode(HttpServletRequest request)
       throws IOException {
     String mode = request.getParameter("mode");
     if (isEmptyParameter(mode) || (!mode.toLowerCase().equals("create") &&

@@ -60,7 +60,7 @@ public class BlobServlet extends HttpServlet {
     }
 
     // Mode is a required parameter
-    boolean isCreateMode = DataUtils.parseMode(request, response);
+    boolean isCreateMode = DataUtils.parseMode(request);
 
     // Check if working with image or mask
     String parentImg = request.getParameter("parent-img");
