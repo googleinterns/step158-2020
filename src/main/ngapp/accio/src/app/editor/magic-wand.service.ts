@@ -141,4 +141,9 @@ export class MagicWandService {
   coordToDataArrayIndex(x: number, y: number, width: number): number {
     return (x + (y * width)) * 4;
   }
+
+
+  /* -----Additional Tools----- */
+
+  
 }

@@ -2,6 +2,7 @@ export class Mask {
   private mask: Set<number> = new Set();
   // Liable to change element datatype; design has not been determined...
   history: Array<Set<number>> = [];
+  pPresent: number = 0;
 
   constructor() { }
 
@@ -12,9 +13,12 @@ export class Mask {
   }
 
   // Whenever the mask is altered, its history also changes.
-  updateMask(newMask: Set<number>): void {
+  do(newMask: Set<number>): void {
     this.mask = newMask;
     // Change this implementation if element datatype of history is changed.
-    this.history.push(this.mask);
+    this.history[++this.pPresent] = this.mask;
+    this.history.splice(this.pPresent + 1);
   }
+
+  undo() {/* TODO */}
 }
