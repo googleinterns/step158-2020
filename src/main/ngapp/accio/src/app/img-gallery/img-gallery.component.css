@@ -18,7 +18,7 @@
   color: white;
 }
 
-#gallery {
+.gallery {
   position: relative;
   background-color: black;
   display: grid;
@@ -47,4 +47,8 @@ img.gallery-img:hover {
 
 .hidden {
   display: none;
+}
+
+h1 {
+  padding-top: 200px;
 }
