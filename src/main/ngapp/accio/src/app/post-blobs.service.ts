@@ -38,9 +38,18 @@ export class PostBlobsService {
   }
 
   /** 
-   * Appends all vaulues to the form to be posted.
+   * Appends all vaulues to the form to be posted. Converts delete boolean to string
    */ 
   buildForm(formData: FormData, imageBlob: ImageBlob, fileName: string) {
+    let deleteString: string;
+    try {
+      deleteString = imageBlob.delete.toString()
+    }
+    catch (error){
+      console.log(imageBlob.delete + ' could not be converted into a string, returning \'false\'');
+      deleteString = 'false';
+    }
+
     formData.append('proj-id', imageBlob.projectId);
     formData.append('img-name',  imageBlob.imageName);
     formData.append('mode', imageBlob.mode);
@@ -48,7 +57,7 @@ export class PostBlobsService {
     formData.append('parent-img', imageBlob.parentImageName);
     formData.append('new-name', imageBlob.newImageName);
     formData.append('tags', imageBlob.tags);
-    formData.append('delete', imageBlob.delete);
+    formData.append('delete', deleteString);
 
     console.log('formData:');
     console.log(formData);

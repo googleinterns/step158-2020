@@ -93,15 +93,6 @@ export class ImgGalleryComponent implements OnInit {
   *   Builds ImageBlob to be appended to form and posted.
   *   If a parameter isn't applicaple, it has a default value but must be filled
   *      if a value later in the constructor is applicable.
-  *
-  *         projectIdIn: string, 
-  *         imageNameIn: string, 
-  *         modeIn: string, 
-  *         imageIn: any = '',
-  *         parentImageNameIn: string = '',
-  *         newImageNameIn: string = '',
-  *         tagsIn: string = '',
-  *         deleteIn: string = 'delete'
   */
   onSubmit() {
      // Name is a required input. If it's null, do nothing.
@@ -117,11 +108,12 @@ export class ImgGalleryComponent implements OnInit {
 
     let imageBlob = new ImageBlob(
       this.projectId, 
-      this.uploadImageForm.get('imgName').value,
-      'create',
-      imageFile,
-      '', '',
-      this.uploadImageForm.get('tags').value,
+      /*imageName=*/this.uploadImageForm.get('imgName').value,
+      /*mode=*/'create',
+      /*image=*/imageFile,
+      /*parentImageName=*/'', 
+      /*newImageName=*/'',
+      /*tags=*/this.uploadImageForm.get('tags').value,
       );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);

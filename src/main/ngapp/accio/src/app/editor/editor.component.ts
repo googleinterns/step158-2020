@@ -28,6 +28,9 @@ export class EditorComponent implements OnInit {
   parentName: string;
   blobMask;
 
+  originalImageData: ImageData;
+  scaledImageData: ImageData;
+
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
   canvas: ElementRef<HTMLCanvasElement>; 
@@ -63,10 +66,8 @@ export class EditorComponent implements OnInit {
     //  Draws initial user image
     this.ctx = this.canvas.nativeElement.getContext('2d');
     this.hiddenCtx = this.hiddenCanvas.nativeElement.getContext('2d');
-    this.image.onload = () => {
-      this.draw();
-    }
-    
+    this.draw();
+
     //  Initializes mask upolad form
     this.initMaskForm();
     
@@ -108,8 +109,10 @@ export class EditorComponent implements OnInit {
     //  Initalize transparent black image data to use for mask.
     this.maskImageData = new ImageData(imgWidth,  imgHeight);
     
-    this.ctx.drawImage(this.image, 0, 0, imgWidth, imgHeight);
-    this.hiddenCtx.drawImage(this.image, 0, 0);
+    this.image.onload = () => {
+      this.ctx.drawImage(this.image, 0, 0, imgWidth, imgHeight);
+      this.hiddenCtx.drawImage(this.image, 0, 0);
+    }
   }
 
   /**  Returns the calculated scale for the image loaded. */
@@ -169,18 +172,6 @@ export class EditorComponent implements OnInit {
 
  /** 
   *  Builds ImageBlob to be appended to form and posted.
-  *  Constructor is built in the following way: 
-  *    projectIdIn: string, 
-  *    imageNameIn: string, 
-  *    modeIn: string, 
-  *    imageIn: Blob = '',
-  *    parentImageNameIn: string = '',
-  *    newImageNameIn: string = '',
-  *    tagsIn: string = '',
-  *    deleteIn: string = 'delete'
-  *    In the case of building a mask, there is no newImageName 
-  *      but there could be tags, must pass an empty parameter for
-  *      newImageNameIn. 
   */
   async onSubmit(): Promise<void> {
     // Name is a required input. If it's null, do nothing.
@@ -192,12 +183,12 @@ export class EditorComponent implements OnInit {
 
     let imageBlob = new ImageBlob(
       this.projectId, 
-      this.uploadMaskForm.get('maskName').value,
-      'create', 
-      this.blobMask,
-      this.parentName,
-      '', '',
-      this.uploadMaskForm.get('labels').value
+      /*imageName=*/this.uploadMaskForm.get('maskName').value,
+      /*mode=*/'create', 
+      /*image=*/this.blobMask,
+      /*parentImageName=*/this.parentName,
+      /*newImageName=*/'',
+      /*tags=*/this.uploadMaskForm.get('labels').value
     );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, this.parentName + 'Mask.png');
