@@ -76,7 +76,7 @@ public final class DataUtils {
    * Retrieves project Entity with respect to access restrictions.
    * @param     {String}        projId          the Datastore key String for
    *                                            the working project
-   * @param     {String}        userEmail          the User's email
+   * @param     {String}        userEmail       the User's email
    * @param     {boolean}       accessIfEditor  whether editors can access
    * @param     {boolean}       accessIfPublic  whether the project can be
                                                 used for the current action
