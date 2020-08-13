@@ -97,7 +97,7 @@ public final class DataUtils {
       projEntity = datastore.get(projKey);
     } catch (Exception e) {
       throw new IOException(
-          "You do not have permission to access this project.");
+          "Database error when trying to access this project.");
     }
 
     ArrayList<String> owners =
@@ -106,6 +106,8 @@ public final class DataUtils {
         (ArrayList<String>)projEntity.getProperty("editors");
     String existingVis = (String)projEntity.getProperty("visibility");
 
+    // owners and visibility should never be null, so no null check provided
+    // If either is null, something has gone very wrong
     boolean isOwner = owners.contains(userEmail);
     boolean isEditor =
         accessIfEditor && editors != null && editors.contains(userEmail);
