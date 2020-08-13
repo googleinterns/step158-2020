@@ -24,18 +24,27 @@ public final class DataUtilsTest {
     response = new MockHttpServletResponse();
   }
 
+  /**
+   * A null parameter is considered empty.
+   */
   @Test
   public void nullParameter() {
     String nullString = null;
     assertEquals(true, DataUtils.isEmptyParameter(nullString));
   }
 
+  /**
+   * An empty string in a parameter is considered empty.
+   */
   @Test
   public void emptyParameter() {
     String emptyString = "";
     assertEquals(true, DataUtils.isEmptyParameter(emptyString));
   }
 
+  /**
+   * Duplicate strings should be removed.
+   */
   @Test
   public void duplicateStrings() {
     ArrayList<String> duplicates =
@@ -44,6 +53,10 @@ public final class DataUtilsTest {
                         DataUtils.withDuplicatesRemoved(duplicates));
   }
 
+  /**
+   * Each substring separated by a comma should become an element in the output 
+   * array. 
+   */
   @Test
   public void commaList() {
     String commaList =
@@ -54,18 +67,27 @@ public final class DataUtilsTest {
                         DataUtils.parseCommaList(commaList));
   }
 
+  /**
+   * "create" is a valid mode that indicates creation.
+   */
   @Test
   public void createMode() throws IOException {
     request.addParameter("mode", "create");
     assertEquals(true, DataUtils.parseMode(request));
   }
 
+  /**
+   * "update" is a valid mode that indicates updating (not creation).
+   */
   @Test
   public void updateMode() throws IOException {
     request.addParameter("mode", "update");
     assertEquals(false, DataUtils.parseMode(request));
   }
 
+  /**
+   * Invalid modes throw an IOException.
+   */
   @Test
   public void invalidMode() {
     request.addParameter("mode", "null");
