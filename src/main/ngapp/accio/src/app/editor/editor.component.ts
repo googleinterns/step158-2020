@@ -133,8 +133,10 @@ export class EditorComponent implements OnInit {
   }
 
   /** 
-   *  Clears canvas to get mask Image as url to store and redraws
+   *  Clears hiddeCtx to get mask Image as url to store and redraws
    *    original image for possibility user makes more edits. 
+   *  getOriginalImageData uses hiddenCtx to pass the image data for drawing
+   *    in the mask Directive. Conflict if getOriginalImageData is called while saving the mask.
    * @return Url for the mask image to be stored in blobstore.  
    */
   async getMaskBlob(): Promise<void> {
@@ -167,6 +169,7 @@ export class EditorComponent implements OnInit {
 
  /** 
   *  Builds ImageBlob to be appended to form and posted.
+  *  Constructor is built in the following way: 
   *    projectIdIn: string, 
   *    imageNameIn: string, 
   *    modeIn: string, 
@@ -175,8 +178,16 @@ export class EditorComponent implements OnInit {
   *    newImageNameIn: string = '',
   *    tagsIn: string = '',
   *    deleteIn: string = 'delete'
+  *    In the case of building a mask, there is no newImageName 
+  *      but there could be tags, must pass an empty parameter for
+  *      newImageNameIn. 
   */
   async onSubmit(): Promise<void> {
+    // Name is a required input. If it's null, do nothing.
+    if (!this.uploadImageForm.get('maskName').value) {
+      return;
+    }
+    
     await this.getMaskBlob();
 
     let imageBlob = new ImageBlob(
