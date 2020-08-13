@@ -184,7 +184,7 @@ export class EditorComponent implements OnInit {
   */
   async onSubmit(): Promise<void> {
     // Name is a required input. If it's null, do nothing.
-    if (!this.uploadImageForm.get('maskName').value) {
+    if (!this.uploadMaskForm.get('maskName').value) {
       return;
     }
     
