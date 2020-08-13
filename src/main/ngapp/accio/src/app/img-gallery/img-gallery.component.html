@@ -4,20 +4,21 @@
 
   <div style="width:10%">Upload an Image</div>
   
-  <mat-form-field appearance="fill" style="width:20%">
-    <mat-label>Image Title</mat-label>
-    <input matInput formControlName="imgName" placeholder="Untitled"/>
+  <mat-form-field appearance="fill" class="user-input">
+    <mat-label>Image Name</mat-label>
+    <input required matInput formControlName="imgName" placeholder="Untitled"/>
   </mat-form-field>
   
-  <mat-form-field appearance="fill" style="width:20%">
+  <mat-form-field class="user-input" appearance="fill">
     <ngx-mat-file-input formControlName="image">
     </ngx-mat-file-input>
+    <mat-hint>Select an Image</mat-hint>
   </mat-form-field>
  
-  <mat-form-field appearance="fill" style="width:40%">
+  <mat-form-field appearance="fill" class="user-input">
     <mat-label>Tags (Optional)</mat-label>
     <input matInput formControlName="tags"/>
-    <mat-hint>Enter list seperated by commas: "tagA, tagB, tagC"</mat-hint>
+    <mat-hint>Enter list seperated by commas: "tag 1, tag 2, tag 3"</mat-hint>
   </mat-form-field>
 
   <button type="submit" mat-button  id="upload-button">Upload</button>
