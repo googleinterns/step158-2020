@@ -77,7 +77,7 @@
 <div class="gallery">
   <ng-container *ngFor="let image of imageArray">
     <div *ngFor="let mask of imageArray[0]['masks']" class="gallery-item">
-      <a [routerLink]="['/editor', projectId, mask['name'], mask['url']]">
+      <a [routerLink]="['/editor', projectId, mask['name'], mask['url'], image['name'], image['url']]">
         <img class="gallery-img" [src]="mask['url']">
         <p>{{ mask['name'] }}</p>
       </a>

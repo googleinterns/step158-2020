@@ -10,6 +10,7 @@ const routes: Routes = [
   { path: 'img-gallery', component: ImgGalleryComponent },
   { path: 'img-gallery/:proj-id', component: ImgGalleryComponent },
   { path: 'editor/:proj-id /:parent-img /:imgUrl', component: EditorComponent },
+  { path: 'editor/:proj-id /:parent-img /:imgUrl /:mask-parent /:mask-parent-url', component: EditorComponent },
   { path: 'logout', component: LogoutComponent},
   { path: 'home', component: HomeComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
