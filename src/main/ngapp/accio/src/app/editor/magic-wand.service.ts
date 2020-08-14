@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MaskController } from './mask-controller';
+import { SetOperator } from './set-operator';
 
 @Injectable({
   providedIn: 'root'
@@ -145,5 +146,9 @@ export class MagicWandService {
 
   /* -----Additional Tools----- */
 
-  
+  erase(maskController: MaskController, mistake: Set<number>) {
+    let mask: Set<number> = maskController.getMask();
+
+    return 
+  }
 }
