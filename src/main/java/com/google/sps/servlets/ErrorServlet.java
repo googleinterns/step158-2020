@@ -70,24 +70,24 @@ public class ErrorServlet extends HttpServlet {
     response.setContentType("application/json");
     Gson gson =
         new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    String basic = throwable.getMessage();
+    String errorMessage = throwable.getMessage();
     String moreInfo = throwable.getMessage().replace(".", "") + " thrown on " +
                       servletName + " with status code " + statusCode +
                       " when accessing " + requestUri + ".";
-    String jsonError = gson.toJson(new errorObject(basic, moreInfo));
+    String jsonError = gson.toJson(new errorObject(errorMessage, moreInfo));
     response.getWriter().println(jsonError);
   }
 }
 
 /**
- * Holds the basic and additional exception information.
+ * Holds the error message and additional exception information.
  */
 class errorObject {
-  String basic;
+  String errorMessage;
   String moreInfo;
 
-  public errorObject(String basic, String moreInfo) {
-    this.basic = basic;
+  public errorObject(String errorMessage, String moreInfo) {
+    this.errorMessage = errorMessage;
     this.moreInfo = moreInfo;
   }
 }
