@@ -8,13 +8,21 @@
 <div id="single-click-buttons">
   <mat-icon class="button" title="Invert Mask">invert_colors</mat-icon>
   <div class="small-break"></div>
-  <mat-icon class="button" title="Clear Mask">clear</mat-icon>
+  <mat-icon class="button" title="Clear Mask" (click)="clearMask()">clear</mat-icon>
 </div>
 <div class="large-break"></div>
 
 <div class="small-break"></div>
-<mat-slider 
-  [displayWith]="getTolerance"
-  title="Mask Tolerance"  
-  vertical min="1" max="127.5" step=".5" value="30">
-</mat-slider>
+
+<div>
+  <mat-slider 
+    title="Mask Tolerance"  
+    (change)="updateTolerance()"
+    vertical min="1" max="127.5" step=".5" [(ngModel)]="value">
+  </mat-slider>
+  <br/>
+  <mat-form-field>
+    <mat-label>Tolerance</mat-label>
+    <input matInput type="number" [(ngModel)]="value" width="10px">
+  </mat-form-field>
+</div>

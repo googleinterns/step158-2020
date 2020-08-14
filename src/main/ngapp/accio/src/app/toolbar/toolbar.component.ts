@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-toolbar',
@@ -7,14 +8,21 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ToolbarComponent implements OnInit {
 
+  @Output() clearMaskEvent = new EventEmitter<void>();
+  @Output() newToleranceEvent = new EventEmitter<number>();
+
+  value: number = 30;
+
   constructor() { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
-  /** 
-   * TODO(shcaffrey) Add functionality to slidebar to input tolerance into flood fill algo.
-   */
-  getTolerance(value: number) {
-      console.log(value);
+  /** Called when user clicks clear mask button */
+  clearMask() {
+    this.clearMaskEvent.emit();
+  }
+
+  updateTolerance() {
+    this.newToleranceEvent.emit(this.value);
   }
 }

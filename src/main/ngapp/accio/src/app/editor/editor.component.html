@@ -10,17 +10,23 @@
     <input matInput formControlName="labels" placeholder="Labels (optional)"/>
     <mat-hint>Enter list seperated by commas: "Label 1, Label 2, Label 3"</mat-hint>
   </mat-form-field>
-  <button type="submit" mat-button style="background-color:white padding:2%" id="save">Save Mask</button>
+  <button [disabled]="disableSubmit" type="submit" mat-button style="background-color:white padding:2%" id="save">Save Mask</button>
 </form>
 
 <!-- Editor -->
 <mat-drawer-container id="img-editor">
-  <mat-drawer id="toolbar" mode="side" opened><app-toolbar></app-toolbar></mat-drawer>
+  <mat-drawer id="toolbar" mode="side" opened>
+    <app-toolbar 
+      (clearMaskEvent)="clearMask()"
+      (newToleranceEvent)="updateTolerance($event)">
+    </app-toolbar>
+  </mat-drawer>
   <mat-drawer-content>
       <!-- Retrieves new mask via output event emiter -->
     <canvas #canvas appMask 
-      [scale]="scaleFactor"
       [originalImageData]="originalImageData"
+      [scale]="scaleFactor"
+      [tolerance]="tolerance"
       (newMaskEvent)="addToMask($event)">
     </canvas>
     <canvas #maskCanvas style="display:none">

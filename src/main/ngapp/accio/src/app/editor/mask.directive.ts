@@ -9,45 +9,36 @@ export class MaskDirective {
   //  ImageData from image user selects, drawn at real scale.
   @Input() originalImageData: ImageData;
   @Input() scale: number;
+  @Input() tolerance: number;
 
   @Output() newMaskEvent = new EventEmitter<Set<number>>();
 
-  // create direct reference of canvas on editor.html
+  //  Create direct reference of canvas on editor.html
   constructor(
     private canvas: ElementRef<HTMLCanvasElement>, 
     private magicWandService: MagicWandService,
   ) { }
 
-  //  Directive is a child of editor (the appMask selector on canvas connects the two)
+  /** 
+   *  Listens for user interaction on 'appMask' - the  canvas visual to the user.
+   *  When clicked, records the x and y offset, retrieves the tolerance and calls the 
+   *  floodfill algorithm. Directive is a child of editor, so when the new set mask is 
+   *  created, the pixels are emitted to the editor.
+   */ 
   @HostListener('click', ['$event'])
   onClick(e: MouseEvent) {
     const xCoord = e.offsetX;
     const yCoord = e.offsetY;
 
-    // TODO(shmcaffrey): Tolerance will come from user input.
-    const tolerance = 20;
-    console.log('scale: ' + this.scale);
-    if (!this.originalImageData) {
-      console.log("ORIGINAL IMAGE DATA IS NULL");
-      return;
-    }
+    console.log('tolerace in mask.dr ' + this.tolerance);
     
-    // returns an array indices of each pixel in the mask.
+    //  Returns an array indices of each pixel in the mask.
     const maskPixels = this.magicWandService.floodfill(
       this.originalImageData, 
       Math.floor(xCoord / this.scale), 
       Math.floor(yCoord / this.scale), 
-      tolerance);
+      this.tolerance);
 
       this.newMaskEvent.emit(maskPixels);
-  }
-
-  ngOnChange(changes: SimpleChanges) {
-    for (const propName in changes) {
-      const chng = changes[propName];
-      const cur  = JSON.stringify(chng.currentValue);
-      const prev = JSON.stringify(chng.previousValue);
-      console.log(`${propName}: currentValue = ${cur}, previousValue = ${prev}`);
-    }
   }
 }

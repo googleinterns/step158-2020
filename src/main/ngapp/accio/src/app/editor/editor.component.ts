@@ -6,7 +6,6 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
 
-
 @Component({
   selector: 'app-editor',
   templateUrl: './editor.component.html',
@@ -15,18 +14,34 @@ import { ImageBlob } from '../ImageBlob';
 export class EditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private postBlobsService: PostBlobsService,
   ) { }
 
+  //  Display variables.
+  private image: HTMLImageElement;
   imageUrl: string;
   displayMaskForm: boolean = false;
-  projectId: string;
+  disableSubmit: boolean = false;
+
+    //  Mask variables.
+  private maskImageData: ImageData;
+  private maskImageUrl: string
   
+  //  Form variables.
   uploadMaskForm: FormGroup;
   formData: FormData;
+  projectId: string;
   parentName: string;
-  blobMask;
+  blobMask: Blob; 
+
+  //  scaleFactor is used to trim image scale so image 
+  //    is smaller than width and height of the users screen.
+  //  scaleFactor and originalImageData are binded to their 
+  //    respective inputs in MaskDirective and change in mask.directive
+  //    when they change in editor.component
+  scaleFactor: number;
+  originalImageData: ImageData;
+  tolerance: number;
 
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
@@ -40,44 +55,29 @@ export class EditorComponent implements OnInit {
   maskCanvas: ElementRef<HTMLCanvasElement>; 
   private maskCtx: CanvasRenderingContext2D;
 
-  //  scaleFactor is used to trim image scale so image 
-  //    is smaller than width and height of the users screen.
-  //   scaleFactor and originalImageData are binded to the their 
-  //      respective inputs in MaskDirective and change in mask.directive
-  //      when they change in editor.component
-  scaleFactor = .9;
-  originalImageData: ImageData;
-
-
-  private image: HTMLImageElement;
-  private innerHeight: number;
-  private maskImageData: ImageData;
-
   ngOnInit() {
     this.image = new Image();
+    this.scaleFactor = .9;
+    this.tolerance = 30;
     
-    //  Set query params
     this.route.paramMap.subscribe(params => {
-      console.log(params);
-
       this.projectId = params.get('proj-id ');
       this.parentName = params.get('parent-img ');
       this.imageUrl = params.get('imgUrl');
       
-      console.log('image url: ' + this.imageUrl);
       console.log('proj id for mask: ' + this.projectId);
     });
 
-    //image loads after src is set, ensures canvas is initialized properly
+    //image loads after src is set, ensures canvas is initialized properly.
     this.image.onload = () => {
       this.initCanvas();
     }
     this.image.src = this.imageUrl;
 
-    //  Initializes mask upolad form
+    //  Initializes mask upolad form.
     this.initMaskForm();
     
-    //  Fetch blob for mask upload and show maskUploadForm
+    //  Fetch blob for mask upload and show maskUploadForm.
     this.postBlobsService.fetchBlob();
     this.displayMaskForm = true;
   }
@@ -85,11 +85,9 @@ export class EditorComponent implements OnInit {
   /**  
    *  Draws the image user selects from gallery on Canvas
    *    and creates a hidden canvas to store the original image 
-   *    as a reference when scaling the imageUI
-   *  ASSUMES Image has loaded, ie. image src is set before initCanvas is called
-   *  TODO(shmcaffrey): Currently, editor can require user to 
-   *  scroll to access the entire photo, need to make it 
-   *  so the editor is fixed to screen size.
+   *    as a reference when scaling the imageUI.
+   *  Assumes Image has loaded, ie. image src is set before initCanvas
+   *    is called (using onload).
    */
   private initCanvas(): void {
     let imgWidth = this.image.width;
@@ -109,12 +107,20 @@ export class EditorComponent implements OnInit {
     //  Initialize canvas to scaled image width and height and mask to img. 
     this.maskCanvas.nativeElement.width = imgWidth;
     this.maskCanvas.nativeElement.height = imgHeight;
+    this.maskCtx = this.maskCanvas.nativeElement.getContext('2d');
+
     this.canvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.canvas.nativeElement.height = imgHeight * this.scaleFactor;
-
-    this.maskCtx = this.maskCanvas.nativeElement.getContext('2d');
     this.ctx = this.canvas.nativeElement.getContext('2d');
+
+    //   Draws image non scaled on full canvas
     this.ctx.drawImage(this.image, 0, 0);
+
+    //  Sets the ImageData to be inputed by mask.directive
+    //  To change image data, just need to reinitialize page. 
+
+    //  Only gets the image data from 0,0 to the width and height of image,
+    //    not based on canvas
     this.originalImageData = this.ctx.getImageData(0, 0, imgWidth, imgHeight);
     this.clearCanvas();
 
@@ -132,7 +138,7 @@ export class EditorComponent implements OnInit {
 
  /**
   *  Draws users image scaled to canvas and restores ctx.
-  *  @param image is either the mask image or image user is making a mask of
+  *  @param image is either the mask image or image user is making a mask of.
   */
   private drawScaledImage(image: HTMLImageElement) {
     this.ctx.save();
@@ -142,33 +148,27 @@ export class EditorComponent implements OnInit {
   }
 
  /** 
-  * Draws Mask Data onto unscaled canvas to save as image or blob
-  * @returns url of newly created mask
-  */
-  getMaskUrl(): string {
-    this.maskCtx.clearRect(0, 0, this.maskCanvas.nativeElement.width, this.maskCanvas.nativeElement.height);
-    this.maskCtx.beginPath();
-    this.maskCtx.putImageData(this.maskImageData, 0, 0);
-    return this.maskCanvas.nativeElement.toDataURL();
-  }
-
- /** 
   *  Sets new pixels in magenta, clears canvas of previous data 
-  *    and draws image and mask as scaled
-  *  @param maskPixels Output() from mask.directive
+  *    and draws image and mask as scaled. Disables submit
+  *    on mask until the url is set. 
+  *  @param maskPixels event Output() from mask.directive
   *                    Gives the new pixels to add to the mask
   */
   addToMask(maskPixels: Set<number>) {
+    this.disableSubmit = true;
+
     for (let pixel of maskPixels) {
       this.maskImageData.data[pixel] = 255;
       this.maskImageData.data[pixel + 2] = 255;
       this.maskImageData.data[pixel + 3] = 255;
     }
 
-    // Have to make png of mask in order to see background image
+    //  Makes a png of mask so the the background is transparent.
     //  Execute all three after image loads so 'jolt' of canvas drawn is less extreme
+    //  Able submit button once the Mask url is set to avoid conflict. 
     let mask = new Image();
     mask.onload = () => {
+      this.disableSubmit = false;
       this.clearCanvas();
       this.drawScaledImage(this.image);
       this.drawScaledImage(mask);
@@ -176,18 +176,21 @@ export class EditorComponent implements OnInit {
     mask.src = this.getMaskUrl();
   }
 
+ /** 
+  *  Draws Mask Data onto unscaled canvas to save as image or blob.
+  *  Saves the mask url if user wants to save mask.
+  *  @returns url of newly created mask.
+  */
+  getMaskUrl(): string {
+    this.maskCtx.clearRect(0, 0, this.maskCanvas.nativeElement.width, this.maskCanvas.nativeElement.height);
+    this.maskCtx.beginPath();
+    this.maskCtx.putImageData(this.maskImageData, 0, 0);
+    this.maskImageUrl = this.maskCanvas.nativeElement.toDataURL();
+    return this.maskImageUrl;
+  }
+
   // TODO(shmcaffrey): change Alpha value to incorperate user input.
   // TODO(shmcaffrey): allow user to clear mask
-
-  /** 
-   *  Gets current mask's url and sets the mask as a Blob to be uploaded to server.
-   */
-  async getMaskBlob(): Promise<void> {
-    let maskUrl = this.getMaskUrl();
-    this.blobMask = await fetch(maskUrl).then(response => response.blob());
-    this.blobMask.lastModifiedDate = new Date();
-    this.blobMask.name = this.parentName + 'Mask.png';
-  }
 
   /** 
    *  Initializes Form group and data as new
@@ -200,6 +203,14 @@ export class EditorComponent implements OnInit {
     });
 
     this.formData = new FormData();
+  }
+
+  /** 
+   *  Gets current mask's url and sets the mask as a Blob to be uploaded to server.
+   */
+  async getMaskBlob(): Promise<void> {
+    this.blobMask = await fetch(this.maskImageUrl).then(response => response.blob());
+    //this.blobMask.lastModifiedDate = new Date();
   }
 
  /** 
@@ -227,5 +238,23 @@ export class EditorComponent implements OnInit {
 
     //  Reset form values
     this.initMaskForm();
+  }
+
+ /**
+  *  Emitted from toolbar. Clears canvas of old mask and draws image anew.
+  *  Clears old image data. Disables submit while mask is updating.
+  */
+  clearMask() {
+    this.disableSubmit = true;
+    this.maskImageData = new ImageData(this.image.width, this.image.height);
+    this.clearCanvas();
+    this.drawScaledImage(this.image);
+    this.disableSubmit = false;
+  }
+
+  /** Retrieves new tolerance value from child component toolbar and updates. */
+  updateTolerance(value: number) {
+    this.tolerance = value;
+    console.log('new tolerance: ' + value);
   }
 }
