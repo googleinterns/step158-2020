@@ -39,11 +39,10 @@ public final class ProjectServletTest {
   @Before
   public void setUp() throws IOException {
     helper.setUp();
-    servlet = new BlobServlet();
+    servlet = new ProjectServlet();
     projId = databaseSetup();
     request = mock(HttpServletRequest.class);
     response = mock(HttpServletResponse.class);
-    when(request.getParameter("proj-id")).thenReturn(projId);
     stringWriter = new StringWriter();
     writer = new PrintWriter(stringWriter);
     when(response.getWriter()).thenReturn(writer);
@@ -55,12 +54,12 @@ public final class ProjectServletTest {
   }
 
   //////////////////////////////////////////////////////////////// 
-  //                   Blob servlet POST tests                  //
+  //                 Project servlet POST tests                 //
   ////////////////////////////////////////////////////////////////  
 
   //////////////////////////////////////////////////////////////// 
-  //                   Blob servlet GET tests                   //
-  ////////////////////////////////////////////////////////////////  
+  //                 Project servlet GET tests                  //
+  ////////////////////////////////////////////////////////////////
   @Test
   public void noFilters() throws IOException {
     servlet.doGet(request, response);
@@ -69,52 +68,66 @@ public final class ProjectServletTest {
   }
 
   @Test
-  public void withMasks() throws IOException {
-    when(request.getParameter("with-masks")).thenReturn("true");   
+  public void publicOnly() throws IOException {
+    when(request.getParameter("visibility")).thenReturn("public");   
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedWithMasks, stringWriter.toString());    
+    assertEquals(expectedPublicOnly, stringWriter.toString());       
   }
 
   @Test
-  public void sortImg() throws IOException {
-    when(request.getParameter("sort-img")).thenReturn("asc");   
+  public void privateOnly() throws IOException {
+    when(request.getParameter("visibility")).thenReturn("private");   
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedSortImg, stringWriter.toString());    
+    assertEquals(expectedPrivateOnly, stringWriter.toString());       
   }
 
   @Test
-  public void tagFilter() throws IOException {
-    when(request.getParameter("tag")).thenReturn("1");   
+  public void globalOnly() throws IOException {
+    when(request.getParameter("global")).thenReturn("true");   
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedTagFilter, stringWriter.toString());    
+    assertEquals(expectedGlobalOnly, stringWriter.toString());       
   }
 
   @Test
-  public void sortMask() throws IOException {
-    when(request.getParameter("with-masks")).thenReturn("true"); 
-    when(request.getParameter("sort-mask")).thenReturn("asc");   
+  public void sortAsc() throws IOException {
+    when(request.getParameter("sort")).thenReturn("asc");   
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedSortMask, stringWriter.toString());         
+    assertEquals(expectedSortAsc, stringWriter.toString());    
   }
 
   @Test
-  public void imgName() throws IOException {
-    when(request.getParameter("img-name")).thenReturn("Image1");   
+  public void specficProject() throws IOException {
+    when(request.getParameter("proj-id")).thenReturn(projId);   
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedImgName, stringWriter.toString());      
+    assertEquals(expectedSpecificProject, stringWriter.toString());    
   }
 
   @Test
-  public void maskName() throws IOException {
-    when(request.getParameter("img-name")).thenReturn("Image0");   
-    when(request.getParameter("mask-name")).thenReturn("Mask0");   
+  public void roleEditor() throws IOException {
+    when(request.getParameter("role")).thenReturn("editor");   
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedMaskName, stringWriter.toString());   
+    assertEquals(expectedRoleEditor, stringWriter.toString());    
+  }
+
+  @Test
+  public void roleOwner() throws IOException {
+    when(request.getParameter("role")).thenReturn("owner");   
+    servlet.doGet(request, response);
+    writer.flush();
+    assertEquals(expectedRoleOwner, stringWriter.toString());         
+  }
+
+  @Test
+  public void searchTerm() throws IOException {
+    when(request.getParameter("search-term")).thenReturn("MyProject");   
+    servlet.doGet(request, response);
+    writer.flush();
+    assertEquals(expectedSearchTerm, stringWriter.toString());      
   }
 }

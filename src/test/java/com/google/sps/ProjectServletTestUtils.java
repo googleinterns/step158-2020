@@ -8,18 +8,20 @@ import com.google.appengine.api.datastore.KeyFactory;
 import java.util.Arrays;
 
 public final class ProjectServletTestUtils {
-  public static final String expectedNoFilters = "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n      \"zero\"\n    ],\n    \"masks\": []\n  }\n]\n";
-  public static final String expectedWithMasks = "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n      \"zero\"\n    ],\n    \"masks\": [\n      {\n        \"url\": \"/blob-host?blobkey=ghi\",\n        \"name\": \"Mask0\",\n        \"utc\": \"2020-08-12T05:39:02.384Z\",\n        \"tags\": [\n          \"0\",\n          \"zero\"\n        ]\n      },\n      {\n        \"url\": \"/blob-host?blobkey=jkl\",\n        \"name\": \"Mask1\",\n        \"utc\": \"2020-08-12T05:39:02.383Z\",\n        \"tags\": [\n          \"1\",\n          \"one\"\n        ]\n      }\n    ]\n  }\n]\n";
-  public static final String expectedSortImg = "[\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n      \"zero\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  }\n]\n";
-  public static final String expectedTagFilter = "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  }\n]\n";
-  public static final String expectedSortMask = "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n      \"zero\"\n    ],\n    \"masks\": [\n      {\n        \"url\": \"/blob-host?blobkey=jkl\",\n        \"name\": \"Mask1\",\n        \"utc\": \"2020-08-12T05:39:02.383Z\",\n        \"tags\": [\n          \"1\",\n          \"one\"\n        ]\n      },\n      {\n        \"url\": \"/blob-host?blobkey=ghi\",\n        \"name\": \"Mask0\",\n        \"utc\": \"2020-08-12T05:39:02.384Z\",\n        \"tags\": [\n          \"0\",\n          \"zero\"\n        ]\n      }\n    ]\n  }\n]\n";
-  public static final String expectedImgName = "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  }\n]\n";
-  public static final String expectedMaskName = "[\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n      \"zero\"\n    ],\n    \"masks\": [\n      {\n        \"url\": \"/blob-host?blobkey=ghi\",\n        \"name\": \"Mask0\",\n        \"utc\": \"2020-08-12T05:39:02.384Z\",\n        \"tags\": [\n          \"0\",\n          \"zero\"\n        ]\n      }\n    ]\n  }\n]\n";
+  public static final String expectedNoFilters = "";
+  public static final String expectedPublicOnly = "";
+  public static final String expectedPrivateOnly = "";
+  public static final String expectedGlobalOnly = "";
+  public static final String expectedSortAsc = "";
+  public static final String expectedSpecificProject = "";
+  public static final String expectedRoleEditor = "";
+  public static final String expectedRoleOwner = "";
+  public static final String expectedSearchTerm = "";
 
   public static String databaseSetup() {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-    Entity projEntity = new Entity(DataUtils.PROJECT, 123456);
+    Entity projEntity = new Entity(DataUtils.PROJECT, 123);
     projEntity.setProperty("name", "MyProject");
     projEntity.setProperty("utc", "2020-08-12T05:39:02.383Z");
     projEntity.setProperty("visibility", DataUtils.PRIVATE);
@@ -30,33 +32,41 @@ public final class ProjectServletTestUtils {
     Key projKey = datastore.put(projEntity);
     String projId = KeyFactory.keyToString(projKey);
 
-    Entity imgEntity = new Entity(DataUtils.IMAGE, 1, projKey);
-    imgEntity.setProperty("name", "Image0");
-    imgEntity.setProperty("utc", "2020-08-12T05:39:02.383Z");
-    imgEntity.setProperty("blobkey", "abc");
-    imgEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
+    Entity projEntity2 = new Entity(DataUtils.PROJECT, 456);
+    projEntity2.setProperty("name", "MyProject2");
+    projEntity2.setProperty("utc", "2020-08-12T05:39:02.384Z");
+    projEntity2.setProperty("visibility", DataUtils.PUBLIC);
+    projEntity2.setIndexedProperty("owners",
+                                   Arrays.asList("abc@xyz.com"));
+    projEntity2.setIndexedProperty("editors",
+                                   Arrays.asList("uvw@def.com"));
 
-    Entity imgEntity2 = new Entity(DataUtils.IMAGE, 2, projKey);
-    imgEntity2.setProperty("name", "Image1");
-    imgEntity2.setProperty("utc", "2020-08-12T05:39:02.384Z");
-    imgEntity2.setProperty("blobkey", "def");
-    imgEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));
+    Entity projEntity3 = new Entity(DataUtils.PROJECT, 789);
+    projEntity3.setProperty("name", "MyProject3");
+    projEntity3.setProperty("utc", "2020-08-12T05:39:02.385Z");
+    projEntity3.setProperty("visibility", DataUtils.PUBLIC);
+    projEntity3.setIndexedProperty("owners",
+                                   Arrays.asList("xyz@xyz.com"));
+    projEntity3.setIndexedProperty("editors",
+                                   Arrays.asList("xyz@abc.com", "uvw@def.com"));
 
-    datastore.put(Arrays.asList(imgEntity, imgEntity2));
+    Entity projEntity4 = new Entity(DataUtils.PROJECT, 135);
+    projEntity4.setProperty("name", "MyProject4");
+    projEntity4.setProperty("utc", "2020-08-12T05:39:02.382Z");
+    projEntity4.setProperty("visibility", DataUtils.PRIVATE);
+    projEntity4.setIndexedProperty("owners",
+                                   Arrays.asList("abc@abc.com"));
 
-    Entity maskEntity = new Entity(DataUtils.MASK, 1, imgEntity.getKey());
-    maskEntity.setProperty("name", "Mask0");
-    maskEntity.setProperty("utc", "2020-08-12T05:39:02.384Z");
-    maskEntity.setProperty("blobkey", "ghi");
-    maskEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
+    Entity projEntity5 = new Entity(DataUtils.PROJECT, 789);
+    projEntity5.setProperty("name", "MyProject3");
+    projEntity5.setProperty("utc", "2020-08-12T05:39:02.387Z");
+    projEntity5.setProperty("visibility", DataUtils.PRIVATE);
+    projEntity5.setIndexedProperty("owners",
+                                   Arrays.asList("xyz@xyz.com"));
+    projEntity5.setIndexedProperty("editors",
+                                   Arrays.asList("abc@xyz.com"));
 
-    Entity maskEntity2 = new Entity(DataUtils.MASK, 2, imgEntity.getKey());
-    maskEntity2.setProperty("name", "Mask1");
-    maskEntity2.setProperty("utc", "2020-08-12T05:39:02.383Z");
-    maskEntity2.setProperty("blobkey", "jkl");
-    maskEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));
-
-    datastore.put(Arrays.asList(maskEntity, maskEntity2));
+    datastore.put(Arrays.asList(projEntity2, projEntity3, projEntity4, projEntity5));
 
     return projId;
   }
