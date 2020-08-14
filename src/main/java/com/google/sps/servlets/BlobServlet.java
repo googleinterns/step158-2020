@@ -228,6 +228,10 @@ public class BlobServlet extends HttpServlet {
 
     boolean withMasks =
         Boolean.parseBoolean(request.getParameter("with-masks"));
+    // with-masks implicitly true if mask-name is provided
+    if (!DataUtils.isEmptyParameter(request.getParameter("mask-name"))) {
+      withMasks = true;
+    } 
 
     String sortImg = request.getParameter("sort-img");
     // Sorted in descending chronological order by default

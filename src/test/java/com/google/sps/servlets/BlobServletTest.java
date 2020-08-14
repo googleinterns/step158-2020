@@ -4,10 +4,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static com.google.sps.servlets.BlobServletTestUtils.*;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -29,19 +25,30 @@ public final class BlobServletTest {
 
   private BlobServlet servlet;
   private String projId;
+  private HttpServletRequest request;
+  private HttpServletResponse response;
+  private StringWriter stringWriter;
+  private PrintWriter writer;
 
   private final LocalServiceTestHelper helper =
       new LocalServiceTestHelper(new LocalUserServiceTestConfig(),
-                                 new LocalDatastoreServiceTestConfig())
+                                 new LocalDatastoreServiceTestConfig(),
+                                 new LocalBlobstoreServiceTestConfig())
           .setEnvIsLoggedIn(true)
           .setEnvEmail("abc@xyz.com")
           .setEnvAuthDomain("gmail.com");
 
   @Before
-  public void setUp() {
+  public void setUp() throws IOException {
     helper.setUp();
     servlet = new BlobServlet();
     projId = databaseSetup();
+    request = mock(HttpServletRequest.class);
+    response = mock(HttpServletResponse.class);
+    when(request.getParameter("proj-id")).thenReturn(projId);
+    stringWriter = new StringWriter();
+    writer = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(writer);
   }
 
   @After
@@ -49,31 +56,67 @@ public final class BlobServletTest {
     helper.tearDown();
   }
 
+  //////////////////////////////////////////////////////////////// 
+  //                   Blob servlet POST tests                  //
+  ////////////////////////////////////////////////////////////////  
+
+  //////////////////////////////////////////////////////////////// 
+  //                   Blob servlet GET tests                   //
+  ////////////////////////////////////////////////////////////////  
   @Test
   public void noFilters() throws IOException {
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    HttpServletResponse response = mock(HttpServletResponse.class);
-
-    when(request.getParameter("proj-id")).thenReturn(projId);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
     servlet.doGet(request, response);
-    writer.flush();
-        
+    writer.flush();    
     assertEquals(expectedNoFilters, stringWriter.toString());
   }
 
-  // doget
-  /*
-    proj-id
-    with-masks
-    sort-img
-    tag
-    sort-mask
-    img-name
-    mask-name
-  */
+  @Test
+  public void withMasks() throws IOException {
+    when(request.getParameter("with-masks")).thenReturn("true");   
+    servlet.doGet(request, response);
+    writer.flush();
+    assertEquals(expectedWithMasks, stringWriter.toString());    
+  }
+
+  @Test
+  public void sortImg() throws IOException {
+    when(request.getParameter("sort-img")).thenReturn("asc");   
+    servlet.doGet(request, response);
+    writer.flush();
+    assertEquals(expectedSortImg, stringWriter.toString());    
+  }
+
+  @Test
+  public void tagFilter() throws IOException {
+    when(request.getParameter("tag")).thenReturn("1");   
+    servlet.doGet(request, response);
+    writer.flush();
+    assertEquals(expectedTagFilter, stringWriter.toString());    
+  }
+
+  @Test
+  public void sortMask() throws IOException {
+    when(request.getParameter("with-masks")).thenReturn("true"); 
+    when(request.getParameter("sort-mask")).thenReturn("asc");   
+    servlet.doGet(request, response);
+    writer.flush();
+    assertEquals(expectedSortMask, stringWriter.toString());         
+  }
+
+  @Test
+  public void imgName() throws IOException {
+    when(request.getParameter("img-name")).thenReturn("Image1");   
+    servlet.doGet(request, response);
+    writer.flush();
+    assertEquals(expectedImgName, stringWriter.toString());      
+  }
+
+  @Test
+  public void maskName() throws IOException {
+    when(request.getParameter("img-name")).thenReturn("Image0");   
+    when(request.getParameter("mask-name")).thenReturn("Mask0");   
+    servlet.doGet(request, response);
+    writer.flush();
+    assertEquals(expectedMaskName, stringWriter.toString());   
+  }
 }
