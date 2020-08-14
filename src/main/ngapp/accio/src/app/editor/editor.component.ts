@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { FormGroup, FormControl } from '@angular/forms';
 
-import { imageUrls } from '../images';
+import { PostBlobsService } from '../post-blobs.service';
+import { ImageBlob } from '../ImageBlob';
+
 
 @Component({
   selector: 'app-editor',
@@ -13,10 +16,20 @@ export class EditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private postBlobsService: PostBlobsService,
   ) { }
 
-  // Define urls within component.
-  url;
+  url: string;
+  display: boolean = false;
+  projectId: string;
+  
+  uploadMaskForm: FormGroup;
+  formData: FormData;
+  parentName: string;
+  blobMask;
+
+  originalImageData: ImageData;
+  scaledImageData: ImageData;
 
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
@@ -27,46 +40,49 @@ export class EditorComponent implements OnInit {
   hiddenCanvas: ElementRef<HTMLCanvasElement>; 
   private hiddenCtx: CanvasRenderingContext2D;
 
-  //  @Param scaleFactor is used to trim image scale so image 
+  //  @param scaleFactor is used to trim image scale so image 
   //    is smaller than width and height of the users screen.
   private scaleFactor = .9;
   private image: HTMLImageElement;
   private innerHeight: number;
-  private maskData: ImageData;
+  maskImageData: ImageData;
 
   ngOnInit() {
     this.image = new Image();
     this.innerHeight = window.innerHeight;
-    // Returns url user clicked in gallery component.
+    
+    //  Set query params
     this.route.paramMap.subscribe(params => {
-      let index = Number(params.get('imgUrl'));
-      this.checkImageUrl(index);
-      this.url = imageUrls[index];
-    });
+      console.log(params);
 
+      this.projectId = params.get('proj-id ');
+      this.parentName = params.get('parent-img ');
+      this.url = params.get('imgUrl');
+      
+      console.log('image url: ' + this.url);
+      console.log('proj id for mask: ' + this.projectId);
+    });
+    
+    //  Draws initial user image
     this.ctx = this.canvas.nativeElement.getContext('2d');
     this.hiddenCtx = this.hiddenCanvas.nativeElement.getContext('2d');
     this.draw();
-  }   
-  
-  /**
-   * Checks that route for editor URL is in bounds of array of Urls and is a number
-   * Redirects to gallery component if not, does not complete editor component
-   * index: the route from the editor url passed through gallery.ts 
-   */
-  private checkImageUrl(index: number): void {
-    if (Number.isNaN(index) || index >= imageUrls.length || index < 0) {    
-      console.log('Index: ' + index + 'Not a number or greater than number of images, returning to Gallery');
-      this.router.navigate(['/gallery']);
-    }
+
+    //  Initializes mask upolad form
+    this.initMaskForm();
+    
+    //  Fetch blob for mask upload and show maskUploadForm
+    this.postBlobsService.fetchBlob();
+    this.display = true;
   }
+  
   /**  
-   * Draws the image user selects from gallery on Canvas
+   *  Draws the image user selects from gallery on Canvas
    *    and creates a hidden canvas to store the original image 
    *    as a reference when scaling the imageUI
-   * TODO(shmcaffrey): Currently, editor can require user to 
-   * scroll to access the entire photo, need to make it 
-   * so the editor is fixed to screen size.
+   *  TODO(shmcaffrey): Currently, editor can require user to 
+   *  scroll to access the entire photo, need to make it 
+   *  so the editor is fixed to screen size.
    */
   private draw(): void {
     this.image.src = this.url;
@@ -74,48 +90,110 @@ export class EditorComponent implements OnInit {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
-    // Initialize hidden canvas width and height to original images width and height.
+    //  Initialize hidden canvas width and height to original images width and height.
     this.hiddenCanvas.nativeElement.width = imgWidth;
     this.hiddenCanvas.nativeElement.height = imgHeight;
 
-    // Used to scale the image to the window size, @Param scaledFactor = .9 so the scaled image is smaller than the users window.
+    //  Used to scale the image to the window size, @Param scaledFactor = .9 so the scaled image is smaller than the users window.
     this.scaleFactor = Math.floor(this.innerHeight / imgHeight * this.scaleFactor);
-    // TODO(shmcaffrey): add scaling if image is larger than window
+    //  TODO(shmcaffrey): add scaling if image is larger than window
     if (this.scaleFactor <= 0) {
       this.scaleFactor =  1;
     }
 
-    // Adjust canvas to scaled image width and height, use ctx. 
+    //  Adjust canvas to scaled image width and height, use ctx. 
     this.canvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.canvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.ctx.scale(this.scaleFactor, this.scaleFactor); 
 
     //  Initalize transparent black image data to use for mask.
-    this.maskData = new ImageData(imgWidth,  imgHeight);
+    this.maskImageData = new ImageData(imgWidth,  imgHeight);
     
     this.image.onload = () => {
       this.ctx.drawImage(this.image, 0, 0, imgWidth, imgHeight);
-      this.hiddenCtx.drawImage(this.image, 0, 0)
+      this.hiddenCtx.drawImage(this.image, 0, 0);
     }
   }
 
-  /** Returns the calculated scale for the image loaded. */
+  /**  Returns the calculated scale for the image loaded. */
   public getScaleFactor(): number {
     return this.scaleFactor;
   }
 
-  /** Returns the original images data for reference in mask making. */
-  public getImgData(): ImageData {
+  /**  Returns the original images data for reference in mask making. */
+  public getOriginalImageData(): ImageData {
     return this.hiddenCtx.getImageData(0,0, this.image.width, this.image.height);
   }
 
-  /** Returns black transparent ImageData for single mask image. */
-  public getMaskData(): ImageData {
-    return this.maskData;
+  /**  Returns black transparent ImageData for single mask image. */
+  public getMaskImageData(): ImageData {
+    return this.maskImageData;
   }
 
-  /** Returns the scaled images data for reference printing scaled image after mask. */
+  /**  Returns the scaled images data for reference printing scaled image after mask. */
   public getScaledData(): ImageData {
     return this.ctx.getImageData(0, 0, this.image.width * this.scaleFactor, this.image.height * this.scaleFactor);
+  }
+
+  /** 
+   *  Clears hiddeCtx to get mask Image as url to store and redraws
+   *    original image for possibility user makes more edits. 
+   *  getOriginalImageData uses hiddenCtx to pass the image data for drawing
+   *    in the mask Directive. Conflict if getOriginalImageData is called while saving the mask.
+   * @return Url for the mask image to be stored in blobstore.  
+   */
+  async getMaskBlob(): Promise<void> {
+    //  Clear canvas and put mask data to return mask as Image, 
+    this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
+    this.hiddenCtx.putImageData(this.maskImageData, 0, 0);
+
+    let maskUrl = this.hiddenCanvas.nativeElement.toDataURL();
+    this.blobMask = await fetch(maskUrl).then(response => response.blob());
+    this.blobMask.lastModifiedDate = new Date();
+    this.blobMask.name = this.parentName + 'Mask.png';
+
+    //  Redraw original image if user adds more to mask
+    this.hiddenCtx.clearRect(0,0, this.hiddenCanvas.nativeElement.width, this.hiddenCanvas.nativeElement.height);
+    this.hiddenCtx.drawImage(this.image, 0, 0);
+  }
+
+  /** 
+   *  Initializes Form group and data as new
+   *  Initializes @param projectId
+   */
+  private initMaskForm() {
+    this.uploadMaskForm = new FormGroup({
+      maskName: new FormControl(),
+      labels: new FormControl(),
+    });
+
+    this.formData = new FormData();
+  }
+
+ /** 
+  *  Builds ImageBlob to be appended to form and posted.
+  */
+  async onSubmit(): Promise<void> {
+    // Name is a required input. If it's null, do nothing.
+    if (!this.uploadMaskForm.get('maskName').value) {
+      return;
+    }
+    
+    await this.getMaskBlob();
+
+    let imageBlob = new ImageBlob(
+      this.projectId, 
+      /*imageName=*/this.uploadMaskForm.get('maskName').value,
+      /*mode=*/'create', 
+      /*image=*/this.blobMask,
+      /*parentImageName=*/this.parentName,
+      /*newImageName=*/'',
+      /*tags=*/this.uploadMaskForm.get('labels').value
+    );
+
+    this.postBlobsService.buildForm(this.formData, imageBlob, this.parentName + 'Mask.png');
+
+    //  Reset form values
+    this.uploadMaskForm.reset();
   }
 }
