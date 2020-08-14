@@ -18,7 +18,9 @@
   <mat-drawer id="toolbar" mode="side" opened>
     <app-toolbar 
       (clearMaskEvent)="clearMask()"
-      (newToleranceEvent)="updateTolerance($event)">
+      (newToleranceEvent)="updateTolerance($event)"
+      (newMaskToolEvent)="updateMaskTool($event)"
+      (invertMaskEvent)="invertMask()">
     </app-toolbar>
   </mat-drawer>
   <mat-drawer-content>
@@ -27,6 +29,7 @@
       [originalImageData]="originalImageData"
       [scale]="scaleFactor"
       [tolerance]="tolerance"
+      [disable]="disableFloodFill"
       (newMaskEvent)="addToMask($event)">
     </canvas>
     <canvas #maskCanvas style="display:none">

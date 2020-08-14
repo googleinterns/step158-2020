@@ -43,6 +43,6 @@
   width: 100%;
 }
 
-#submit-button {
-  width: 20%;
+.slider-value {
+  width: 50px;
 }

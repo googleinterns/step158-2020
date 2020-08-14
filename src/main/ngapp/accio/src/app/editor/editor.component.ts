@@ -36,12 +36,14 @@ export class EditorComponent implements OnInit {
 
   //  scaleFactor is used to trim image scale so image 
   //    is smaller than width and height of the users screen.
-  //  scaleFactor and originalImageData are binded to their 
+  //  The following variables are binded to their 
   //    respective inputs in MaskDirective and change in mask.directive
   //    when they change in editor.component
   scaleFactor: number;
   originalImageData: ImageData;
   tolerance: number;
+  disableFloodFill: boolean;
+  maskTool: string;
 
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
@@ -59,6 +61,7 @@ export class EditorComponent implements OnInit {
     this.image = new Image();
     this.scaleFactor = .9;
     this.tolerance = 30;
+    this.disableFloodFill = false;//////////
     
     this.route.paramMap.subscribe(params => {
       this.projectId = params.get('proj-id ');
@@ -151,29 +154,40 @@ export class EditorComponent implements OnInit {
   *  Sets new pixels in magenta, clears canvas of previous data 
   *    and draws image and mask as scaled. Disables submit
   *    on mask until the url is set. 
-  *  @param maskPixels event Output() from mask.directive
+  *  class @param this.disableFloodFill must equal true before called because 
+  *                               maskMmageData is being updated
+  *  class @param this.disableSubmit must equal true before called because 
+  *                            maskUrl is being updated in drawMask(). 
+  *  class @param maskPixels event Output() from mask.directive
   *                    Gives the new pixels to add to the mask
   */
   addToMask(maskPixels: Set<number>) {
-    this.disableSubmit = true;
+    this.disableSubmit = this.disableFloodFill = true;
 
     for (let pixel of maskPixels) {
       this.maskImageData.data[pixel] = 255;
       this.maskImageData.data[pixel + 2] = 255;
       this.maskImageData.data[pixel + 3] = 255;
     }
+    this.drawMask();
+    this.disableSubmit = this.disableFloodFill = false;
+  }
 
-    //  Makes a png of mask so the the background is transparent.
-    //  Execute all three after image loads so 'jolt' of canvas drawn is less extreme
-    //  Able submit button once the Mask url is set to avoid conflict. 
+/**  
+  *  Makes a png of mask so the the background is transparent.
+  *  Execute all three after image loads so 'jolt' of canvas drawn is less extreme.
+  *  Disables Flood fill before maskUrl is being set so new data isn't added
+  *  class @param this.disableSubmit must equal true before called because maskUrl is being updated.
+  */  
+  private drawMask() {
     let mask = new Image();
     mask.onload = () => {
-      this.disableSubmit = false;
       this.clearCanvas();
       this.drawScaledImage(this.image);
       this.drawScaledImage(mask);
     }
     mask.src = this.getMaskUrl();
+
   }
 
  /** 
@@ -243,18 +257,62 @@ export class EditorComponent implements OnInit {
  /**
   *  Emitted from toolbar. Clears canvas of old mask and draws image anew.
   *  Clears old image data. Disables submit while mask is updating.
+  *  class @param this.disableFloodFill must equal true before called because 
+  *                                     maskMmageData is being updated
+  *  class @param this.disableSubmit must equal true before called because 
+  *                                  maskUrl is being updated in getMaskUrl. 
   */
   clearMask() {
     this.disableSubmit = true;
     this.maskImageData = new ImageData(this.image.width, this.image.height);
     this.clearCanvas();
     this.drawScaledImage(this.image);
+    //  Update mask url of empty mask, don't need to draw it.
+    this.getMaskUrl();
     this.disableSubmit = false;
   }
 
-  /** Retrieves new tolerance value from child component toolbar and updates. */
+  /**  Retrieves new tolerance value from child component toolbar and updates. */
   updateTolerance(value: number) {
     this.tolerance = value;
     console.log('new tolerance: ' + value);
+  }
+  
+  /**  
+  *  Sets all pixels to magenta and inverts their alpha to display them or not. 
+  *  Disables flood fill and dubmit to avoid conflict as mask updates.
+  *  class @param this.disableFloodFill must equal true before called because 
+  *                                     maskMmageData is being updated
+  *  class @param this.disableSubmit must equal true before called because 
+  *                                  maskUrl is being updated in drawMask(). 
+  */
+  invertMask() {
+    this.disableSubmit = this.disableFloodFill = true;
+    for(let i = 0; i < this.maskImageData.data.length; i+=4) {
+      this.maskImageData.data[i] = 255;
+      this.maskImageData.data[i + 2] = 255;
+      this.maskImageData.data[i + 3] = 255 - this.maskImageData.data[i+ 3];
+    }
+    this.drawMask();
+    this.disableSubmit = this.disableFloodFill = false;
+  }
+
+ /** 
+  *  Updates the value of the Toolbar toggle group.
+  *  All cases beside 'magic-wand' must disableFloodFill.
+  */
+  updateMaskTool(tool: string) {
+    // change value selected on form;
+    this.maskTool = tool;
+    switch (tool) {
+      case 'magic-wand': 
+        this.disableFloodFill = false;
+        break;
+      case 'mask-only':
+        this.disableFloodFill = true;
+        this.clearCanvas();
+        this.drawMask();
+        break;
+    }
   }
 }

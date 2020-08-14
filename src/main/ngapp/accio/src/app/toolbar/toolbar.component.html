@@ -1,12 +1,21 @@
-<mat-button-toggle-group vertical style="border:none">
+<!-- Toggle buttons -->
+<mat-button-toggle-group 
+  #group="matButtonToggleGroup" 
+  vertical style="border:none" 
+  [value]="maskTool" (change)="updateTool(group.value)">
   <mat-button-toggle mat-icon-button value="magic-wand" title="Magic Wand">
     <mat-icon>format_color_fill</mat-icon>
   </mat-button-toggle>
+  <mat-button-toggle mat-icon-button value="mask-only" title="Mask Only">
+    <mat-icon>image</mat-icon>
+  </mat-button-toggle>
 </mat-button-toggle-group>
+
 <div class="large-break"></div>
 
+<!-- Single use buttons -->
 <div id="single-click-buttons">
-  <mat-icon class="button" title="Invert Mask">invert_colors</mat-icon>
+  <mat-icon class="button" title="Invert Mask" (click)="invertMask()">invert_colors</mat-icon>
   <div class="small-break"></div>
   <mat-icon class="button" title="Clear Mask" (click)="clearMask()">clear</mat-icon>
 </div>
@@ -14,6 +23,7 @@
 
 <div class="small-break"></div>
 
+<!-- Sliders -->
 <div>
   <mat-slider 
     title="Mask Tolerance"  
@@ -21,8 +31,8 @@
     vertical min="1" max="127.5" step=".5" [(ngModel)]="value">
   </mat-slider>
   <br/>
-  <mat-form-field>
-    <mat-label>Tolerance</mat-label>
-    <input matInput type="number" [(ngModel)]="value" width="10px">
+  <mat-form-field class="slider-value">
+    <mat-label style="color=white">Tolerance</mat-label>
+    <input matInput type="number" [(ngModel)]="value" style="color=white">
   </mat-form-field>
 </div>

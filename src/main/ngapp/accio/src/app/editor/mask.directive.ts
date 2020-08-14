@@ -10,6 +10,7 @@ export class MaskDirective {
   @Input() originalImageData: ImageData;
   @Input() scale: number;
   @Input() tolerance: number;
+  @Input() disable: boolean;
 
   @Output() newMaskEvent = new EventEmitter<Set<number>>();
 
@@ -27,18 +28,23 @@ export class MaskDirective {
    */ 
   @HostListener('click', ['$event'])
   onClick(e: MouseEvent) {
-    const xCoord = e.offsetX;
-    const yCoord = e.offsetY;
+    if(!this.disable) {
+      const xCoord = e.offsetX;
+      const yCoord = e.offsetY;
 
-    console.log('tolerace in mask.dr ' + this.tolerance);
-    
-    //  Returns an array indices of each pixel in the mask.
-    const maskPixels = this.magicWandService.floodfill(
-      this.originalImageData, 
-      Math.floor(xCoord / this.scale), 
-      Math.floor(yCoord / this.scale), 
-      this.tolerance);
+      console.log('tolerace in mask.dr ' + this.tolerance);
+      
+      //  Returns an array indices of each pixel in the mask.
+      const maskPixels = this.magicWandService.floodfill(
+        this.originalImageData, 
+        Math.floor(xCoord / this.scale), 
+        Math.floor(yCoord / this.scale), 
+        this.tolerance);
 
-      this.newMaskEvent.emit(maskPixels);
+        this.newMaskEvent.emit(maskPixels);
+    }
+    else {
+      console.log('Flood Fill disabled, select flood fill tool');
+    }
   }
 }
