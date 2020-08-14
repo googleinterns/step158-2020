@@ -1,6 +1,6 @@
 // Class to perform basic set operations
 export class SetOperator {
-  // Ie. [1, 2, 3] union [3, 4, 5] ==> [1, 2, 3, 4, 5]
+  // Eg. [1, 2, 3] union [3, 4, 5] ==> [1, 2, 3, 4, 5]
   static union(setA: Set<number>, setB: Set<number>): Set<number> {
     let result = new Set(setA);
 
@@ -11,7 +11,7 @@ export class SetOperator {
     return result;
   }
   
-  // Ie. [1, 2, 3] intersect [3, 4, 5] ==> [3]
+  // Eg. [1, 2, 3] intersect [3, 4, 5] ==> [3]
   static intersection(setA: Set<number>, setB: Set<number>): Set<number> {
     let result: Set<number> = new Set();
 
@@ -24,7 +24,7 @@ export class SetOperator {
     return result;
   }
 
-  // Ie. [1, 2, 3] difference [3, 4, 5] ==> [1, 2]
+  // Eg. [1, 2, 3] difference [3, 4, 5] ==> [1, 2]
   static difference(setA: Set<number>, setB: Set<number>): Set<number> {
     let result = new Set(setA);
 
@@ -35,7 +35,7 @@ export class SetOperator {
     return result;
   }
 
-  // Ie. [1, 2, 3] symmetricDifference [3, 4, 5] ==> [1, 2, 4, 5]
+  // Eg. [1, 2, 3] symmetricDifference [3, 4, 5] ==> [1, 2, 4, 5]
   static symmetricDifference(setA: Set<number>, setB: Set<number>): Set<number> {
     let result = new Set(setA);
 
