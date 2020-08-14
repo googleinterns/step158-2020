@@ -1,5 +1,7 @@
 package com.google.sps.servlets;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -25,17 +27,17 @@ public class ErrorServlet extends HttpServlet {
   }
 
   /**
-   * Responds with information about errors and exceptions thrown during runtime.
+   * Responds with information about errors and exceptions thrown during
+   * runtime.
    * @param     {HttpServletRequest}    request
    * @param     {HttpServletResponse}   response
    * @return    {void}
    */
   private void processError(HttpServletRequest request,
                             HttpServletResponse response) throws IOException {
-    response.setContentType("text/html");
-
     String code = request.getParameter("code");
     if (!DataUtils.isEmptyParameter(code)) {
+      response.setContentType("text/html");
       response.getWriter().println("<h1>" + code + "</h1>");
       switch (code) {
       case "404":
@@ -65,9 +67,27 @@ public class ErrorServlet extends HttpServlet {
       requestUri = "Unknown";
     }
 
-    response.getWriter().println("<h1>" + statusCode + "</h1>"
-                                 + "<p>" + throwable.getMessage() + "</p>"
-                                 + "<p>" + "on " + servletName + "</p>"
-                                 + "<p>" + "when accessing " + requestUri + "</p>");
+    response.setContentType("application/json");
+    Gson gson =
+        new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    String errorMessage = throwable.getMessage();
+    String moreInfo = throwable.getMessage().replace(".", "") + " thrown on " +
+                      servletName + " with status code " + statusCode +
+                      " when accessing " + requestUri + ".";
+    String jsonError = gson.toJson(new errorObject(errorMessage, moreInfo));
+    response.getWriter().println(jsonError);
+  }
+}
+
+/**
+ * Holds the error message and additional exception information.
+ */
+class errorObject {
+  String errorMessage;
+  String moreInfo;
+
+  public errorObject(String errorMessage, String moreInfo) {
+    this.errorMessage = errorMessage;
+    this.moreInfo = moreInfo;
   }
 }
