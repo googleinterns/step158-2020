@@ -147,10 +147,9 @@ export class MagicWandService {
   /* -----Additional Tools----- */
 
   /**@returns {Set<number>} mask that excludes the
-   * @param {Set<number>} mistake*/
-  erase(maskController: MaskController, mistake: Set<number>): Set<number> {
-    let mask: Set<number> = maskController.getMask();
-
+   * @param {Set<number>} mistake from original
+   * @param {Set<number>} mask*/
+  erase(mask: Set<number>, mistake: Set<number>): Set<number> {
     return SetOperator.difference(mask, mistake);
   }
 }
