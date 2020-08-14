@@ -1,12 +1,12 @@
-// Perform basic set operations
+// Class to perform basic set operations
 export class SetOperator {
   // Ie. [1, 2, 3] union [3, 4, 5] ==> [1, 2, 3, 4, 5]
   static union(setA: Set<number>, setB: Set<number>) {
     let result = new Set(setA);
 
-    setB.forEach(element => {
-      result.add(element)
-    });
+    for (let elem of setB) {
+      result.add(elem);
+    }
 
     return result;
   }
@@ -15,11 +15,11 @@ export class SetOperator {
   static intersection(setA: Set<number>, setB: Set<number>) {
     let result = new Set();
 
-    setB.forEach(element => {
-      if (setA.has(element)) {
-        result.add(element);
+    for (let elem of setB) {
+      if (setA.has(elem)) {
+        result.add(elem);
       }
-    });
+    }
 
     return result;
   }
@@ -28,9 +28,9 @@ export class SetOperator {
   static difference(setA: Set<number>, setB: Set<number>) {
     let result = new Set(setA);
 
-    setB.forEach(element => {
-      result.delete(element);
-    });
+    for (let elem of setB) {
+      result.delete(elem);
+    }
 
     return result;
   }
@@ -39,13 +39,13 @@ export class SetOperator {
   static symmetricDifference(setA: Set<number>, setB: Set<number>) {
     let result = new Set(setA);
 
-    setB.forEach(element => {
-      if (result.has(element)) {
-        result.delete(element);
+    for (let elem of setB) {
+      if (result.has(elem)) {
+        result.delete(elem);
       } else {
-        result.add(element);
+        result.add(elem);
       }
-    });
+    }
 
     return result;
   }
