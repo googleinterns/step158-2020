@@ -23,7 +23,7 @@ export class EditorComponent implements OnInit {
   displayMaskForm: boolean = false;
   disableSubmit: boolean = false;
 
-    //  Mask variables.
+  //  Mask variables.
   private maskImageData: ImageData;
   private maskImageUrl: string
   
@@ -61,7 +61,7 @@ export class EditorComponent implements OnInit {
     this.image = new Image();
     this.scaleFactor = .9;
     this.tolerance = 30;
-    this.disableFloodFill = false;//////////
+    this.disableFloodFill = false;
     
     this.route.paramMap.subscribe(params => {
       this.projectId = params.get('proj-id ');
@@ -155,11 +155,11 @@ export class EditorComponent implements OnInit {
   *    and draws image and mask as scaled. Disables submit
   *    on mask until the url is set. 
   *  class @param this.disableFloodFill must equal true before called because 
-  *                               maskMmageData is being updated
+  *    maskMmageData is being updated.
   *  class @param this.disableSubmit must equal true before called because 
-  *                            maskUrl is being updated in drawMask(). 
+  *    maskUrl is being updated in drawMask(). 
   *  class @param maskPixels event Output() from mask.directive
-  *                    Gives the new pixels to add to the mask
+  *    Gives the new pixels to add to the mask
   */
   addToMask(maskPixels: Set<number>) {
     this.disableSubmit = this.disableFloodFill = true;
@@ -204,7 +204,6 @@ export class EditorComponent implements OnInit {
   }
 
   // TODO(shmcaffrey): change Alpha value to incorperate user input.
-  // TODO(shmcaffrey): allow user to clear mask
 
   /** 
    *  Initializes Form group and data as new
@@ -258,9 +257,9 @@ export class EditorComponent implements OnInit {
   *  Emitted from toolbar. Clears canvas of old mask and draws image anew.
   *  Clears old image data. Disables submit while mask is updating.
   *  class @param this.disableFloodFill must equal true before called because 
-  *                                     maskMmageData is being updated
+  *     maskMmageData is being updated
   *  class @param this.disableSubmit must equal true before called because 
-  *                                  maskUrl is being updated in getMaskUrl. 
+  *    maskUrl is being updated in getMaskUrl. 
   */
   clearMask() {
     this.disableSubmit = true;
@@ -282,9 +281,9 @@ export class EditorComponent implements OnInit {
   *  Sets all pixels to magenta and inverts their alpha to display them or not. 
   *  Disables flood fill and dubmit to avoid conflict as mask updates.
   *  class @param this.disableFloodFill must equal true before called because 
-  *                                     maskMmageData is being updated
+  *    maskMmageData is being updated.
   *  class @param this.disableSubmit must equal true before called because 
-  *                                  maskUrl is being updated in drawMask(). 
+  *    maskUrl is being updated in drawMask(). 
   */
   invertMask() {
     this.disableSubmit = this.disableFloodFill = true;
@@ -309,9 +308,10 @@ export class EditorComponent implements OnInit {
         this.disableFloodFill = false;
         break;
       case 'mask-only':
-        this.disableFloodFill = true;
+        this.disableFloodFill = this.disableSubmit = true;
         this.clearCanvas();
         this.drawMask();
+        this.disableSubmit = false;
         break;
     }
   }
