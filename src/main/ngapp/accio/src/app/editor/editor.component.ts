@@ -160,6 +160,7 @@ export class EditorComponent implements OnInit {
   *    maskUrl is being updated in drawMask(). 
   *  class @param maskPixels event Output() from mask.directive
   *    Gives the new pixels to add to the mask
+  *  Only returned when maskTool is 'magic-wand', no need to check maskTool
   */
   addToMask(maskPixels: Set<number>) {
     this.disableSubmit = this.disableFloodFill = true;
@@ -175,7 +176,8 @@ export class EditorComponent implements OnInit {
 
 /**  
   *  Makes a png of mask so the the background is transparent.
-  *  Execute all three after image loads so 'jolt' of canvas drawn is less extreme.
+  *  Clears canvas, draws the original image and draws the mask.
+  *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
   *  Disables Flood fill before maskUrl is being set so new data isn't added
   *  class @param this.disableSubmit must equal true before called because maskUrl is being updated.
   */  
@@ -183,11 +185,12 @@ export class EditorComponent implements OnInit {
     let mask = new Image();
     mask.onload = () => {
       this.clearCanvas();
-      this.drawScaledImage(this.image);
+      if (this.maskTool != 'mask-only') {
+        this.drawScaledImage(this.image);
+      }
       this.drawScaledImage(mask);
     }
-    mask.src = this.getMaskUrl();
-
+    mask.src = this.updateMaskUrl();
   }
 
  /** 
@@ -195,7 +198,7 @@ export class EditorComponent implements OnInit {
   *  Saves the mask url if user wants to save mask.
   *  @returns url of newly created mask.
   */
-  getMaskUrl(): string {
+  updateMaskUrl(): string {
     this.maskCtx.clearRect(0, 0, this.maskCanvas.nativeElement.width, this.maskCanvas.nativeElement.height);
     this.maskCtx.beginPath();
     this.maskCtx.putImageData(this.maskImageData, 0, 0);
@@ -256,19 +259,20 @@ export class EditorComponent implements OnInit {
  /**
   *  Emitted from toolbar. Clears canvas of old mask and draws image anew.
   *  Clears old image data. Disables submit while mask is updating.
-  *  class @param this.disableFloodFill must equal true before called because 
-  *     maskMmageData is being updated
   *  class @param this.disableSubmit must equal true before called because 
   *    maskUrl is being updated in getMaskUrl. 
+  *  class @param this.disableFloodFill must equal true before called because 
+  *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
+  *     (flood fill not allowed any other time).
   */
   clearMask() {
-    this.disableSubmit = true;
+    this.disableSubmit = this.disableFloodFill = true;
     this.maskImageData = new ImageData(this.image.width, this.image.height);
-    this.clearCanvas();
-    this.drawScaledImage(this.image);
-    //  Update mask url of empty mask, don't need to draw it.
-    this.getMaskUrl();
+    this.drawMask();
     this.disableSubmit = false;
+    if (this.maskTool == 'magic-wand') {
+      this.disableFloodFill = false
+    }
   }
 
   /**  Retrieves new tolerance value from child component toolbar and updates. */
@@ -280,10 +284,11 @@ export class EditorComponent implements OnInit {
   /**  
   *  Sets all pixels to magenta and inverts their alpha to display them or not. 
   *  Disables flood fill and dubmit to avoid conflict as mask updates.
-  *  class @param this.disableFloodFill must equal true before called because 
-  *    maskMmageData is being updated.
   *  class @param this.disableSubmit must equal true before called because 
   *    maskUrl is being updated in drawMask(). 
+  *  class @param this.disableFloodFill must equal true before called because 
+  *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
+  *     (flood fill not allowed any other time).
   */
   invertMask() {
     this.disableSubmit = this.disableFloodFill = true;
@@ -293,7 +298,10 @@ export class EditorComponent implements OnInit {
       this.maskImageData.data[i + 3] = 255 - this.maskImageData.data[i+ 3];
     }
     this.drawMask();
-    this.disableSubmit = this.disableFloodFill = false;
+    this.disableSubmit = false;
+    if (this.maskTool == 'magic-wand') {
+      this.disableFloodFill = false
+    }
   }
 
  /** 
@@ -303,13 +311,16 @@ export class EditorComponent implements OnInit {
   updateMaskTool(tool: string) {
     // change value selected on form;
     this.maskTool = tool;
+    this.disableFloodFill = true;
     switch (tool) {
       case 'magic-wand': 
         this.disableFloodFill = false;
+        // redraw mask and image
+        this.drawMask();
         break;
       case 'mask-only':
-        this.disableFloodFill = this.disableSubmit = true;
-        this.clearCanvas();
+        let mask = new Image();
+        this.disableSubmit = true;
         this.drawMask();
         this.disableSubmit = false;
         break;
