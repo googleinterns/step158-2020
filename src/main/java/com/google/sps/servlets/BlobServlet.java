@@ -214,13 +214,13 @@ public class BlobServlet extends HttpServlet {
     UserService userService = UserServiceFactory.getUserService();
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-    String userEmail = userService.getCurrentUser().getEmail();
-
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
       response.sendRedirect("/");
       return;
     }
+
+    String userEmail = userService.getCurrentUser().getEmail();
 
     String projId = request.getParameter("proj-id");
     Entity projEntity = DataUtils.getProjectEntity(projId, userEmail, true, true);
@@ -245,7 +245,7 @@ public class BlobServlet extends HttpServlet {
             .setFilter(combinedGetFilters(request, withMasks, DataUtils.IMAGE));
 
     PreparedQuery storedImages = datastore.prepare(imageQuery);
-
+    
     ArrayList<ImageInfo> imageObjects = new ArrayList<ImageInfo>();
 
     for (Entity imageEntity : storedImages.asIterable()) {
@@ -346,9 +346,8 @@ public class BlobServlet extends HttpServlet {
       throws IOException {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-    Query imgQuery = new Query(kind).setAncestor(ancestor);
     Filter imgFilter = new FilterPredicate("name", FilterOperator.EQUAL, name);
-    imgQuery.setFilter(imgFilter);
+    Query imgQuery = new Query(kind).setAncestor(ancestor).setFilter(imgFilter);
     PreparedQuery existingImgQuery = datastore.prepare(imgQuery);
 
     if (existingImgQuery.countEntities() == 0) {
