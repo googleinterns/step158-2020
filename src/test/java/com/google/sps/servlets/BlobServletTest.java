@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static com.google.sps.servlets.BlobServletTestUtils.*;
 
-import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
+//import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
@@ -32,8 +32,8 @@ public final class BlobServletTest {
 
   private final LocalServiceTestHelper helper =
       new LocalServiceTestHelper(new LocalUserServiceTestConfig(),
-                                 new LocalDatastoreServiceTestConfig(),
-                                 new LocalBlobstoreServiceTestConfig())
+                                 new LocalDatastoreServiceTestConfig()/*,
+                                 new LocalBlobstoreServiceTestConfig()*/)
           .setEnvIsLoggedIn(true)
           .setEnvEmail("abc@xyz.com")
           .setEnvAuthDomain("gmail.com");
