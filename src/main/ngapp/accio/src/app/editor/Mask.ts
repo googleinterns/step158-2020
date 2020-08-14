@@ -1,4 +1,4 @@
-export class Mask {
+export class MaskController {
   private mask: Set<number> = new Set();
   // Liable to change element datatype; design has not been determined...
   history: Array<Set<number>> = [];

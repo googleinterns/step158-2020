@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Mask } from './Mask';
+import { MaskController } from './Mask';
 
 @Injectable({
   providedIn: 'root'
