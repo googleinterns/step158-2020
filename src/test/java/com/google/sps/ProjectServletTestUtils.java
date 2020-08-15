@@ -8,6 +8,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import java.util.Arrays;
 
 public final class ProjectServletTestUtils {
+  // Expected JSON strings for GET tests  
   public static final String expectedNoFilters = "[\n  {\n    \"name\": \"MyProject3\",\n    \"timestamp\": \"2020-08-12T05:39:02.387Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"xyz@xyz.com\"\n    ],\n    \"editors\": [\n      \"abc@xyz.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject2\",\n    \"timestamp\": \"2020-08-12T05:39:02.384Z\",\n    \"visibility\": \"public\",\n    \"owners\": [\n      \"abc@xyz.com\"\n    ],\n    \"editors\": [\n      \"uvw@def.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
   public static final String expectedPublicOnly = "[\n  {\n    \"name\": \"MyProject2\",\n    \"timestamp\": \"2020-08-12T05:39:02.384Z\",\n    \"visibility\": \"public\",\n    \"owners\": [\n      \"abc@xyz.com\"\n    ],\n    \"editors\": [\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
   public static final String expectedPrivateOnly = "[\n  {\n    \"name\": \"MyProject3\",\n    \"timestamp\": \"2020-08-12T05:39:02.387Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"xyz@xyz.com\"\n    ],\n    \"editors\": [\n      \"abc@xyz.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
@@ -18,6 +19,7 @@ public final class ProjectServletTestUtils {
   public static final String expectedRoleOwner = "[\n  {\n    \"name\": \"MyProject2\",\n    \"timestamp\": \"2020-08-12T05:39:02.384Z\",\n    \"visibility\": \"public\",\n    \"owners\": [\n      \"abc@xyz.com\"\n    ],\n    \"editors\": [\n      \"uvw@def.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
   public static final String expectedSearchTerm = "[\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
 
+  // Database setup performed before each test
   public static String databaseSetup() {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 

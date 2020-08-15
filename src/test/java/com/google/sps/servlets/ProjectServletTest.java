@@ -1,15 +1,23 @@
 package com.google.sps.servlets;
 
+import static com.google.sps.servlets.ProjectServletTestUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static com.google.sps.servlets.ProjectServletTestUtils.*;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Query;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -53,51 +61,132 @@ public final class ProjectServletTest {
     helper.tearDown();
   }
 
-  //////////////////////////////////////////////////////////////// 
+  ////////////////////////////////////////////////////////////////
   //                 Project servlet POST tests                 //
-  ////////////////////////////////////////////////////////////////  
-    /* Required parameters
-    mode		“create” or “update”
-    Optional parameters
-    proj-id
-    proj-name
-    visibility	“public” or “private”
-    editors		comma-separated
-    owners		comma-separated
-    delete		Boolean*/
+  ////////////////////////////////////////////////////////////////
+  /*mode		“create” or “update”
+  proj-id
+  proj-name
+  visibility	“public” or “private”
+  editors		comma-separated
+  owners		comma-separated
+  delete		Boolean*/
 
   @Test
-  public void basicCreate() throws IOException {
-    /*when(request.getParameter("mode")).thenReturn("create");  
-    servlet.doGet(request, response);
-    writer.flush();    
-    assertEquals(expectedNoFilters, stringWriter.toString());*/
+  public void basicCreate() throws IOException, EntityNotFoundException {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(
+        5, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    when(request.getParameter("mode")).thenReturn("create");
+    servlet.doPost(request, response);
+    assertEquals(
+        6, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    writer.flush();
+    Entity projEntity = datastore.get(
+        KeyFactory.stringToKey(stringWriter.toString().replace("\"", "")));
+    assertTrue(((String)projEntity.getProperty("name")).contains("Untitled"));
+    assertEquals((String)projEntity.getProperty("visibility"),
+                 DataUtils.PRIVATE);
+    assertEquals((ArrayList<String>)projEntity.getProperty("owners"),
+                 new ArrayList<String>(Arrays.asList("abc@xyz.com")));
+    assertNull((ArrayList<String>)projEntity.getProperty("editors"));
   }
 
-  //////////////////////////////////////////////////////////////// 
+  @Test
+  public void customCreate() throws IOException, EntityNotFoundException {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(
+        5, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    when(request.getParameter("mode")).thenReturn("create");
+    when(request.getParameter("proj-name")).thenReturn("MyProject8");
+    when(request.getParameter("visibility")).thenReturn(DataUtils.PUBLIC);
+    when(request.getParameter("editors"))
+        .thenReturn("aaa@bbb.com, bbb@ccc.com");
+    when(request.getParameter("owners")).thenReturn("abc@xyz.com, xyz@abc.com");
+    servlet.doPost(request, response);
+    assertEquals(
+        6, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    writer.flush();
+    Entity projEntity = datastore.get(
+        KeyFactory.stringToKey(stringWriter.toString().replace("\"", "")));
+    assertEquals((String)projEntity.getProperty("name"), "MyProject8");
+    assertEquals((String)projEntity.getProperty("visibility"),
+                 DataUtils.PUBLIC);
+    assertEquals(
+        (ArrayList<String>)projEntity.getProperty("owners"),
+        new ArrayList<String>(Arrays.asList("abc@xyz.com", "xyz@abc.com")));
+    assertEquals(
+        (ArrayList<String>)projEntity.getProperty("editors"),
+        new ArrayList<String>(Arrays.asList("aaa@bbb.com", "bbb@ccc.com")));
+  }
+
+  @Test
+  public void update() throws IOException, EntityNotFoundException {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(
+        5, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    when(request.getParameter("mode")).thenReturn("update");
+    when(request.getParameter("proj-id")).thenReturn(projId);
+    when(request.getParameter("proj-name")).thenReturn("MyProject8");
+    when(request.getParameter("visibility")).thenReturn(DataUtils.PUBLIC);
+    when(request.getParameter("editors"))
+        .thenReturn("aaa@bbb.com, bbb@ccc.com");
+    when(request.getParameter("owners")).thenReturn("abc@xyz.com, xyz@abc.com");
+    servlet.doPost(request, response);
+    assertEquals(
+        5, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    writer.flush();
+    Entity projEntity = datastore.get(KeyFactory.stringToKey(projId));
+    assertEquals((String)projEntity.getProperty("name"), "MyProject8");
+    assertEquals((String)projEntity.getProperty("visibility"),
+                 DataUtils.PUBLIC);
+    assertEquals(
+        (ArrayList<String>)projEntity.getProperty("owners"),
+        new ArrayList<String>(Arrays.asList("abc@xyz.com", "xyz@abc.com")));
+    assertEquals(
+        (ArrayList<String>)projEntity.getProperty("editors"),
+        new ArrayList<String>(Arrays.asList("aaa@bbb.com", "bbb@ccc.com")));
+    assertFalse(((String)projEntity.getProperty("name"))
+                    .equals("2020-08-12T05:39:02.383Z"));
+  }
+
+  @Test
+  public void delete() throws IOException, EntityNotFoundException {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(
+        5, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    when(request.getParameter("mode")).thenReturn("update");
+    when(request.getParameter("proj-id")).thenReturn(projId);
+    when(request.getParameter("delete")).thenReturn("true");
+    servlet.doPost(request, response);
+    assertEquals(
+        4, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+  }
+
+  ////////////////////////////////////////////////////////////////
   //                 Project servlet GET tests                  //
   ////////////////////////////////////////////////////////////////
   @Test
   public void noFilters() throws IOException {
     servlet.doGet(request, response);
-    writer.flush();    
+    writer.flush();
     assertEquals(expectedNoFilters, stringWriter.toString());
   }
 
   @Test
   public void publicOnly() throws IOException {
-    when(request.getParameter("visibility")).thenReturn("public");   
+    when(request.getParameter("visibility")).thenReturn("public");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedPublicOnly, stringWriter.toString());       
+    assertEquals(expectedPublicOnly, stringWriter.toString());
   }
 
   @Test
   public void privateOnly() throws IOException {
-    when(request.getParameter("visibility")).thenReturn("private");   
+    when(request.getParameter("visibility")).thenReturn("private");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedPrivateOnly, stringWriter.toString());       
+    assertEquals(expectedPrivateOnly, stringWriter.toString());
   }
 
   @Test
@@ -105,46 +194,46 @@ public final class ProjectServletTest {
     when(request.getParameter("global")).thenReturn("true");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedGlobalOnly, stringWriter.toString());       
+    assertEquals(expectedGlobalOnly, stringWriter.toString());
   }
 
   @Test
   public void sortAsc() throws IOException {
-    when(request.getParameter("sort")).thenReturn("asc");   
+    when(request.getParameter("sort")).thenReturn("asc");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedSortAsc, stringWriter.toString());    
+    assertEquals(expectedSortAsc, stringWriter.toString());
   }
 
   @Test
   public void specficProject() throws IOException {
-    when(request.getParameter("proj-id")).thenReturn(projId);   
+    when(request.getParameter("proj-id")).thenReturn(projId);
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedSpecificProject, stringWriter.toString());    
+    assertEquals(expectedSpecificProject, stringWriter.toString());
   }
 
   @Test
   public void roleEditor() throws IOException {
-    when(request.getParameter("role")).thenReturn("editor");   
+    when(request.getParameter("role")).thenReturn("editor");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedRoleEditor, stringWriter.toString());    
+    assertEquals(expectedRoleEditor, stringWriter.toString());
   }
 
   @Test
   public void roleOwner() throws IOException {
-    when(request.getParameter("role")).thenReturn("owner");   
+    when(request.getParameter("role")).thenReturn("owner");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedRoleOwner, stringWriter.toString());         
+    assertEquals(expectedRoleOwner, stringWriter.toString());
   }
 
   @Test
   public void searchTerm() throws IOException {
-    when(request.getParameter("search-term")).thenReturn("MyProject");   
+    when(request.getParameter("search-term")).thenReturn("MyProject");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedSearchTerm, stringWriter.toString());      
+    assertEquals(expectedSearchTerm, stringWriter.toString());
   }
 }
