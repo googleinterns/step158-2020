@@ -56,6 +56,23 @@ public final class ProjectServletTest {
   //////////////////////////////////////////////////////////////// 
   //                 Project servlet POST tests                 //
   ////////////////////////////////////////////////////////////////  
+    /* Required parameters
+    mode		“create” or “update”
+    Optional parameters
+    proj-id
+    proj-name
+    visibility	“public” or “private”
+    editors		comma-separated
+    owners		comma-separated
+    delete		Boolean*/
+
+  @Test
+  public void basicCreate() throws IOException {
+    /*when(request.getParameter("mode")).thenReturn("create");  
+    servlet.doGet(request, response);
+    writer.flush();    
+    assertEquals(expectedNoFilters, stringWriter.toString());*/
+  }
 
   //////////////////////////////////////////////////////////////// 
   //                 Project servlet GET tests                  //
@@ -85,7 +102,7 @@ public final class ProjectServletTest {
 
   @Test
   public void globalOnly() throws IOException {
-    when(request.getParameter("global")).thenReturn("true");   
+    when(request.getParameter("global")).thenReturn("true");
     servlet.doGet(request, response);
     writer.flush();
     assertEquals(expectedGlobalOnly, stringWriter.toString());       

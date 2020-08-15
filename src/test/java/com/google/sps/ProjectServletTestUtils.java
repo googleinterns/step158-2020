@@ -8,15 +8,15 @@ import com.google.appengine.api.datastore.KeyFactory;
 import java.util.Arrays;
 
 public final class ProjectServletTestUtils {
-  public static final String expectedNoFilters = "";
-  public static final String expectedPublicOnly = "";
-  public static final String expectedPrivateOnly = "";
-  public static final String expectedGlobalOnly = "";
-  public static final String expectedSortAsc = "";
-  public static final String expectedSpecificProject = "";
-  public static final String expectedRoleEditor = "";
-  public static final String expectedRoleOwner = "";
-  public static final String expectedSearchTerm = "";
+  public static final String expectedNoFilters = "[\n  {\n    \"name\": \"MyProject3\",\n    \"timestamp\": \"2020-08-12T05:39:02.387Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"xyz@xyz.com\"\n    ],\n    \"editors\": [\n      \"abc@xyz.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject2\",\n    \"timestamp\": \"2020-08-12T05:39:02.384Z\",\n    \"visibility\": \"public\",\n    \"owners\": [\n      \"abc@xyz.com\"\n    ],\n    \"editors\": [\n      \"uvw@def.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
+  public static final String expectedPublicOnly = "[\n  {\n    \"name\": \"MyProject2\",\n    \"timestamp\": \"2020-08-12T05:39:02.384Z\",\n    \"visibility\": \"public\",\n    \"owners\": [\n      \"abc@xyz.com\"\n    ],\n    \"editors\": [\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
+  public static final String expectedPrivateOnly = "[\n  {\n    \"name\": \"MyProject3\",\n    \"timestamp\": \"2020-08-12T05:39:02.387Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"xyz@xyz.com\"\n    ],\n    \"editors\": [\n      \"abc@xyz.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
+  public static final String expectedGlobalOnly = "[\n  {\n    \"name\": \"MyProject3\",\n    \"timestamp\": \"2020-08-12T05:39:02.385Z\",\n    \"visibility\": \"public\",\n    \"owners\": [\n      \"xyz@xyz.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject2\",\n    \"timestamp\": \"2020-08-12T05:39:02.384Z\",\n    \"visibility\": \"public\",\n    \"owners\": [\n      \"abc@xyz.com\"\n    ],\n    \"editors\": [\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
+  public static final String expectedSortAsc = "[\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject2\",\n    \"timestamp\": \"2020-08-12T05:39:02.384Z\",\n    \"visibility\": \"public\",\n    \"owners\": [\n      \"abc@xyz.com\"\n    ],\n    \"editors\": [\n      \"uvw@def.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject3\",\n    \"timestamp\": \"2020-08-12T05:39:02.387Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"xyz@xyz.com\"\n    ],\n    \"editors\": [\n      \"abc@xyz.com\"\n    ]\n  }\n]\n";
+  public static final String expectedSpecificProject = "[\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
+  public static final String expectedRoleEditor = "[\n  {\n    \"name\": \"MyProject3\",\n    \"timestamp\": \"2020-08-12T05:39:02.387Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"xyz@xyz.com\"\n    ],\n    \"editors\": [\n      \"abc@xyz.com\"\n    ]\n  }\n]\n";
+  public static final String expectedRoleOwner = "[\n  {\n    \"name\": \"MyProject2\",\n    \"timestamp\": \"2020-08-12T05:39:02.384Z\",\n    \"visibility\": \"public\",\n    \"owners\": [\n      \"abc@xyz.com\"\n    ],\n    \"editors\": [\n      \"uvw@def.com\"\n    ]\n  },\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
+  public static final String expectedSearchTerm = "[\n  {\n    \"name\": \"MyProject\",\n    \"timestamp\": \"2020-08-12T05:39:02.383Z\",\n    \"visibility\": \"private\",\n    \"owners\": [\n      \"abc@xyz.com\",\n      \"def@uvw.com\"\n    ],\n    \"editors\": [\n      \"xyz@abc.com\",\n      \"uvw@def.com\"\n    ]\n  }\n]\n";
 
   public static String databaseSetup() {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -57,7 +57,7 @@ public final class ProjectServletTestUtils {
     projEntity4.setIndexedProperty("owners",
                                    Arrays.asList("abc@abc.com"));
 
-    Entity projEntity5 = new Entity(DataUtils.PROJECT, 789);
+    Entity projEntity5 = new Entity(DataUtils.PROJECT, 246);
     projEntity5.setProperty("name", "MyProject3");
     projEntity5.setProperty("utc", "2020-08-12T05:39:02.387Z");
     projEntity5.setProperty("visibility", DataUtils.PRIVATE);
