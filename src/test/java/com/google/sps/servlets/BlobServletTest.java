@@ -46,6 +46,7 @@ public final class BlobServletTest {
     request = mock(HttpServletRequest.class);
     response = mock(HttpServletResponse.class);
     when(request.getParameter("proj-id")).thenReturn(projId);
+    // Wrap StringWriter in PrintWriter to get response from servlet
     stringWriter = new StringWriter();
     writer = new PrintWriter(stringWriter);
     when(response.getWriter()).thenReturn(writer);

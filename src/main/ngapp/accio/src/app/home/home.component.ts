@@ -7,7 +7,7 @@ import * as $ from 'jquery';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  // TODO: Add filter global once talk w/ DB team to understand it.
+  // TODO(shmcaffrey): Add filter global 
   //       Also add it as attribute in getProject's url var.
   filterVisibility: string;
   filterRole: string;
@@ -20,7 +20,7 @@ export class HomeComponent implements OnInit {
 
   constructor() { }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {}
 
   // Fetches a list of projects based on user's choice of filters.
   // Result is stored in this.projects

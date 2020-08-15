@@ -8,6 +8,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import java.util.Arrays;
 
 public final class BlobServletTestUtils {
+  // Expected JSON strings for GET tests    
   public static final String expectedNoFilters = "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n      \"zero\"\n    ],\n    \"masks\": []\n  }\n]\n";
   public static final String expectedWithMasks = "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n      \"zero\"\n    ],\n    \"masks\": [\n      {\n        \"url\": \"/blob-host?blobkey=ghi\",\n        \"name\": \"Mask0\",\n        \"utc\": \"2020-08-12T05:39:02.384Z\",\n        \"tags\": [\n          \"0\",\n          \"zero\"\n        ]\n      },\n      {\n        \"url\": \"/blob-host?blobkey=jkl\",\n        \"name\": \"Mask1\",\n        \"utc\": \"2020-08-12T05:39:02.383Z\",\n        \"tags\": [\n          \"1\",\n          \"one\"\n        ]\n      }\n    ]\n  }\n]\n";
   public static final String expectedSortImg = "[\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n      \"zero\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  }\n]\n";
@@ -16,8 +17,7 @@ public final class BlobServletTestUtils {
   public static final String expectedImgName = "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  }\n]\n";
   public static final String expectedMaskName = "[\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n      \"zero\"\n    ],\n    \"masks\": [\n      {\n        \"url\": \"/blob-host?blobkey=ghi\",\n        \"name\": \"Mask0\",\n        \"utc\": \"2020-08-12T05:39:02.384Z\",\n        \"tags\": [\n          \"0\",\n          \"zero\"\n        ]\n      }\n    ]\n  }\n]\n";
 
-
-
+  // Database setup performed before each test
   public static String databaseSetup() {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
