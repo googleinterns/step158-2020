@@ -6,9 +6,9 @@ import { MagicWandService } from './magic-wand.service';
 })
 export class MaskDirective {
   @Input() scale: number;
-  @Input() originalData: ImageData;
+  @Input() originalImageData: ImageData;
   @Input() scaledData: ImageData;
-  @Input() maskData: ImageData;
+  @Input() maskImageData: ImageData;
 
   // create direct reference of canvas on editor.html
   constructor(
@@ -36,7 +36,7 @@ export class MaskDirective {
 
     //  TODO-MASK-maskPixels needs to contain cumulative set of all pixels user clicked and added to the mask.
     // returns an array indices of each pixel in the mask.
-    const maskPixels = this.magicWandService.floodfill(this.originalData, Math.floor(xCoord / this.scale), Math.floor(yCoord / this.scale), tolerance);
+    const maskPixels = this.magicWandService.floodfill(this.originalImageData, Math.floor(xCoord / this.scale), Math.floor(yCoord / this.scale), tolerance);
 
     // TODO(shmcaffrey): change Alpha value to incorperate user input.
     this.drawMask(maskPixels, this.scaledData, 1);
@@ -48,9 +48,9 @@ export class MaskDirective {
    *    lays the mask on top of the scaled image. 
    *  Adds all pixels to mask by giving alpha value of 255, changing global alpha on 
    *    maskImage will multiply 255 by globalAlpha = [0,1]
-   *  @Param: maskPixels: set of coordinates indexed by red value of pixels to be in mask
-   *  @Param: imgData: Uint8clampedArray of all pixel data in scaled image. 
-   *  @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask
+   *  @param maskPixels: set of coordinates indexed by red value of pixels to be in mask
+   *  @param imgData: Uint8clampedArray of all pixel data in scaled image. 
+   *  @param alphaValue: the number the user passes in on a slide bar for transparency of the mask
    */
   private drawMask(maskPixels: Set<number>, scaledData: ImageData, alphaValue: number): void {
     this.ctx.clearRect(0,0,this.canvas.nativeElement.width, this.canvas.nativeElement.height);
@@ -60,13 +60,16 @@ export class MaskDirective {
     //    when initialized, alpha value must start at 1 to set properly. 
     this.ctx.globalAlpha = 1;
 
-    // Access all pixels in the original mask and add alpha value so they're visable.
+    //  Access all pixels in the original mask and add alpha value so they're visible.
+    //  Set pixels color to magenta
     for (let pixel of maskPixels) {
-      this.maskData.data[pixel + 3] = 255;
+      this.maskImageData.data[pixel] = 255;
+      this.maskImageData.data[pixel + 2] = 255;
+      this.maskImageData.data[pixel + 3] = 255;
     } 
     //  Put the new img data on ctx and save as an img, ctx is already scaled so 
     //    it will scale up the mask as well.
-    this.ctx.putImageData(this.maskData, 0, 0);
+    this.ctx.putImageData(this.maskImageData, 0, 0);
     const maskUrl = this.canvas.nativeElement.toDataURL();
 
     // Clear canvas again to prepare for image and mask.
@@ -80,7 +83,7 @@ export class MaskDirective {
   /**
   * TODO(shmcaffrey): alpha change causes old mask to get darker as new pixels added.
   * Changes the alpha value of the mask displayed.
-  * @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask
+  * @param alphaValue: the number the user passes in on a slide bar for transparency of the mask
   */
   private changeAlpha(alphaValue: number): void {
     if (alphaValue == 0) {
@@ -96,9 +99,9 @@ export class MaskDirective {
 
   /**
   * Draws the original image and updated mask on context.
-  * @Param: imgData: ImageData from the original image.
-  * @Param: mask: source of new mask.
-  * @Param: alphaValue: the number the user passes in on a slide bar for transparency of the mask.
+  * @param imgData: ImageData from the original image.
+  * @param mask: source of new mask.
+  * @param alphaValue: the number the user passes in on a slide bar for transparency of the mask.
   */
   private drawImageAndMask(scaledData: ImageData, maskUrl: string, alphaValue: number): void {
     // Restore scaled image (scaledData).
