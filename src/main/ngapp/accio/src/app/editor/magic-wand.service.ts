@@ -152,4 +152,27 @@ export class MagicWandService {
   erase(mask: Set<number>, mistake: Set<number>): Set<number> {
     return SetOperator.difference(mask, mistake);
   }
+
+  /**@returns {Set<number>} mask that excludes the current 
+   * @param {Set<number>} originalMask .
+   * Relative container that encompasses @originalMask is based on
+   * @param {number} height and 
+   * @param {number} width */
+  invert(originalMask: Set<number>, width: number, height: number)
+      : Set<number> {
+    let invertedMask: Set<number> = new Set();
+
+    for (let pixelX = 0; pixelX < width; pixelX++) {
+      for (let pixelY = 0; pixelY < height; pixelY++) {
+        const pixelIndex = 
+            this.coordToDataArrayIndex(pixelX, pixelY, width);
+        
+        if (!originalMask.has(pixelIndex)) {
+          invertedMask.add(pixelIndex);
+        }
+      }
+    }
+
+    return invertedMask;
+  }
 }
