@@ -8,7 +8,6 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
@@ -64,14 +63,6 @@ public final class ProjectServletTest {
   ////////////////////////////////////////////////////////////////
   //                 Project servlet POST tests                 //
   ////////////////////////////////////////////////////////////////
-  /*mode		“create” or “update”
-  proj-id
-  proj-name
-  visibility	“public” or “private”
-  editors		comma-separated
-  owners		comma-separated
-  delete		Boolean*/
-
   @Test
   public void basicCreate() throws IOException, EntityNotFoundException {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
