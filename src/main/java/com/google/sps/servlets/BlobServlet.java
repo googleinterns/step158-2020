@@ -60,7 +60,7 @@ public class BlobServlet extends HttpServlet {
     }
 
     // Mode is a required parameter
-    boolean isCreateMode = DataUtils.parseMode(request, response);
+    boolean isCreateMode = DataUtils.parseMode(request);
 
     // Check if working with image or mask
     String parentImg = request.getParameter("parent-img");
@@ -214,13 +214,13 @@ public class BlobServlet extends HttpServlet {
     UserService userService = UserServiceFactory.getUserService();
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-    String userEmail = userService.getCurrentUser().getEmail();
-
     // Must be logged in
     if (!userService.isUserLoggedIn()) {
       response.sendRedirect("/");
       return;
     }
+
+    String userEmail = userService.getCurrentUser().getEmail();
 
     String projId = request.getParameter("proj-id");
     Entity projEntity = DataUtils.getProjectEntity(projId, userEmail, true, true);
@@ -228,6 +228,10 @@ public class BlobServlet extends HttpServlet {
 
     boolean withMasks =
         Boolean.parseBoolean(request.getParameter("with-masks"));
+    // with-masks implicitly true if mask-name is provided
+    if (!DataUtils.isEmptyParameter(request.getParameter("mask-name"))) {
+      withMasks = true;
+    } 
 
     String sortImg = request.getParameter("sort-img");
     // Sorted in descending chronological order by default
@@ -245,7 +249,7 @@ public class BlobServlet extends HttpServlet {
             .setFilter(combinedGetFilters(request, withMasks, DataUtils.IMAGE));
 
     PreparedQuery storedImages = datastore.prepare(imageQuery);
-
+    
     ArrayList<ImageInfo> imageObjects = new ArrayList<ImageInfo>();
 
     for (Entity imageEntity : storedImages.asIterable()) {
@@ -346,9 +350,8 @@ public class BlobServlet extends HttpServlet {
       throws IOException {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-    Query imgQuery = new Query(kind).setAncestor(ancestor);
     Filter imgFilter = new FilterPredicate("name", FilterOperator.EQUAL, name);
-    imgQuery.setFilter(imgFilter);
+    Query imgQuery = new Query(kind).setAncestor(ancestor).setFilter(imgFilter);
     PreparedQuery existingImgQuery = datastore.prepare(imgQuery);
 
     if (existingImgQuery.countEntities() == 0) {
