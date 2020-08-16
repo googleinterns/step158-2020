@@ -125,7 +125,7 @@ public class BlobServlet extends HttpServlet {
       if (!isOwner) {
         throw new IOException("Only owners can delete assets.");
       } else {
-        datastore.delete(imgEntity.getKey());
+        DataUtils.deleteImageAndChildren(imgEntity.getKey());
         response.sendRedirect("/");
         return;
       }
@@ -259,13 +259,13 @@ public class BlobServlet extends HttpServlet {
 
     ArrayList<ImageInfo> imageObjects = new ArrayList<ImageInfo>();
 
-    for (Entity imageEntity : storedImages.asIterable()) {
+    for (Entity storedImage : storedImages.asIterable()) {
       String imageUrl =
-          "/blob-host?blobkey=" + (String)imageEntity.getProperty("blobkey");
-      String imageName = (String)imageEntity.getProperty("name");
-      String imageTime = (String)imageEntity.getProperty("utc");
+          "/blob-host?blobkey=" + (String)storedImage.getProperty("blobkey");
+      String imageName = (String)storedImage.getProperty("name");
+      String imageTime = (String)storedImage.getProperty("utc");
       ArrayList<String> imageTags =
-          (ArrayList<String>)imageEntity.getProperty("tags");
+          (ArrayList<String>)storedImage.getProperty("tags");
 
       ArrayList<MaskInfo> imageMasks = new ArrayList<MaskInfo>();
       if (withMasks) {
@@ -278,7 +278,7 @@ public class BlobServlet extends HttpServlet {
 
         Query maskQuery =
             new Query(DataUtils.MASK)
-                .setAncestor(imageEntity.getKey())
+                .setAncestor(storedImage.getKey())
                 .addSort("utc", sortMask.equals(DataUtils.ASCENDING_SORT)
                                     ? Query.SortDirection.ASCENDING
                                     : Query.SortDirection.DESCENDING)
@@ -287,13 +287,13 @@ public class BlobServlet extends HttpServlet {
 
         PreparedQuery storedMasks = datastore.prepare(maskQuery);
 
-        for (Entity maskEntity : storedMasks.asIterable()) {
+        for (Entity storedMask : storedMasks.asIterable()) {
           String maskUrl =
-              "/blob-host?blobkey=" + (String)maskEntity.getProperty("blobkey");
-          String maskName = (String)maskEntity.getProperty("name");
-          String maskTime = (String)maskEntity.getProperty("utc");
+              "/blob-host?blobkey=" + (String)storedMask.getProperty("blobkey");
+          String maskName = (String)storedMask.getProperty("name");
+          String maskTime = (String)storedMask.getProperty("utc");
           ArrayList<String> maskTags =
-              (ArrayList<String>)maskEntity.getProperty("tags");
+              (ArrayList<String>)storedMask.getProperty("tags");
           imageMasks.add(new MaskInfo(maskUrl, maskName, maskTime, maskTags));
         }
       }
