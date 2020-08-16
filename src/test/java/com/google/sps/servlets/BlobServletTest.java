@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static com.google.sps.servlets.BlobServletTestUtils.*;
 
-//import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
+/*import com.google.appengine.api.blobstore.BlobstoreService;
+import org.powermock.api.mockito.PowerMockito;
+import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;*/
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
@@ -60,6 +62,14 @@ public final class BlobServletTest {
   //////////////////////////////////////////////////////////////// 
   //                   Blob servlet POST tests                  //
   ////////////////////////////////////////////////////////////////  
+  @Test
+  public void basicCreate() throws IOException {
+    BlobstoreService blobstoreService = PowerMockito.mock(BlobstoreService.class);
+    //PowerMockito.whenNew(BlobstoreService.class).(PowerMockito.thenReturn(blobstoreService));
+    when(request.getParameter("mode")).thenReturn("create");         
+    servlet.doPost(request, response);
+    writer.flush();    
+  }
 
   //////////////////////////////////////////////////////////////// 
   //                   Blob servlet GET tests                   //
