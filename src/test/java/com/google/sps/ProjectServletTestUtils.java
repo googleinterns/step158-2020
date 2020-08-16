@@ -99,6 +99,34 @@ public final class ProjectServletTestUtils {
     Key projKey = datastore.put(projEntity);
     String projId = KeyFactory.keyToString(projKey);
 
+    Entity imgEntity = new Entity(DataUtils.IMAGE, 1, projKey);
+    imgEntity.setProperty("name", "Image0");
+    imgEntity.setProperty("utc", "2020-08-12T05:39:02.383Z");
+    imgEntity.setProperty("blobkey", "abc");
+    imgEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
+
+    Entity imgEntity2 = new Entity(DataUtils.IMAGE, 2, projKey);
+    imgEntity2.setProperty("name", "Image1");
+    imgEntity2.setProperty("utc", "2020-08-12T05:39:02.384Z");
+    imgEntity2.setProperty("blobkey", "def");
+    imgEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));
+
+    datastore.put(Arrays.asList(imgEntity, imgEntity2));
+
+    Entity maskEntity = new Entity(DataUtils.MASK, 1, imgEntity.getKey());
+    maskEntity.setProperty("name", "Mask0");
+    maskEntity.setProperty("utc", "2020-08-12T05:39:02.384Z");
+    maskEntity.setProperty("blobkey", "ghi");
+    maskEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
+
+    Entity maskEntity2 = new Entity(DataUtils.MASK, 2, imgEntity.getKey());
+    maskEntity2.setProperty("name", "Mask1");
+    maskEntity2.setProperty("utc", "2020-08-12T05:39:02.383Z");
+    maskEntity2.setProperty("blobkey", "jkl");
+    maskEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));
+
+    datastore.put(Arrays.asList(maskEntity, maskEntity2));
+
     Entity projEntity2 = new Entity(DataUtils.PROJECT, 456);
     projEntity2.setProperty("name", "MyProject2");
     projEntity2.setProperty("utc", "2020-08-12T05:39:02.384Z");

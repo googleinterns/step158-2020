@@ -21,6 +21,7 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.sps.servlets.BlobUtils;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -82,7 +83,8 @@ public class BlobServlet extends HttpServlet {
 
     String userEmail = userService.getCurrentUser().getEmail();
     String projId = request.getParameter("proj-id");
-    Entity projEntity = DataUtils.getProjectEntity(projId, userEmail, true, false);
+    Entity projEntity =
+        DataUtils.getProjectEntity(projId, userEmail, true, false);
     Key projKey = projEntity.getKey();
     Key assetParentKey = projKey;
 
@@ -91,18 +93,20 @@ public class BlobServlet extends HttpServlet {
 
     // Asset to update must already exist
     if (isMask) {
-      Entity existingImg = getAssetEntity(DataUtils.IMAGE, projKey, parentImg);
+      Entity existingImg =
+          BlobUtils.getAssetEntity(DataUtils.IMAGE, projKey, parentImg);
 
       if (isCreateMode) {
         Key parentEntityKey = existingImg.getKey();
         imgEntity = new Entity(DataUtils.MASK, parentEntityKey);
       } else {
         assetParentKey = existingImg.getKey();
-        imgEntity = getAssetEntity(DataUtils.MASK, assetParentKey, imgName);
+        imgEntity =
+            BlobUtils.getAssetEntity(DataUtils.MASK, assetParentKey, imgName);
       }
     } else {
       if (!isCreateMode) {
-        imgEntity = getAssetEntity(DataUtils.IMAGE, projKey, imgName);
+        imgEntity = BlobUtils.getAssetEntity(DataUtils.IMAGE, projKey, imgName);
       }
     }
 
@@ -153,7 +157,7 @@ public class BlobServlet extends HttpServlet {
 
       // Set blobkey property
       if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
-        checkFileValidity(blobKey, isMask);
+        BlobUtils.checkFileValidity(blobKey, isMask);
         imgEntity.setProperty("blobkey", blobKey.getKeyString());
       }
     }
@@ -178,8 +182,8 @@ public class BlobServlet extends HttpServlet {
     String checkedName = (rename) ? newName : imgName;
     if (isCreateMode || rename) {
       try {
-        getAssetEntity((isMask) ? DataUtils.MASK : DataUtils.IMAGE,
-                       assetParentKey, checkedName);
+        BlobUtils.getAssetEntity((isMask) ? DataUtils.MASK : DataUtils.IMAGE,
+                                 assetParentKey, checkedName);
         checkedName += "-" + now;
         imgEntity.setProperty("name", checkedName);
       } catch (Exception e) {
@@ -194,8 +198,9 @@ public class BlobServlet extends HttpServlet {
     response.setContentType("application/json");
     String url =
         "/blob-host?blobkey=" + (String)imgEntity.getProperty("blobkey");
-    Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    String jsonImgInfo = gson.toJson(new blobPostReturn(url, checkedName));
+    Gson gson =
+        new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    String jsonImgInfo = gson.toJson(new BlobPostReturn(url, checkedName));
     response.getWriter().println(jsonImgInfo);
   }
 
@@ -223,7 +228,8 @@ public class BlobServlet extends HttpServlet {
     String userEmail = userService.getCurrentUser().getEmail();
 
     String projId = request.getParameter("proj-id");
-    Entity projEntity = DataUtils.getProjectEntity(projId, userEmail, true, true);
+    Entity projEntity =
+        DataUtils.getProjectEntity(projId, userEmail, true, true);
     Key projKey = projEntity.getKey();
 
     boolean withMasks =
@@ -231,7 +237,7 @@ public class BlobServlet extends HttpServlet {
     // with-masks implicitly true if mask-name is provided
     if (!DataUtils.isEmptyParameter(request.getParameter("mask-name"))) {
       withMasks = true;
-    } 
+    }
 
     String sortImg = request.getParameter("sort-img");
     // Sorted in descending chronological order by default
@@ -246,10 +252,11 @@ public class BlobServlet extends HttpServlet {
             .addSort("utc", sortImg.equals(DataUtils.ASCENDING_SORT)
                                 ? Query.SortDirection.ASCENDING
                                 : Query.SortDirection.DESCENDING)
-            .setFilter(combinedGetFilters(request, withMasks, DataUtils.IMAGE));
+            .setFilter(BlobUtils.combinedGetFilters(request, withMasks,
+                                                    DataUtils.IMAGE));
 
     PreparedQuery storedImages = datastore.prepare(imageQuery);
-    
+
     ArrayList<ImageInfo> imageObjects = new ArrayList<ImageInfo>();
 
     for (Entity imageEntity : storedImages.asIterable()) {
@@ -275,8 +282,8 @@ public class BlobServlet extends HttpServlet {
                 .addSort("utc", sortMask.equals(DataUtils.ASCENDING_SORT)
                                     ? Query.SortDirection.ASCENDING
                                     : Query.SortDirection.DESCENDING)
-                .setFilter(
-                    combinedGetFilters(request, withMasks, DataUtils.MASK));
+                .setFilter(BlobUtils.combinedGetFilters(request, withMasks,
+                                                        DataUtils.MASK));
 
         PreparedQuery storedMasks = datastore.prepare(maskQuery);
 
@@ -299,115 +306,5 @@ public class BlobServlet extends HttpServlet {
         new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     String jsonImages = gson.toJson(imageObjects);
     response.getWriter().println(jsonImages);
-  }
-
-  /**
-   * Checks if the file uploaded to Blobstore has a valid file extension.
-   * @param     {BlobKey}   blobKey   key for the file in question
-   * @param     {boolean}   isMask    mask or image
-   * @return    {void}
-   */
-  private void checkFileValidity(BlobKey blobKey, boolean isMask)
-      throws IOException {
-    BlobstoreService blobstoreService =
-        BlobstoreServiceFactory.getBlobstoreService();
-
-    ArrayList<String> validExtensions = new ArrayList<String>(
-        (isMask) ? Arrays.asList("png")
-                 : Arrays.asList("png", "jpg", "jpeg", "jfif", "pjpeg", "pjp",
-                                 "gif", "bmp", "ico", "cur", "svg", "webp"));
-
-    ArrayList<String> validMimeTypes = new ArrayList<String>(
-        (isMask) ? Arrays.asList("png")
-                 : Arrays.asList("image/png", "image/jpeg", "image/pjpeg",
-                                 "image/gif", "image/bmp", "image/x-icon",
-                                 "image/svg+xml", "image/webp"));
-
-    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
-    String[] splitFilename = blobInfo.getFilename().split("\\.");
-    String extension = splitFilename[splitFilename.length - 1].toLowerCase();
-    String mimeType = blobInfo.getContentType().toLowerCase();
-
-    if (blobInfo.getSize() == 0) {
-      blobstoreService.delete(blobKey);
-      throw new IOException("Invalid Blobkey.");
-    } else if (!validExtensions.contains(extension) &&
-               !validMimeTypes.contains(mimeType)) {
-      blobstoreService.delete(blobKey);
-      throw new IOException("File not supported; extension: " + extension +
-                            "; MIME type: " + mimeType);
-    }
-  }
-
-  /**
-   * Retrieves asset Entity based on parameters.
-   * @param     {String}    kind        asset kind
-   * @param     {Key}       ancestor    parent of asset
-   * @param     {String}    name        name of the desired asset
-   * @return    {Entity}
-   */
-  private Entity getAssetEntity(String kind, Key ancestor, String name)
-      throws IOException {
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-
-    Filter imgFilter = new FilterPredicate("name", FilterOperator.EQUAL, name);
-    Query imgQuery = new Query(kind).setAncestor(ancestor).setFilter(imgFilter);
-    PreparedQuery existingImgQuery = datastore.prepare(imgQuery);
-
-    if (existingImgQuery.countEntities() == 0) {
-      throw new IOException("Image not found.");
-    }
-
-    return existingImgQuery.asSingleEntity();
-  }
-
-  /**
-   * Combines all applicable filters based on parameters.
-   * Returns a Filter, CompositeFilter, or null.
-   * @param     {HttpServletRequest}    request
-   * @param     {boolean}               withMasks
-   * @param     {String}                kind        either IMAGE or MASK
-   * @return    {Filter}
-   */
-  private Filter combinedGetFilters(HttpServletRequest request,
-                                    boolean withMasks, String kind) {
-    ArrayList<Filter> allImgFilters = new ArrayList<Filter>();
-
-    String tag = request.getParameter("tag");
-    boolean isImage = kind == DataUtils.IMAGE;
-    boolean isTagApplicable = !(isImage && withMasks);
-    if (!DataUtils.isEmptyParameter(tag) && isTagApplicable) {
-      Filter tagFilter =
-          new FilterPredicate("tags", FilterOperator.EQUAL, tag.toLowerCase());
-      allImgFilters.add(tagFilter);
-    }
-
-    String imgName = request.getParameter(isImage ? "img-name" : "mask-name");
-    if (!DataUtils.isEmptyParameter(imgName)) {
-      Filter nameFilter =
-          new FilterPredicate("name", FilterOperator.EQUAL, imgName);
-      allImgFilters.add(nameFilter);
-    }
-
-    // A composite filter requres more than one filter
-    if (allImgFilters.size() == 1) {
-      return allImgFilters.get(0);
-    } else if (allImgFilters.size() > 1) {
-      return new CompositeFilter(CompositeFilterOperator.AND, allImgFilters);
-    }
-    return null;
-  }
-}
-
-/**
- * Holds the values url and name of an image after a successful POST request.
- */
-class blobPostReturn {
-  String url;
-  String name;
-
-  public blobPostReturn(String url, String name) {
-    this.url = url;
-    this.name = name;
   }
 }

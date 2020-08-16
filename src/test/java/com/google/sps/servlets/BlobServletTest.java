@@ -4,9 +4,9 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static com.google.sps.servlets.BlobServletTestUtils.*;
 
-/*import com.google.appengine.api.blobstore.BlobstoreService;
-import org.powermock.api.mockito.PowerMockito;
-import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;*/
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Query;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
@@ -34,8 +34,7 @@ public final class BlobServletTest {
 
   private final LocalServiceTestHelper helper =
       new LocalServiceTestHelper(new LocalUserServiceTestConfig(),
-                                 new LocalDatastoreServiceTestConfig()/*,
-                                 new LocalBlobstoreServiceTestConfig()*/)
+                                 new LocalDatastoreServiceTestConfig())
           .setEnvIsLoggedIn(true)
           .setEnvEmail("abc@xyz.com")
           .setEnvAuthDomain("gmail.com");
@@ -61,14 +60,24 @@ public final class BlobServletTest {
 
   //////////////////////////////////////////////////////////////// 
   //                   Blob servlet POST tests                  //
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
+
   @Test
-  public void basicCreate() throws IOException {
-    BlobstoreService blobstoreService = PowerMockito.mock(BlobstoreService.class);
-    //PowerMockito.whenNew(BlobstoreService.class).(PowerMockito.thenReturn(blobstoreService));
-    when(request.getParameter("mode")).thenReturn("create");         
+  public void delete() throws IOException {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();      
+    assertEquals(
+        2, datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(
+        2, datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    when(request.getParameter("mode")).thenReturn("update");
+    when(request.getParameter("delete")).thenReturn("true");
+    when(request.getParameter("proj-id")).thenReturn(projId);    
+    when(request.getParameter("img-name")).thenReturn("Image0");
     servlet.doPost(request, response);
-    writer.flush();    
+    assertEquals(
+        1, datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(
+        0, datastore.prepare(new Query(DataUtils.MASK)).countEntities());
   }
 
   //////////////////////////////////////////////////////////////// 
