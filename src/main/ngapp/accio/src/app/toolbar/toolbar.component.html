@@ -25,14 +25,27 @@
 
 <!-- Sliders -->
 <div>
+  <p style="color:white">Tolerance</p>
   <mat-slider 
     title="Mask Tolerance"  
     (change)="updateTolerance()"
-    vertical min="1" max="127.5" step=".5" [(ngModel)]="value">
+    vertical min="1" max="127.5" step=".5" [(ngModel)]="toleranceValue">
   </mat-slider>
   <br/>
   <mat-form-field class="slider-value">
     <mat-label style="color=white">Tolerance</mat-label>
-    <input matInput type="number" [(ngModel)]="value" style="color=white">
+    <input matInput type="number" [(ngModel)]="toleranceValue" style="color=white">
+  </mat-form-field>
+  <br/>
+  <p style="color:white">Tint</p>
+  <mat-slider 
+    title="Mask Tint"  
+    (change)="updateTint()"
+    vertical min=".01" max="1" step=".01" [(ngModel)]="tintValue">
+  </mat-slider>
+  <br/>
+  <mat-form-field class="slider-value">
+    <mat-label style="color=white">Tint</mat-label>
+    <input matInput type="number" [(ngModel)]="tintValue" style="color=white">
   </mat-form-field>
 </div>

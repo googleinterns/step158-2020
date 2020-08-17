@@ -18,9 +18,10 @@
   <mat-drawer id="toolbar" mode="side" opened>
     <app-toolbar 
       (clearMaskEvent)="clearMask()"
-      (newToleranceEvent)="updateTolerance($event)"
       (newMaskToolEvent)="updateMaskTool($event)"
-      (invertMaskEvent)="invertMask()">
+      (invertMaskEvent)="invertMask()"
+      (newToleranceEvent)="updateTolerance($event)"
+      (newTintEvent)="updateTint($event)">
     </app-toolbar>
   </mat-drawer>
   <mat-drawer-content>

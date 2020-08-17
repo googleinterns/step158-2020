@@ -43,6 +43,7 @@ export class EditorComponent implements OnInit {
   scaleFactor: number;
   originalImageData: ImageData;
   tolerance: number;
+  tint:number;
   disableFloodFill: boolean;
   //  Declares the type of tool the user has selected from the tool bar:
   //      'magic-wand' = flood fill algorithm enabled.
@@ -65,6 +66,7 @@ export class EditorComponent implements OnInit {
     this.image = new Image();
     this.scaleFactor = .9;
     this.tolerance = 30;
+    this.tint = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.magicWand;
     
@@ -150,6 +152,7 @@ export class EditorComponent implements OnInit {
   */
   private drawScaledImage(image: HTMLImageElement) {
     this.ctx.save();
+    console.log('When drawing image, global alpha = ' + this.tint);
     this.ctx.scale(this.scaleFactor, this.scaleFactor); 
     this.ctx.drawImage(image, 0, 0, image.width, image.height);
     this.ctx.restore();
@@ -193,7 +196,11 @@ export class EditorComponent implements OnInit {
       if (this.maskTool != MaskTool.maskOnly) {
         this.drawScaledImage(this.image);
       }
+      this.ctx.save();
+      this.ctx.globalAlpha = this.tint;
+      console.log('global alpha = ' + this.tint);
       this.drawScaledImage(mask);
+      this.ctx.restore();
     }
     mask.src = this.updateMaskUrl();
   }
@@ -279,12 +286,6 @@ export class EditorComponent implements OnInit {
     }
     this.disableSubmit = false;
   }
-
-  /**  Retrieves new tolerance value from child component toolbar and updates. */
-  updateTolerance(value: number) {
-    this.tolerance = value;
-    console.log('new tolerance: ' + value);
-  }
   
   /**  
   *  Sets all pixels to magenta and inverts their alpha to display them or not. 
@@ -307,6 +308,36 @@ export class EditorComponent implements OnInit {
       this.disableFloodFill = false;
     }
     this.disableSubmit = false;
+  }
+
+
+  /**  Retrieves new tolerance value from child component toolbar and updates. */
+  updateTolerance(value: number) {
+    this.tolerance = value;
+    console.log('new tolerance: ' + value);
+  }
+
+
+ /** 
+  *  Retrieves new tint value from child component toolbar and draws mask with new tint.
+  *  If the tint value cannot be larger than 1 and if the value inputed is greater than 1, 
+  *    then the tint defaults to 1.
+  */
+  updateTint(value: number) {
+    if (value > 1) {
+      this.tint = 1;
+    }
+    else {
+      this.tint = value;
+    }
+    //  Draw mask with new tint value.
+    this.disableSubmit = this.disableFloodFill = true;
+    this.drawMask();
+    this.disableSubmit = false;
+    if (this.maskTool == MaskTool.magicWand) {
+      this.disableFloodFill = false;
+    }
+    console.log('new tint: ' + value);
   }
 
  /** 
