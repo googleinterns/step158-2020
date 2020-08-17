@@ -230,7 +230,7 @@ public final class ProjectServletTest {
 
   @Test
   public void searchTerm() throws IOException {
-    when(request.getParameter("search-term")).thenReturn("MyProject");
+    when(request.getParameter("search-term")).thenReturn("MyProject1");
     servlet.doGet(request, response);
     writer.flush();
     assertEquals(expectedSearchTerm, stringWriter.toString());
