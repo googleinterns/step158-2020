@@ -21,6 +21,14 @@ export class ImgGalleryComponent implements OnInit {
   displayUpload: boolean = false;
   displayImages: boolean = false;
 
+  // Filters for fetching images
+  imgName: string = '';
+  maskName: string = '';
+  withMasks: boolean = false;
+  sortImg: string = '';
+  sortMask: string = '';
+  tag: string = '';
+
   //  Holds images fetched from datastore.
   imageArray: Array<any>;
 
@@ -59,15 +67,13 @@ export class ImgGalleryComponent implements OnInit {
   async getImages(): Promise<any> {
     console.log('fetching from projectId: ' + this.projectId);
     let fetchUrl = '/blobs?' + $.param({
-      'proj-id': this.projectId
-      /* add ability to sort by:
-      *     tag
-      *     img-name
-      *     mask-name
-      *     with-masks	Boolean
-      *     sort-img	“asc” or “dsc”
-      *     sort-mask	"asc” or “dsc” 
-      */
+      'proj-id': this.projectId,
+      'img-name': this.imgName,
+      'mask-name': this.maskName,
+      'with-masks': this.withMasks,
+      'sort-img': this.sortImg,
+      'sort-mask': this.sortMask,
+      'tag': this.tag
     });
 
     //  fetchUrl returns a list of image objects: 'url', 'name', 'utc', 'tags[]', 'masks[]'
@@ -84,15 +90,6 @@ export class ImgGalleryComponent implements OnInit {
   *   Builds ImageBlob to be appended to form and posted.
   *   If a parameter isn't applicaple, it has a default value but must be filled
   *      if a value later in the constructor is applicable.
-  *
-  *         projectIdIn: string, 
-  *         imageNameIn: string, 
-  *         modeIn: string, 
-  *         imageIn: any = '',
-  *         parentImageNameIn: string = '',
-  *         newImageNameIn: string = '',
-  *         tagsIn: string = '',
-  *         deleteIn: string = 'delete'
   */
   onSubmit() {
     // Name is a required input. If it's null, do nothing.
@@ -108,11 +105,12 @@ export class ImgGalleryComponent implements OnInit {
 
     let imageBlob = new ImageBlob(
       this.projectId, 
-      this.uploadImageForm.get('imgName').value,
-      'create',
-      imageFile,
-      '', '',
-      this.uploadImageForm.get('tags').value
+      /*imageName=*/this.uploadImageForm.get('imgName').value,
+      /*mode=*/'create',
+      /*image=*/imageFile,
+      /*parentImageName=*/'', 
+      /*newImageName=*/'',
+      /*tags=*/this.uploadImageForm.get('tags').value,
       );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);
@@ -150,7 +148,7 @@ export class ImgGalleryComponent implements OnInit {
       'update',
       null,
       '','','',
-      'true'
+      true
     );
     this.postBlobsService.buildForm(deleteImageFormData, imageBlob, null);
   }
@@ -164,7 +162,7 @@ export class ImgGalleryComponent implements OnInit {
       null, 
       parentName,
       '', '',
-      'true'
+      true
     );
 
     // file is null, so file name is not needed

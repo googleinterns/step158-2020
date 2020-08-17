@@ -10,7 +10,7 @@
  *                                  store nothing in the database
  *        @param mode:            'create' if uploading an image or a mask, otherwise 
  *                                  'update' if deleting, renaming, etc. 
- *     NON-REQUIRED PARAMS:
+ *      NON-REQUIRED PARAMS:
  *        @param image:           Blob given when user uploads an image or created when 
  *                                  user saves a mask, not required unless in 'create' mode.
  *        @param parentImageName: Required when user is updating or creating a mask.
@@ -25,12 +25,11 @@ export class ImageBlob {
   projectId: string;
   imageName: string;
   mode: string;
-
   image: Blob;
   parentImageName: string;
   newImageName: string;
   tags: string;
-  delete: string;
+  delete: boolean;
 
   // default parameters on non-required parameters 
   constructor(
@@ -41,7 +40,7 @@ export class ImageBlob {
     parentImageNameIn: string = '',
     newImageNameIn: string = '',
     tagsIn: string = '',
-    deleteIn: string = 'false'
+    deleteIn: boolean = false
   ) {
     this.projectId = projectIdIn;
     this.imageName = imageNameIn;

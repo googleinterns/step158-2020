@@ -102,6 +102,20 @@ describe('MagicWandService', () => {
     expect(service.floodfill(imgData, 6, 1, 1)).toEqual(new Set<number>(
         [68, 72]));
   });
+// Test suite for additional tools
+  it('Test method: erase()', () => {
+  // Should return a mask with pixels from the input set being excluded
+  const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
+  const mistake: Set<number> = new Set([12, 40]);
+  const expected: Set<number> = new Set([0, 8, 44]);
+  expect(service.erase(originalMask, mistake)).toEqual(expected);
+  });
+  it('Test method: invert()', () => {
+  // Should return a mask with pixels from the input set being excluded
+  const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
+  const expected: Set<number> = new Set([4, 16, 20, 24, 28, 32, 36]);
+  expect(service.invert(originalMask, 4, 3)).toEqual(expected);
+  });
 });
 
 /** Make an ImageData object that sets pixels in @notMask to Rgba of

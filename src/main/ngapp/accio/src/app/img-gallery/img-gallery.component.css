@@ -18,7 +18,7 @@
   color: white;
 }
 
-#gallery {
+.gallery {
   position: relative;
   background-color: black;
   display: grid;
@@ -52,7 +52,6 @@ img.gallery-img:hover {
   display: none;
 }
 
-/* describes div tag below images and masks*/
 .mask-image-tag {
   width: 100%;
   height: 15px;
@@ -61,4 +60,8 @@ img.gallery-img:hover {
   padding: 2px;
   bottom: 1px;
   background-color: #F5F5F5;
+}
+
+h1 {
+  padding-top: 200px;
 }
