@@ -5,6 +5,7 @@ import { FormGroup, FormControl } from '@angular/forms';
 
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
+import { MaskTool } from './MaskToolEnum';
 
 @Component({
   selector: 'app-editor',
@@ -46,8 +47,7 @@ export class EditorComponent implements OnInit {
   //  Declares the type of tool the user has selected from the tool bar:
   //      'magic-wand' = flood fill algorithm enabled.
   //      'mask-only' = user sees only the mask and cannot use the magic wand tool. 
-  //  TODO(shmcaffrey): make string enum.
-  maskTool: string;
+  maskTool: MaskTool;
 
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
@@ -66,6 +66,7 @@ export class EditorComponent implements OnInit {
     this.scaleFactor = .9;
     this.tolerance = 30;
     this.disableFloodFill = false;
+    this.maskTool = MaskTool.magicWand;
     
     this.route.paramMap.subscribe(params => {
       this.projectId = params.get('proj-id ');
@@ -189,7 +190,7 @@ export class EditorComponent implements OnInit {
     let mask = new Image();
     mask.onload = () => {
       this.clearCanvas();
-      if (this.maskTool != 'mask-only') {
+      if (this.maskTool != MaskTool.maskOnly) {
         this.drawScaledImage(this.image);
       }
       this.drawScaledImage(mask);
@@ -273,10 +274,10 @@ export class EditorComponent implements OnInit {
     this.disableSubmit = this.disableFloodFill = true;
     this.maskImageData = new ImageData(this.image.width, this.image.height);
     this.drawMask();
-    this.disableSubmit = false;
-    if (this.maskTool == 'magic-wand') {
-      this.disableFloodFill = false
+    if (this.maskTool == MaskTool.magicWand) {
+      this.disableFloodFill = false;
     }
+    this.disableSubmit = false;
   }
 
   /**  Retrieves new tolerance value from child component toolbar and updates. */
@@ -291,8 +292,8 @@ export class EditorComponent implements OnInit {
   *  class @param this.disableSubmit must equal true before called because 
   *    maskUrl is being updated in drawMask(). 
   *  class @param this.disableFloodFill must equal true before called because 
-  *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
-  *     (flood fill not allowed any other time).
+  *    maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
+  *    (flood fill not allowed any other time).
   */
   invertMask() {
     this.disableSubmit = this.disableFloodFill = true;
@@ -302,27 +303,28 @@ export class EditorComponent implements OnInit {
       this.maskImageData.data[i + 3] = 255 - this.maskImageData.data[i+ 3];
     }
     this.drawMask();
-    this.disableSubmit = false;
-    if (this.maskTool == 'magic-wand') {
-      this.disableFloodFill = false
+    if (this.maskTool == MaskTool.magicWand) {
+      this.disableFloodFill = false;
     }
+    this.disableSubmit = false;
   }
 
  /** 
   *  Updates the value of the Toolbar toggle group.
-  *  All cases beside 'magic-wand' must disableFloodFill.
   */
   updateMaskTool(tool: string) {
-    // change value selected on form;
-    this.maskTool = tool;
+    console.log('New Tool: ' + tool);
+    //  All cases beside 'magic-wand' must disableFloodFill.
     this.disableFloodFill = true;
     switch (tool) {
-      case 'magic-wand': 
+      case 'MAGIC-WAND': 
+        this.maskTool = MaskTool.magicWand;
         this.disableFloodFill = false;
         // redraw mask and image
         this.drawMask();
         break;
-      case 'mask-only':
+      case 'MASK-ONLY':
+        this.maskTool = MaskTool.maskOnly;
         let mask = new Image();
         this.disableSubmit = true;
         this.drawMask();
