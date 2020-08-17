@@ -73,16 +73,13 @@ export class MagicWandService {
     const curX: number = pixelCoord[0];
     const curY: number = pixelCoord[1];
 
-    // Gets array of the color attributes of current pixel.
+    // Gets [R, G, B] of current pixel.
     const curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);
 
-    // Color attributes of pixel (R,G, and B) must be within tolerance level.
-    for (let i = 0; i < 3; i++) {
-      const upperTolerance: boolean = curPixel[i] > originalPixel[i] + tolerance;
-      const lowerTolerance: boolean = curPixel[i] < originalPixel[i] - tolerance;
-      if (upperTolerance || lowerTolerance) {
-        return false;
-      }
+    const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
+
+    if (colorDifference > tolerance) {
+      return false;
     }
 
     return true;
@@ -92,7 +89,7 @@ export class MagicWandService {
    * @param {Array<number> [R, G, B]} basisColor and 
    * @param {Array<number> [R, G, B]} secondColor
    */
-  RgbEuclideanDist(basisColor: Array<number>, secondColor: Array<number>)
+  rgbEuclideanDist(basisColor: Array<number>, secondColor: Array<number>)
       : number {
     if (basisColor.length != secondColor.length) {
       throw new Error(
