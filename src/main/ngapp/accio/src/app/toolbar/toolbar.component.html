@@ -6,6 +6,12 @@
   <mat-button-toggle mat-icon-button value="magic-wand" title="Magic Wand">
     <mat-icon>format_color_fill</mat-icon>
   </mat-button-toggle>
+  <!-- <mat-button-toggle mat-icon-button value="PAINT" title="Paint">
+    <mat-icon>brush</mat-icon>
+  </mat-button-toggle>
+  <mat-button-toggle mat-icon-button value="ERASE" title="Erase">
+    <mat-icon>erase???</mat-icon>
+  </mat-button-toggle> -->
   <mat-button-toggle mat-icon-button value="mask-only" title="Mask Only">
     <mat-icon>image</mat-icon>
   </mat-button-toggle>
@@ -15,10 +21,15 @@
 
 <!-- Single use buttons -->
 <div id="single-click-buttons">
+  <!-- <mat-icon class="button" title="Undo" (click)="undo()">undo</mat-icon>
+  <div class="small-break"></div>
+  <mat-icon class="button" title="Redo" (click)="redo()">redo</mat-icon>
+  <div class="small-break"></div> -->
   <mat-icon class="button" title="Invert Mask" (click)="invertMask()">invert_colors</mat-icon>
   <div class="small-break"></div>
   <mat-icon class="button" title="Clear Mask" (click)="clearMask()">clear</mat-icon>
 </div>
+
 <div class="large-break"></div>
 
 <div class="small-break"></div>
