@@ -35,14 +35,18 @@ export class EditorComponent implements OnInit {
   blobMask: Blob; 
 
   //  scaleFactor is used to trim image scale so image 
-  //    is smaller than width and height of the users screen.
-  //  The following variables are binded to their 
+  //    is smaller than width and height of the user's screen.
+  //  The following variables are bound to their 
   //    respective inputs in MaskDirective and change in mask.directive
   //    when they change in editor.component
   scaleFactor: number;
   originalImageData: ImageData;
   tolerance: number;
   disableFloodFill: boolean;
+  //  Declares the type of tool the user has selected from the tool bar:
+  //      'magic-wand' = flood fill algorithm enabled.
+  //      'mask-only' = user sees only the mask and cannot use the magic wand tool. 
+  //  TODO(shmcaffrey): make string enum.
   maskTool: string;
 
   // inject canvas from html.
@@ -96,11 +100,11 @@ export class EditorComponent implements OnInit {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
-    //  Initalize transparent black image data to use for mask size of image
+    //  Initialize transparent black image data to use for mask size of image
     this.maskImageData = new ImageData(imgWidth,  imgHeight);
 
     //  Used to scale the image to the window size, 
-    //    scaledFactor = .9 so the scaled image is smaller than the users window.
+    //    scaleFactor = .9 so the scaled image is smaller than the user's window.
     this.scaleFactor = Math.floor(window.innerHeight / imgHeight * this.scaleFactor);
     //  TODO(shmcaffrey): add scaling if image is larger than window
     if (this.scaleFactor <= 0) {
@@ -123,7 +127,7 @@ export class EditorComponent implements OnInit {
     //  To change image data, just need to reinitialize page. 
 
     //  Only gets the image data from 0,0 to the width and height of image,
-    //    not based on canvas
+    //    not based on canvas.
     this.originalImageData = this.ctx.getImageData(0, 0, imgWidth, imgHeight);
     this.clearCanvas();
 
@@ -140,7 +144,7 @@ export class EditorComponent implements OnInit {
   }
 
  /**
-  *  Draws users image scaled to canvas and restores ctx.
+  *  Draws user's image scaled to canvas and restores ctx.
   *  @param image is either the mask image or image user is making a mask of.
   */
   private drawScaledImage(image: HTMLImageElement) {
@@ -155,7 +159,7 @@ export class EditorComponent implements OnInit {
   *    and draws image and mask as scaled. Disables submit
   *    on mask until the url is set. 
   *  class @param this.disableFloodFill must equal true before called because 
-  *    maskMmageData is being updated.
+  *    maskImageData is being updated.
   *  class @param this.disableSubmit must equal true before called because 
   *    maskUrl is being updated in drawMask(). 
   *  class @param maskPixels event Output() from mask.directive
@@ -206,7 +210,7 @@ export class EditorComponent implements OnInit {
     return this.maskImageUrl;
   }
 
-  // TODO(shmcaffrey): change Alpha value to incorperate user input.
+  // TODO(shmcaffrey): change Alpha value to incorporate user input.
 
   /** 
    *  Initializes Form group and data as new
@@ -233,7 +237,7 @@ export class EditorComponent implements OnInit {
   *  Builds ImageBlob to be appended to form and posted.
   */
   async onSubmit(): Promise<void> {
-    // Name is a required input. If it's null, do nothing.
+    //  Name is a required input. If it's null, do nothing.
     if (!this.uploadMaskForm.get('maskName').value) {
       return;
     }
@@ -283,7 +287,7 @@ export class EditorComponent implements OnInit {
   
   /**  
   *  Sets all pixels to magenta and inverts their alpha to display them or not. 
-  *  Disables flood fill and dubmit to avoid conflict as mask updates.
+  *  Disables flood fill and submit to avoid conflict as mask updates.
   *  class @param this.disableSubmit must equal true before called because 
   *    maskUrl is being updated in drawMask(). 
   *  class @param this.disableFloodFill must equal true before called because 
