@@ -1,70 +1,58 @@
 package com.google.sps.servlets;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public final class BlobServletTestUtils {
+  private static final Gson gson =
+      new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
+  // Image objects
+  private static final MaskInfo Mask0 = new MaskInfo("/blob-host?blobkey=ghi", "Mask0", "2020-08-12T05:39:02.384Z", new ArrayList<String>(Arrays.asList("0", "zero"))); 
+  private static final MaskInfo Mask1 = new MaskInfo("/blob-host?blobkey=jkl", "Mask1", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("1", "one"))); 
+
+  private static final ImageInfo Image0 = new ImageInfo("/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("0", "zero")), new ArrayList<MaskInfo>());
+  private static final ImageInfo Image1 = new ImageInfo("/blob-host?blobkey=def", "Image1", "2020-08-12T05:39:02.384Z", new ArrayList<String>(Arrays.asList("1", "one")), new ArrayList<MaskInfo>());
+  private static final ImageInfo Image0WithMasks = new ImageInfo("/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("0", "zero")), new ArrayList<MaskInfo>(Arrays.asList(Mask0, Mask1)));
+  private static final ImageInfo Image0WithMasksSortAsc = new ImageInfo("/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("0", "zero")), new ArrayList<MaskInfo>(Arrays.asList(Mask1, Mask0)));
+  private static final ImageInfo Image0MaskName = new ImageInfo("/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("0", "zero")), new ArrayList<MaskInfo>(Arrays.asList(Mask0)));
+
   // Expected JSON strings for GET tests
   public static final String expectedNoFilters =
-      "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1"
-      + "\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n    "
-      + "  \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"u"
-      + "rl\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"ut"
-      + "c\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n   "
-      + "   \"zero\"\n    ],\n    \"masks\": []\n  }\n]\n";
+      gson.toJson(new ArrayList<ImageInfo>(
+          Arrays.asList(Image1, Image0))) +
+      "\n";  
   public static final String expectedWithMasks =
-      "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1"
-      + "\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n    "
-      + "  \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"u"
-      + "rl\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"ut"
-      + "c\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n   "
-      + "   \"zero\"\n    ],\n    \"masks\": [\n      {\n        \"url\": \"/bl"
-      + "ob-host?blobkey=ghi\",\n        \"name\": \"Mask0\",\n        \"utc\":"
-      + " \"2020-08-12T05:39:02.384Z\",\n        \"tags\": [\n          \"0\","
-      + "\n          \"zero\"\n        ]\n      },\n      {\n        \"url\": "
-      + "\"/blob-host?blobkey=jkl\",\n        \"name\": \"Mask1\",\n        \"u"
-      + "tc\": \"2020-08-12T05:39:02.383Z\",\n        \"tags\": [\n          \""
-      + "1\",\n          \"one\"\n        ]\n      }\n    ]\n  }\n]\n";
+      gson.toJson(new ArrayList<ImageInfo>(
+          Arrays.asList(Image1, Image0WithMasks))) +
+      "\n";
   public static final String expectedSortImg =
-      "[\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0"
-      + "\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n    "
-      + "  \"0\",\n      \"zero\"\n    ],\n    \"masks\": []\n  },\n  {\n    \""
-      + "url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1\",\n    \"u"
-      + "tc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n      \"1\",\n  "
-      + "    \"one\"\n    ],\n    \"masks\": []\n  }\n]\n";
+      gson.toJson(new ArrayList<ImageInfo>(
+          Arrays.asList(Image0, Image1))) +
+      "\n";  
   public static final String expectedTagFilter =
-      "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1"
-      + "\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n    "
-      + "  \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  }\n]\n";
+      gson.toJson(new ArrayList<ImageInfo>(
+          Arrays.asList(Image1))) +
+      "\n";  
   public static final String expectedSortMask =
-      "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1"
-      + "\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n    "
-      + "  \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  },\n  {\n    \"u"
-      + "rl\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0\",\n    \"ut"
-      + "c\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n      \"0\",\n   "
-      + "   \"zero\"\n    ],\n    \"masks\": [\n      {\n        \"url\": \"/bl"
-      + "ob-host?blobkey=jkl\",\n        \"name\": \"Mask1\",\n        \"utc\":"
-      + " \"2020-08-12T05:39:02.383Z\",\n        \"tags\": [\n          \"1\","
-      + "\n          \"one\"\n        ]\n      },\n      {\n        \"url\": \""
-      + "/blob-host?blobkey=ghi\",\n        \"name\": \"Mask0\",\n        \"utc"
-      + "\": \"2020-08-12T05:39:02.384Z\",\n        \"tags\": [\n          \"0"
-      + "\",\n          \"zero\"\n        ]\n      }\n    ]\n  }\n]\n";
+      gson.toJson(new ArrayList<ImageInfo>(
+          Arrays.asList(Image1, Image0WithMasksSortAsc))) +
+      "\n";  
   public static final String expectedImgName =
-      "[\n  {\n    \"url\": \"/blob-host?blobkey=def\",\n    \"name\": \"Image1"
-      + "\",\n    \"utc\": \"2020-08-12T05:39:02.384Z\",\n    \"tags\": [\n    "
-      + "  \"1\",\n      \"one\"\n    ],\n    \"masks\": []\n  }\n]\n";
+      gson.toJson(new ArrayList<ImageInfo>(
+          Arrays.asList(Image1))) +
+      "\n";  
   public static final String expectedMaskName =
-      "[\n  {\n    \"url\": \"/blob-host?blobkey=abc\",\n    \"name\": \"Image0"
-      + "\",\n    \"utc\": \"2020-08-12T05:39:02.383Z\",\n    \"tags\": [\n    "
-      + "  \"0\",\n      \"zero\"\n    ],\n    \"masks\": [\n      {\n        "
-      + "\"url\": \"/blob-host?blobkey=ghi\",\n        \"name\": \"Mask0\",\n  "
-      + "      \"utc\": \"2020-08-12T05:39:02.384Z\",\n        \"tags\": [\n   "
-      + "       \"0\",\n          \"zero\"\n        ]\n      }\n    ]\n  }\n]"
-      + "\n";
+      gson.toJson(new ArrayList<ImageInfo>(
+          Arrays.asList(Image0MaskName))) +
+      "\n";  
 
   /**
    * Set up database before each test and return one project ID for use in
@@ -74,8 +62,8 @@ public final class BlobServletTestUtils {
   public static String databaseSetup() {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-    Entity projEntity = new Entity(DataUtils.PROJECT, 123456);
-    projEntity.setProperty("name", "MyProject");
+    Entity projEntity = new Entity(DataUtils.PROJECT, 123);
+    projEntity.setProperty("name", "MyProject1");
     projEntity.setProperty("utc", "2020-08-12T05:39:02.383Z");
     projEntity.setProperty("visibility", DataUtils.PRIVATE);
     projEntity.setIndexedProperty("owners",
@@ -84,6 +72,8 @@ public final class BlobServletTestUtils {
                                   Arrays.asList("xyz@abc.com", "uvw@def.com"));
     Key projKey = datastore.put(projEntity);
     String projId = KeyFactory.keyToString(projKey);
+    projEntity.setProperty("proj-id", projId);
+    datastore.put(projEntity);
 
     Entity imgEntity = new Entity(DataUtils.IMAGE, 1, projKey);
     imgEntity.setProperty("name", "Image0");
