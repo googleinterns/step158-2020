@@ -321,7 +321,9 @@ export class EditorComponent implements OnInit {
         this.maskTool = MaskTool.magicWand;
         this.disableFloodFill = false;
         // redraw mask and image
+        this.disableSubmit = true;
         this.drawMask();
+        this.disableSubmit = false;
         break;
       case 'MASK-ONLY':
         this.maskTool = MaskTool.maskOnly;
