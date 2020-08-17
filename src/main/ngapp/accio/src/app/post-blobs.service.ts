@@ -42,6 +42,7 @@ export class PostBlobsService {
    */ 
   buildForm(formData: FormData, imageBlob: ImageBlob, fileName: string) {
     let deleteString: string;
+
     try {
       deleteString = imageBlob.delete.toString()
     }
@@ -49,6 +50,8 @@ export class PostBlobsService {
       console.log(imageBlob.delete + ' could not be converted into a string, returning \'false\'');
       deleteString = 'false';
     }
+    //  Account for null tag value if user doesn't input tags.
+    let tags = imageBlob.tags ? imageBlob.tags : '';
 
     formData.append('proj-id', imageBlob.projectId);
     formData.append('img-name',  imageBlob.imageName);
@@ -56,7 +59,7 @@ export class PostBlobsService {
     formData.append('image', imageBlob.image, fileName)
     formData.append('parent-img', imageBlob.parentImageName);
     formData.append('new-name', imageBlob.newImageName);
-    formData.append('tags', imageBlob.tags);
+    formData.append('tags', tags);
     formData.append('delete', deleteString);
 
     console.log('formData:');
