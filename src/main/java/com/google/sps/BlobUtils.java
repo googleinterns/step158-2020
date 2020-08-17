@@ -19,13 +19,15 @@ import com.google.appengine.api.datastore.Query.FilterPredicate;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * Provides utilities for the blobs servlet.
  */
 public final class BlobUtils {
-  
+
   /**
    * Checks if the file uploaded to Blobstore is valid.
    * @param     {BlobKey}   blobKey   key for the file in question
@@ -95,7 +97,7 @@ public final class BlobUtils {
    * @return    {Filter}
    */
   public static Filter combinedGetFilters(HttpServletRequest request,
-                                    boolean withMasks, String kind) {
+                                          boolean withMasks, String kind) {
     ArrayList<Filter> allImgFilters = new ArrayList<Filter>();
 
     String tag = request.getParameter("tag");
@@ -122,5 +124,50 @@ public final class BlobUtils {
     }
     return null;
   }
-}
 
+  /**
+   * Returns either the blobkey string for storage in the database or null.
+   * @param     {HttpServletRequest}    request
+   * @return    {String}
+   */
+  public static String getBlobKeyString(HttpServletRequest request)
+      throws IOException {
+    BlobstoreService blobstoreService =
+        BlobstoreServiceFactory.getBlobstoreService();
+    Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
+    List<BlobKey> blobKeys = blobs.get("image");
+
+    boolean isCreateMode = DataUtils.parseMode(request);
+    String parentImg = request.getParameter("parent-img");
+    boolean isMask = !DataUtils.isEmptyParameter(parentImg);
+
+    // User submitted form without selecting a file
+    if (blobKeys.isEmpty() || blobKeys == null) {
+      if (isCreateMode) {
+        throw new IOException("Form submitted without a file.");
+      }
+    } else {
+      BlobKey blobKey = blobKeys.get(0);
+      BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+
+      // Check for blob size as well since (experimentally) no upload does not
+      // guarantee an empty BlobKey List
+      boolean hasNonEmptyImage = blobInfo.getSize() != 0;
+
+      // Image cannot be changed after first upload
+      if (!isCreateMode && !isMask) {
+        blobstoreService.delete(blobKey);
+        hasNonEmptyImage = false;
+      }
+
+      // Set blobkey property
+      if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
+        checkFileValidity(blobKey, isMask);
+        return blobKey.getKeyString();
+      }
+    }
+    return null;
+  }
+
+  private BlobUtils() {}
+}

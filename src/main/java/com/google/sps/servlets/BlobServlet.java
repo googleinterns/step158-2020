@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -131,35 +129,9 @@ public class BlobServlet extends HttpServlet {
       }
     }
 
-    BlobstoreService blobstoreService =
-        BlobstoreServiceFactory.getBlobstoreService();
-    Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
-    List<BlobKey> blobKeys = blobs.get("image");
-
-    // User submitted form without selecting a file
-    if (blobKeys.isEmpty() || blobKeys == null) {
-      if (isCreateMode) {
-        throw new IOException("Form submitted without a file.");
-      }
-    } else {
-      BlobKey blobKey = blobKeys.get(0);
-      BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
-
-      // Check for blob size as well since (experimentally) no upload does not
-      // guarantee an empty BlobKey List
-      boolean hasNonEmptyImage = blobInfo.getSize() != 0;
-
-      // Image cannot be changed after first upload
-      if (!isCreateMode && !isMask) {
-        blobstoreService.delete(blobKey);
-        hasNonEmptyImage = false;
-      }
-
-      // Set blobkey property
-      if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
-        BlobUtils.checkFileValidity(blobKey, isMask);
-        imgEntity.setProperty("blobkey", blobKey.getKeyString());
-      }
+    String blobKeyString = BlobUtils.getBlobKeyString(request);
+    if (blobKeyString != null) {
+      imgEntity.setProperty("blobkey", blobKeyString);
     }
 
     // Last-modified time

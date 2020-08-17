@@ -1,8 +1,7 @@
 package com.google.sps.servlets;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 import static com.google.sps.servlets.BlobServletTestUtils.*;
+import static org.junit.Assert.*;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -21,8 +20,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(JUnit4.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(BlobUtils.class)
 public final class BlobServletTest {
 
   private BlobServlet servlet;
@@ -44,13 +48,13 @@ public final class BlobServletTest {
     helper.setUp();
     servlet = new BlobServlet();
     projId = databaseSetup();
-    request = mock(HttpServletRequest.class);
-    response = mock(HttpServletResponse.class);
-    when(request.getParameter("proj-id")).thenReturn(projId);
+    request = Mockito.mock(HttpServletRequest.class);
+    response = Mockito.mock(HttpServletResponse.class);
+    Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
     // Wrap StringWriter in PrintWriter to get response from servlet
     stringWriter = new StringWriter();
     writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
+    Mockito.when(response.getWriter()).thenReturn(writer);
   }
 
   @After
@@ -58,85 +62,85 @@ public final class BlobServletTest {
     helper.tearDown();
   }
 
-  //////////////////////////////////////////////////////////////// 
+  ////////////////////////////////////////////////////////////////
   //                   Blob servlet POST tests                  //
   ////////////////////////////////////////////////////////////////
 
   @Test
   public void delete() throws IOException {
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();      
-    assertEquals(
-        2, datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
-    assertEquals(
-        2, datastore.prepare(new Query(DataUtils.MASK)).countEntities());
-    when(request.getParameter("mode")).thenReturn("update");
-    when(request.getParameter("delete")).thenReturn("true");
-    when(request.getParameter("proj-id")).thenReturn(projId);    
-    when(request.getParameter("img-name")).thenReturn("Image0");
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Mockito.when(request.getParameter("mode")).thenReturn("update");
+    Mockito.when(request.getParameter("delete")).thenReturn("true");
+    Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
+    Mockito.when(request.getParameter("img-name")).thenReturn("Image0");
     servlet.doPost(request, response);
-    assertEquals(
-        1, datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
-    assertEquals(
-        0, datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    assertEquals(1,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(0,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
   }
 
-  //////////////////////////////////////////////////////////////// 
+  ////////////////////////////////////////////////////////////////
   //                   Blob servlet GET tests                   //
-  ////////////////////////////////////////////////////////////////  
+  ////////////////////////////////////////////////////////////////
   @Test
   public void noFilters() throws IOException {
     servlet.doGet(request, response);
-    writer.flush();    
+    writer.flush();
     assertEquals(expectedNoFilters, stringWriter.toString());
   }
 
   @Test
   public void withMasks() throws IOException {
-    when(request.getParameter("with-masks")).thenReturn("true");   
+    Mockito.when(request.getParameter("with-masks")).thenReturn("true");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedWithMasks, stringWriter.toString());    
+    assertEquals(expectedWithMasks, stringWriter.toString());
   }
 
   @Test
   public void sortImg() throws IOException {
-    when(request.getParameter("sort-img")).thenReturn("asc");   
+    Mockito.when(request.getParameter("sort-img")).thenReturn("asc");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedSortImg, stringWriter.toString());    
+    assertEquals(expectedSortImg, stringWriter.toString());
   }
 
   @Test
   public void tagFilter() throws IOException {
-    when(request.getParameter("tag")).thenReturn("1");   
+    Mockito.when(request.getParameter("tag")).thenReturn("1");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedTagFilter, stringWriter.toString());    
+    assertEquals(expectedTagFilter, stringWriter.toString());
   }
 
   @Test
   public void sortMask() throws IOException {
-    when(request.getParameter("with-masks")).thenReturn("true"); 
-    when(request.getParameter("sort-mask")).thenReturn("asc");   
+    Mockito.when(request.getParameter("with-masks")).thenReturn("true");
+    Mockito.when(request.getParameter("sort-mask")).thenReturn("asc");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedSortMask, stringWriter.toString());         
+    assertEquals(expectedSortMask, stringWriter.toString());
   }
 
   @Test
   public void imgName() throws IOException {
-    when(request.getParameter("img-name")).thenReturn("Image1");   
+    Mockito.when(request.getParameter("img-name")).thenReturn("Image1");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedImgName, stringWriter.toString());      
+    assertEquals(expectedImgName, stringWriter.toString());
   }
 
   @Test
   public void maskName() throws IOException {
-    when(request.getParameter("img-name")).thenReturn("Image0");   
-    when(request.getParameter("mask-name")).thenReturn("Mask0");   
+    Mockito.when(request.getParameter("img-name")).thenReturn("Image0");
+    Mockito.when(request.getParameter("mask-name")).thenReturn("Mask0");
     servlet.doGet(request, response);
     writer.flush();
-    assertEquals(expectedMaskName, stringWriter.toString());   
+    assertEquals(expectedMaskName, stringWriter.toString());
   }
 }
