@@ -117,6 +117,7 @@ export class ImgGalleryComponent implements OnInit {
 
     //  Reset form values.
     this.uploadImageForm.reset;
+    location.reload();
   }
 
   /** 
@@ -144,11 +145,13 @@ export class ImgGalleryComponent implements OnInit {
     let deleteImageFormData = new FormData;
     let imageBlob = new ImageBlob(
       this.projectId,
-      imageName,
-      'update',
-      null,
-      '','','',
-      true
+      /*imageNam=*/imageName,
+      /*mode=*/'update',
+      /*image=*/null,
+      /*parentImageName=*/'',
+      /*newImageName=*/'',
+      /*tags=*/'',
+      /*delete=*/true
     );
     this.postBlobsService.buildForm(deleteImageFormData, imageBlob, null);
   }
@@ -157,12 +160,13 @@ export class ImgGalleryComponent implements OnInit {
     let deleteMaskFormData = new FormData;
     let imageBlob = new ImageBlob(
       this.projectId,
-      maskName,
-      'update',
-      null, 
-      parentName,
-      '', '',
-      true
+      /*imageNam=*/maskName,
+      /*mode=*/'update',
+      /*image=*/null, 
+      /*parentImageName=*/parentName,
+      /*newImageName=*/'',
+      /*tags=*/'',
+      /*delete=*/true
     );
 
     // file is null, so file name is not needed

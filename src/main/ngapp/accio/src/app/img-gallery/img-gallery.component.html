@@ -67,34 +67,27 @@
 <!--Fetched Images-->
 <div class="gallery">
   <div *ngFor="let image of imageArray" class="gallery-item">
+    <div class="mask-image-tag">
+      <span>Image Name: {{image['name']}}
+        <button mat-button (click)="deleteImage(image['name'])" style="float:right">Delete Image</button>
+      </span>
+    </div>
     <a [routerLink]="['/editor', projectId, image['name'], image['url']]">
       <img class="gallery-img" [src]="image['url']">
-      <p>{{ image['name'] }}</p>
     </a>
-    <div id="mask-image-tag">
-      <p>Image Name: {{image['name']}}</p>
-      <button mat-button (click)="deleteImage(image['name'])" style="float:right">Delete Image</button>
-    </div>
   </div>
 </div>
 
 <div class="gallery">
   <ng-container *ngFor="let image of imageArray">
-    <!-- <div *ngFor="let mask of imageArray[0]['masks']" class="gallery-item">
-      <a [routerLink]="['/editor', projectId, mask['name'], mask['url']]">
-        <img class="gallery-img" [src]="mask['url']">
-      </a>
-      <div id="mask-image-tag">
-        <p>Mask Name: {{ mask['name'] }}</p>
-        <button mat-button (click)="deleteMask(image['name'], mask['name'])" style="float:right">Delete Mask</button>
-      </div>
-    </div>
-  </ng-container>
-</div> -->
     <div *ngFor="let mask of image['masks']" class="gallery-item">
+      <div class="mask-image-tag">
+        <span>Mask Name: {{ mask['name'] }}
+          <button mat-button (click)="deleteMask(image['name'], mask['name'])" style="float:right">Delete Mask</button>
+        </span>
+      </div>
       <a [routerLink]="['/editor', projectId, mask['name'], mask['url'], image['name'], image['url']]">
         <img class="gallery-img" [src]="mask['url']">
-        <p>{{ mask['name'] }}</p>
       </a>
     </div>
   </ng-container>
