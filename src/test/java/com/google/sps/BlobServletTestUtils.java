@@ -1,12 +1,12 @@
 package com.google.sps.servlets;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -15,44 +15,56 @@ public final class BlobServletTestUtils {
       new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
   // Image objects
-  private static final MaskInfo Mask0 = new MaskInfo("/blob-host?blobkey=ghi", "Mask0", "2020-08-12T05:39:02.384Z", new ArrayList<String>(Arrays.asList("0", "zero"))); 
-  private static final MaskInfo Mask1 = new MaskInfo("/blob-host?blobkey=jkl", "Mask1", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("1", "one"))); 
+  private static final MaskInfo Mask0 = new MaskInfo(
+      "/blob-host?blobkey=ghi", "Mask0", "2020-08-12T05:39:02.384Z",
+      new ArrayList<String>(Arrays.asList("0", "zero")));
+  private static final MaskInfo Mask1 = new MaskInfo(
+      "/blob-host?blobkey=jkl", "Mask1", "2020-08-12T05:39:02.383Z",
+      new ArrayList<String>(Arrays.asList("1", "one")));
 
-  private static final ImageInfo Image0 = new ImageInfo("/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("0", "zero")), new ArrayList<MaskInfo>());
-  private static final ImageInfo Image1 = new ImageInfo("/blob-host?blobkey=def", "Image1", "2020-08-12T05:39:02.384Z", new ArrayList<String>(Arrays.asList("1", "one")), new ArrayList<MaskInfo>());
-  private static final ImageInfo Image0WithMasks = new ImageInfo("/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("0", "zero")), new ArrayList<MaskInfo>(Arrays.asList(Mask0, Mask1)));
-  private static final ImageInfo Image0WithMasksSortAsc = new ImageInfo("/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("0", "zero")), new ArrayList<MaskInfo>(Arrays.asList(Mask1, Mask0)));
-  private static final ImageInfo Image0MaskName = new ImageInfo("/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z", new ArrayList<String>(Arrays.asList("0", "zero")), new ArrayList<MaskInfo>(Arrays.asList(Mask0)));
+  private static final ImageInfo Image0 = new ImageInfo(
+      "/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z",
+      new ArrayList<String>(Arrays.asList("0", "zero")),
+      new ArrayList<MaskInfo>());
+  private static final ImageInfo Image1 = new ImageInfo(
+      "/blob-host?blobkey=def", "Image1", "2020-08-12T05:39:02.384Z",
+      new ArrayList<String>(Arrays.asList("1", "one")),
+      new ArrayList<MaskInfo>());
+  private static final ImageInfo Image0WithMasks = new ImageInfo(
+      "/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z",
+      new ArrayList<String>(Arrays.asList("0", "zero")),
+      new ArrayList<MaskInfo>(Arrays.asList(Mask0, Mask1)));
+  private static final ImageInfo Image0WithMasksSortAsc = new ImageInfo(
+      "/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z",
+      new ArrayList<String>(Arrays.asList("0", "zero")),
+      new ArrayList<MaskInfo>(Arrays.asList(Mask1, Mask0)));
+  private static final ImageInfo Image0MaskName = new ImageInfo(
+      "/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z",
+      new ArrayList<String>(Arrays.asList("0", "zero")),
+      new ArrayList<MaskInfo>(Arrays.asList(Mask0)));
 
   // Expected JSON strings for GET tests
   public static final String expectedNoFilters =
-      gson.toJson(new ArrayList<ImageInfo>(
-          Arrays.asList(Image1, Image0))) +
-      "\n";  
+      gson.toJson(new ArrayList<ImageInfo>(Arrays.asList(Image1, Image0))) +
+      "\n";
   public static final String expectedWithMasks =
-      gson.toJson(new ArrayList<ImageInfo>(
-          Arrays.asList(Image1, Image0WithMasks))) +
+      gson.toJson(
+          new ArrayList<ImageInfo>(Arrays.asList(Image1, Image0WithMasks))) +
       "\n";
   public static final String expectedSortImg =
-      gson.toJson(new ArrayList<ImageInfo>(
-          Arrays.asList(Image0, Image1))) +
-      "\n";  
+      gson.toJson(new ArrayList<ImageInfo>(Arrays.asList(Image0, Image1))) +
+      "\n";
   public static final String expectedTagFilter =
-      gson.toJson(new ArrayList<ImageInfo>(
-          Arrays.asList(Image1))) +
-      "\n";  
+      gson.toJson(new ArrayList<ImageInfo>(Arrays.asList(Image1))) + "\n";
   public static final String expectedSortMask =
       gson.toJson(new ArrayList<ImageInfo>(
           Arrays.asList(Image1, Image0WithMasksSortAsc))) +
-      "\n";  
+      "\n";
   public static final String expectedImgName =
-      gson.toJson(new ArrayList<ImageInfo>(
-          Arrays.asList(Image1))) +
-      "\n";  
+      gson.toJson(new ArrayList<ImageInfo>(Arrays.asList(Image1))) + "\n";
   public static final String expectedMaskName =
-      gson.toJson(new ArrayList<ImageInfo>(
-          Arrays.asList(Image0MaskName))) +
-      "\n";  
+      gson.toJson(new ArrayList<ImageInfo>(Arrays.asList(Image0MaskName))) +
+      "\n";
 
   /**
    * Set up database before each test and return one project ID for use in
