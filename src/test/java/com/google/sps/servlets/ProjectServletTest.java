@@ -10,6 +10,8 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
@@ -152,6 +154,12 @@ public final class ProjectServletTest {
     servlet.doPost(request, response);
     assertEquals(
         4, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    assertEquals(0,
+                 datastore
+                     .prepare(new Query(DataUtils.PROJECT)
+                                  .setFilter(new FilterPredicate(
+                                      "proj-id", FilterOperator.EQUAL, projId)))
+                     .countEntities());
   }
 
   ////////////////////////////////////////////////////////////////
