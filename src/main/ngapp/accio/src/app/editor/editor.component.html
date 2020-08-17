@@ -30,8 +30,10 @@
       [originalImageData]="originalImageData"
       [scale]="scaleFactor"
       [tolerance]="tolerance"
-      [disable]="disableFloodFill"
-      (newMaskEvent)="addToMask($event)">
+      [disableFloodFill]="disableFloodFill"
+      [tool]="maskTool"
+      (newMaskEvent)="addToMask($event)"
+      (newPaintEvent)="drawPixel($event)">
     </canvas>
     <canvas #maskCanvas style="display:none">
     </canvas>

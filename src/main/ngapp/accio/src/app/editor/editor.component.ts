@@ -162,10 +162,10 @@ export class EditorComponent implements OnInit {
   *  Sets new pixels in magenta, clears canvas of previous data 
   *    and draws image and mask as scaled. Disables submit
   *    on mask until the url is set. 
-  *  class @param this.disableFloodFill must equal true before called because 
-  *    maskImageData is being updated.
-  *  class @param this.disableSubmit must equal true before called because 
-  *    maskUrl is being updated in drawMask(). 
+  *  class @param this.disableFloodFill must equal true before pixels updated because 
+  *    so another floodfill isn't called before one finishes.
+  *  class @param this.disableSubmit set equal to true before pixels updated 
+  *    so submit isn't called before mask is drawn and url is updated.
   *  class @param maskPixels event Output() from mask.directive
   *    Gives the new pixels to add to the mask
   *  Only returned when maskTool is 'magic-wand', no need to check maskTool
@@ -187,9 +187,10 @@ export class EditorComponent implements OnInit {
   *  Clears canvas, draws the original image and draws the mask.
   *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
   *  Disables Flood fill before maskUrl is being set so new data isn't added
-  *  class @param this.disableSubmit must equal true before called because maskUrl is being updated.
+  *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
   */  
   private drawMask() {
+    this.disableSubmit = true;
     let mask = new Image();
     mask.onload = () => {
       this.clearCanvas();
@@ -201,6 +202,7 @@ export class EditorComponent implements OnInit {
       console.log('global alpha = ' + this.tint);
       this.drawScaledImage(mask);
       this.ctx.restore();
+      this.disableSubmit = false;
     }
     mask.src = this.updateMaskUrl();
   }
@@ -271,27 +273,24 @@ export class EditorComponent implements OnInit {
  /**
   *  Emitted from toolbar. Clears canvas of old mask and draws image anew.
   *  Clears old image data. Disables submit while mask is updating.
-  *  class @param this.disableSubmit must equal true before called because 
-  *    maskUrl is being updated in getMaskUrl. 
   *  class @param this.disableFloodFill must equal true before called because 
   *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
   *     (flood fill not allowed any other time).
   */
   clearMask() {
-    this.disableSubmit = this.disableFloodFill = true;
+    this.disableFloodFill = true;
     this.maskImageData = new ImageData(this.image.width, this.image.height);
     this.drawMask();
     if (this.maskTool == MaskTool.magicWand) {
       this.disableFloodFill = false;
     }
-    this.disableSubmit = false;
   }
   
   /**  
   *  Sets all pixels to magenta and inverts their alpha to display them or not. 
   *  Disables flood fill and submit to avoid conflict as mask updates.
-  *  class @param this.disableSubmit must equal true before called because 
-  *    maskUrl is being updated in drawMask(). 
+  *  class @param this.disableSubmit set equal to true before pixels updated 
+  *    so submit isn't called before mask is drawn and url is updated.
   *  class @param this.disableFloodFill must equal true before called because 
   *    maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
   *    (flood fill not allowed any other time).
@@ -331,9 +330,8 @@ export class EditorComponent implements OnInit {
       this.tint = value;
     }
     //  Draw mask with new tint value.
-    this.disableSubmit = this.disableFloodFill = true;
+    this.disableFloodFill = true;
     this.drawMask();
-    this.disableSubmit = false;
     if (this.maskTool == MaskTool.magicWand) {
       this.disableFloodFill = false;
     }
@@ -351,18 +349,38 @@ export class EditorComponent implements OnInit {
       case 'MAGIC-WAND': 
         this.maskTool = MaskTool.magicWand;
         this.disableFloodFill = false;
-        // redraw mask and image
-        this.disableSubmit = true;
-        this.drawMask();
-        this.disableSubmit = false;
+        break;
+      case 'PAINT':
+        this.maskTool = MaskTool.paint;
         break;
       case 'MASK-ONLY':
         this.maskTool = MaskTool.maskOnly;
-        let mask = new Image();
-        this.disableSubmit = true;
-        this.drawMask();
-        this.disableSubmit = false;
         break;
     }
+    console.log('switched tool to ' + this.maskTool);
+    //  Always redraw mask/image when switching between features because of MaskOnly tool.
+    this.drawMask();
+  }
+
+ /**
+  *  Adds pixel user painted to mask.
+  *  TODO: Possibly change the implementation so the pixel drawn is
+  *        replecated on the screen ASAP, and then once the user finishes 
+  *        drawing (mouse up) then the real mask is drawn based on the set.
+  *        Would decrease lag.
+  */
+  drawPixel(pixel: number) {
+    //Commented out would be the TODO but the pixels don't line up 1:1 so there would be a visual difference in what the 
+    /// user thinks they're clicking on and what they actully paint on the mask.
+    // let imageData = this.ctx.getImageData(0,0,this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+    // imageData.data[pixel] = 255;
+    // imageData.data[pixel + 2] = 255;
+    // imageData.data[pixel + 3] = 255;
+    // this.ctx.putImageData(imageData, 0,0);
+
+    this.maskImageData.data[pixel] = 255;
+    this.maskImageData.data[pixel + 2] = 255;
+    this.maskImageData.data[pixel + 3] = 255;
+    this.drawMask();
   }
 }

@@ -1,4 +1,5 @@
 export enum MaskTool {
   magicWand = 'MAGIC-WAND', 
-  maskOnly = 'MASK-ONLY'
+  maskOnly = 'MASK-ONLY',
+  paint = 'PAINT'
 }
