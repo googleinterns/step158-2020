@@ -68,7 +68,7 @@ public class BlobServlet extends HttpServlet {
     String now = Instant.now().toString();
 
     // Get the image name entered by the user
-    // When creating, default image name if not provided is
+    // When creating, default image name if none provided is
     // Untitled-{current UTC time}
     String imgName = request.getParameter("img-name");
     if (DataUtils.isEmptyParameter(imgName)) {
@@ -86,7 +86,7 @@ public class BlobServlet extends HttpServlet {
     Key projKey = projEntity.getKey();
     Key assetParentKey = projKey;
 
-    // Default case: creating a new base iamge
+    // Default case: creating a new base image
     Entity imgEntity = new Entity(DataUtils.IMAGE, projKey);
 
     // Asset to update must already exist
@@ -129,6 +129,7 @@ public class BlobServlet extends HttpServlet {
       }
     }
 
+    // Process blobkey if an image was uploaded
     String blobKeyString = BlobUtils.getBlobKeyString(request);
     if (blobKeyString != null) {
       imgEntity.setProperty("blobkey", blobKeyString);

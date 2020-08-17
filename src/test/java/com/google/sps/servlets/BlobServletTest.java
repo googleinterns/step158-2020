@@ -5,13 +5,17 @@ import static org.junit.Assert.*;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,6 +52,7 @@ public final class BlobServletTest {
     helper.setUp();
     servlet = new BlobServlet();
     projId = databaseSetup();
+    PowerMockito.spy(BlobUtils.class);
     request = Mockito.mock(HttpServletRequest.class);
     response = Mockito.mock(HttpServletResponse.class);
     Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
@@ -67,7 +72,175 @@ public final class BlobServletTest {
   ////////////////////////////////////////////////////////////////
 
   @Test
-  public void delete() throws IOException {
+  public void basicCreateImage() throws Exception {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Mockito.when(request.getParameter("mode")).thenReturn("create");
+    Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
+    Mockito.when(request.getParameter("img-name")).thenReturn("Image2");
+    PowerMockito.doReturn("mno").when(BlobUtils.class, "getBlobKeyString",
+                                      request);
+    servlet.doPost(request, response);
+    assertEquals(3,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    assertEquals(1,
+                 datastore
+                     .prepare(new Query(DataUtils.IMAGE)
+                                  .setFilter(new FilterPredicate(
+                                      "name", FilterOperator.EQUAL, "Image2")))
+                     .countEntities());
+  }
+
+  @Test
+  public void basicCreateMask() throws Exception {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Mockito.when(request.getParameter("mode")).thenReturn("create");
+    Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
+    Mockito.when(request.getParameter("parent-img")).thenReturn("Image0");
+    Mockito.when(request.getParameter("img-name")).thenReturn("Mask2");
+    PowerMockito.doReturn("mno").when(BlobUtils.class, "getBlobKeyString",
+                                      request);
+    servlet.doPost(request, response);
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(3,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    assertEquals(1,
+                 datastore
+                     .prepare(new Query(DataUtils.MASK)
+                                  .setFilter(new FilterPredicate(
+                                      "name", FilterOperator.EQUAL, "Mask2")))
+                     .countEntities());
+  }
+
+  @Test
+  public void customCreateImage() throws Exception {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Mockito.when(request.getParameter("mode")).thenReturn("create");
+    Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
+    Mockito.when(request.getParameter("img-name")).thenReturn("Image0");
+    Mockito.when(request.getParameter("tags")).thenReturn("m, n, o");
+    PowerMockito.doReturn("mno").when(BlobUtils.class, "getBlobKeyString",
+                                      request);
+    servlet.doPost(request, response);
+    assertEquals(3,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Entity imgEntity = new Entity(DataUtils.IMAGE);
+    for (Entity e :
+         datastore.prepare(new Query(DataUtils.IMAGE)).asIterable()) {
+      String name = (String)e.getProperty("name");
+      if (!name.equals("Image0") && !name.equals("Image1")) {
+        imgEntity = e;
+      }
+    }
+    assertEquals(new ArrayList<String>(Arrays.asList("m", "n", "o")),
+                 (ArrayList<String>)imgEntity.getProperty("tags"));
+  }
+
+  @Test
+  public void customCreateMask() throws Exception {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Mockito.when(request.getParameter("mode")).thenReturn("create");
+    Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
+    Mockito.when(request.getParameter("parent-img")).thenReturn("Image0");
+    Mockito.when(request.getParameter("img-name")).thenReturn("Mask0");
+    Mockito.when(request.getParameter("tags")).thenReturn("m, n, o");
+    PowerMockito.doReturn("mno").when(BlobUtils.class, "getBlobKeyString",
+                                      request);
+    servlet.doPost(request, response);
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(3,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Entity maskEntity = new Entity(DataUtils.MASK);
+    for (Entity e : datastore.prepare(new Query(DataUtils.MASK)).asIterable()) {
+      String name = (String)e.getProperty("name");
+      if (!name.equals("Mask0") && !name.equals("Mask1")) {
+        maskEntity = e;
+      }
+    }
+    assertEquals(new ArrayList<String>(Arrays.asList("m", "n", "o")),
+                 (ArrayList<String>)maskEntity.getProperty("tags"));
+  }
+
+  @Test
+  public void updateImage() throws Exception {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Mockito.when(request.getParameter("mode")).thenReturn("update");
+    Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
+    Mockito.when(request.getParameter("img-name")).thenReturn("Image0");
+    Mockito.when(request.getParameter("new-name")).thenReturn("Image10");
+    Mockito.when(request.getParameter("tags")).thenReturn("m, n, o");
+    PowerMockito.doReturn("mno").when(BlobUtils.class, "getBlobKeyString",
+                                      request);
+    servlet.doPost(request, response);
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    assertEquals(new ArrayList<String>(Arrays.asList("m", "n", "o")),
+                 (ArrayList<String>)datastore
+                     .prepare(new Query(DataUtils.IMAGE)
+                                  .setFilter(new FilterPredicate(
+                                      "name", FilterOperator.EQUAL, "Image10")))
+                     .asSingleEntity()
+                     .getProperty("tags"));
+  }
+
+  @Test
+  public void updateMask() throws Exception {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Mockito.when(request.getParameter("mode")).thenReturn("update");
+    Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
+    Mockito.when(request.getParameter("parent-img")).thenReturn("Image0");
+    Mockito.when(request.getParameter("img-name")).thenReturn("Mask0");
+    Mockito.when(request.getParameter("new-name")).thenReturn("Mask10");
+    Mockito.when(request.getParameter("tags")).thenReturn("m, n, o");
+    PowerMockito.doReturn("mno").when(BlobUtils.class, "getBlobKeyString",
+                                      request);
+    servlet.doPost(request, response);
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    assertEquals(new ArrayList<String>(Arrays.asList("m", "n", "o")),
+                 (ArrayList<String>)datastore
+                     .prepare(new Query(DataUtils.MASK)
+                                  .setFilter(new FilterPredicate(
+                                      "name", FilterOperator.EQUAL, "Mask10")))
+                     .asSingleEntity()
+                     .getProperty("tags"));
+  }
+
+  @Test
+  public void deleteImage() throws IOException {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     assertEquals(2,
                  datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
@@ -82,6 +255,37 @@ public final class BlobServletTest {
                  datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
     assertEquals(0,
                  datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    assertEquals(0,
+                 datastore
+                     .prepare(new Query(DataUtils.IMAGE)
+                                  .setFilter(new FilterPredicate(
+                                      "name", FilterOperator.EQUAL, "Image0")))
+                     .countEntities());
+  }
+
+  @Test
+  public void deleteMask() throws IOException {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    Mockito.when(request.getParameter("mode")).thenReturn("update");
+    Mockito.when(request.getParameter("delete")).thenReturn("true");
+    Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
+    Mockito.when(request.getParameter("parent-img")).thenReturn("Image0");
+    Mockito.when(request.getParameter("img-name")).thenReturn("Mask0");
+    servlet.doPost(request, response);
+    assertEquals(2,
+                 datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(1,
+                 datastore.prepare(new Query(DataUtils.MASK)).countEntities());
+    assertEquals(0,
+                 datastore
+                     .prepare(new Query(DataUtils.MASK)
+                                  .setFilter(new FilterPredicate(
+                                      "name", FilterOperator.EQUAL, "Mask0")))
+                     .countEntities());
   }
 
   ////////////////////////////////////////////////////////////////

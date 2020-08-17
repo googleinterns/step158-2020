@@ -75,13 +75,13 @@ public final class BlobServletTestUtils {
     projEntity.setProperty("proj-id", projId);
     datastore.put(projEntity);
 
-    Entity imgEntity = new Entity(DataUtils.IMAGE, 1, projKey);
+    Entity imgEntity = new Entity(DataUtils.IMAGE, 456, projKey);
     imgEntity.setProperty("name", "Image0");
     imgEntity.setProperty("utc", "2020-08-12T05:39:02.383Z");
     imgEntity.setProperty("blobkey", "abc");
     imgEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
 
-    Entity imgEntity2 = new Entity(DataUtils.IMAGE, 2, projKey);
+    Entity imgEntity2 = new Entity(DataUtils.IMAGE, 789, projKey);
     imgEntity2.setProperty("name", "Image1");
     imgEntity2.setProperty("utc", "2020-08-12T05:39:02.384Z");
     imgEntity2.setProperty("blobkey", "def");
@@ -89,13 +89,13 @@ public final class BlobServletTestUtils {
 
     datastore.put(Arrays.asList(imgEntity, imgEntity2));
 
-    Entity maskEntity = new Entity(DataUtils.MASK, 1, imgEntity.getKey());
+    Entity maskEntity = new Entity(DataUtils.MASK, 135, imgEntity.getKey());
     maskEntity.setProperty("name", "Mask0");
     maskEntity.setProperty("utc", "2020-08-12T05:39:02.384Z");
     maskEntity.setProperty("blobkey", "ghi");
     maskEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
 
-    Entity maskEntity2 = new Entity(DataUtils.MASK, 2, imgEntity.getKey());
+    Entity maskEntity2 = new Entity(DataUtils.MASK, 246, imgEntity.getKey());
     maskEntity2.setProperty("name", "Mask1");
     maskEntity2.setProperty("utc", "2020-08-12T05:39:02.383Z");
     maskEntity2.setProperty("blobkey", "jkl");
