@@ -77,8 +77,10 @@ export class MagicWandService {
     const curPixel: Array<number> = this.dataArrayToRgb(imgData, curX, curY);
 
     const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
+    // Work with tolerance logic in squared space for Euclidean distance.
+    const squaredTolerance = tolerance * tolerance;
 
-    if (colorDifference > tolerance) {
+    if (colorDifference > squaredTolerance) {
       return false;
     }
 
@@ -106,7 +108,10 @@ export class MagicWandService {
       distance += Math.pow((basisColor[i] - secondColor[i]), 2);
     }
 
-    return Math.sqrt(distance);
+    // Does not sqrt distance to complete eucidean dist formula b/c sqrt is
+    // an expense operation. Instead, can compare against tolerance in the 
+    // squared space.
+    return distance;
   } 
 
   // Checks if @pixelCoord is in bounds and makes sure it's not a repeat coord.
@@ -271,6 +276,8 @@ export class MagicWandService {
 
     // Gets array of color attributes of current pixel.
     const curPixel: Array<number> = this.dataArrayToRgb(imgData, curX, curY);
+    // Work with tolerance logic in squared space for Euclidean distance.
+    const squaredTolerance = tolerance * tolerance;
 
     for (let pixelIndex of scribbles) {
       const refPixelCoord: Array<number> = 
@@ -283,7 +290,7 @@ export class MagicWandService {
 
       // If the curPixel is tolerable for at least 1 of the reference pixels,
       // then the curPixel will be part of the mask.
-      if (colorDifference <= tolerance) {
+      if (colorDifference <= squaredTolerance) {
         return true;
       }
     }
