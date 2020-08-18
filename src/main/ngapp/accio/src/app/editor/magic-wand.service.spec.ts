@@ -30,7 +30,7 @@ describe('MagicWandService', () => {
     imgData.data[56 + 2] = 117;  // Blue
     imgData.data[56 + 3] = 255;  // Alpha
     expect(service.dataArrayToRgba(
-        imgData, 3, 1)).toEqual([120, 111, 117, 255]);
+        imgData, 3, 1)).toEqual([120, 111, 117]);
   });
   it('Test method: isInBounds() >> top left OutOfRange', () => {
     // Should return false if inputted pixel's coord is out of range of the img
@@ -68,7 +68,7 @@ describe('MagicWandService', () => {
     const imgData: ImageData = makeTestImage(
         11, 4, [120, 117, 108, 255], new Set<number>([24]));
     expect(service.getIsMask(
-        [131, 117, 108, 255], imgData, [6, 0], 10)).toEqual(
+        [131, 117, 108], imgData, [6, 0], 10)).toEqual(
         false);
   });
   it('Test method: getIsMask() >> valid', () => {
@@ -76,7 +76,7 @@ describe('MagicWandService', () => {
     const imgData: ImageData = makeTestImage(
         11, 4, [120, 117, 108, 255], new Set<number>([24]));
     expect(service.getIsMask(
-        [130, 117, 108, 255], imgData, [6, 0], 10)).toEqual(
+        [130, 117, 108], imgData, [6, 0], 10)).toEqual(
         true);
   });
   it('Test method: floodfill() >> no adjacent pixels in mask', () => {
