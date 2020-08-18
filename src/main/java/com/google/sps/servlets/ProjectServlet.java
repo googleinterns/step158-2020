@@ -247,12 +247,12 @@ public class ProjectServlet extends HttpServlet {
       String searchTerm = request.getParameter("search-term");
       if (!DataUtils.isEmptyParameter(searchTerm)) {
         Filter searchFilter = new FilterPredicate("name", FilterOperator.EQUAL,
-                                                  searchTerm.toLowerCase());
+                                                  searchTerm);
         allFilters.add(searchFilter);
       }
 
       // A composite filter requres more than one filter
-      if (allFilters.size() == 1) {
+      if (allFilters.size() == 1) { 
         projQuery.setFilter(allFilters.get(0));
       } else {
         projQuery.setFilter(
