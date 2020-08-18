@@ -308,6 +308,9 @@ export class MagicWandService {
       imgData: ImageData, tolerance: number): Set<number> {
     let result: Set<number> = new Set();
 
+    // Work with tolerance logic in squared space for Euclidean distance.
+    const squaredTolerance = tolerance * tolerance;
+
     for (let pixelIndex of scribbles) {
       const pixelCoord: Array<number> = 
           this.pixelIndexToXYCoord(pixelIndex, imgData.width);
@@ -317,7 +320,7 @@ export class MagicWandService {
 
       const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
 
-      if (colorDifference > tolerance / 2) {
+      if (colorDifference > squaredTolerance / 2) {
         result.add(pixelIndex);
       }
     }
