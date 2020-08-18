@@ -102,7 +102,8 @@ describe('MagicWandService', () => {
     expect(service.floodfill(imgData, 6, 1, 1)).toEqual(new Set<number>(
         [68, 72]));
   });
-// Test suite for additional tools
+
+  // Test suite for additional tools
   it('Test method: erase()', () => {
   // Should return a mask with pixels from the input set being excluded
   const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
@@ -115,6 +116,22 @@ describe('MagicWandService', () => {
   const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
   const expected: Set<number> = new Set([4, 16, 20, 24, 28, 32, 36]);
   expect(service.invert(originalMask, 4, 3)).toEqual(expected);
+  });
+
+  it('Test method: rgbEuclideanDist() valid', () => {
+  // Should return the straight line distance between two pixels' colors
+  const pixelA = [2, 4, 1];
+  const pixelB = [7, 2, 2];
+  // Euclidean distance is the sqrt( sum( a[n] - b[n] ) )
+  expect(service.rgbEuclideanDist(pixelA, pixelB)).toEqual(30);
+  });
+  it('rbgEuclideanDist() Error(arrays different length)', () => {
+  expect(() => {service.rgbEuclideanDist([1, 2, 3], [4, 2])}).toThrow(
+      new Error('basisColor and secondColor must be same lengthed arrays...'));
+  });
+  it('rbgEuclideanDist() Error(length must be 3)', () => {
+  expect(() => {service.rgbEuclideanDist([1, 2], [4, 2])}).toThrow(
+      new Error('Arguments must be an array of [R, G, B] (length == 3)...'));
   });
 });
 
