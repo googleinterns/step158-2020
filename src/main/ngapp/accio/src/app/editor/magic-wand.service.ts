@@ -308,7 +308,7 @@ export class MagicWandService {
       imgData: ImageData, tolerance: number): Set<number> {
     let result: Set<number> = new Set();
 
-    // Work with tolerance logic in squared space for Euclidean distance. 
+    // Work with tolerance logic in squared space for Euclidean distance.
     const squaredTolerance = tolerance * tolerance;
 
     for (let pixelIndex of scribbles) {
