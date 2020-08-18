@@ -252,7 +252,7 @@ export class MagicWandService {
         }
         // Visits the pixel and check if it should be part of the mask.
         visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
-        if (this.getIsScribbleMask(originalPixel, imgData, neighborPixel, tolerance, scribbles)) {
+        if (this.getIsScribbleMask(scribbles, imgData, neighborPixel, tolerance)) {
           visit.push(neighborPixel);
         }
       }
@@ -264,8 +264,8 @@ export class MagicWandService {
   /**Judges current pixel's RGB against original pixel's RGB to
    * see if it can still be part of the mask (using tolerance criteria).
    */
-  getIsScribbleMask(originalPixel: Array<number>, imgData: ImageData,
-      pixelCoord: Array<number>, tolerance: number, scribbles: Set<number>): boolean {
+  getIsScribbleMask(scribbles: Set<number>, imgData: ImageData,
+      pixelCoord: Array<number>, tolerance: number): boolean {
     const curX: number = pixelCoord[0];
     const curY: number = pixelCoord[1];
 
