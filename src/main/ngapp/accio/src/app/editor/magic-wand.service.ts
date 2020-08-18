@@ -261,7 +261,7 @@ export class MagicWandService {
     return mask;
   }
 
-  /**Judges current pixel's RGB against original pixel's RGB to
+  /**Judges current pixel's RGB against a set of reference pixels' RGBs to
    * see if it can still be part of the mask (using tolerance criteria).
    */
   getIsScribbleMask(scribbles: Set<number>, imgData: ImageData,
