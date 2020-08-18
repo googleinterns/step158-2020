@@ -162,7 +162,7 @@ export class EditorComponent implements OnInit {
   *  Sets new pixels in magenta, clears canvas of previous data 
   *    and draws image and mask as scaled. Disables submit
   *    on mask until the url is set. 
-  *  class @param this.disableFloodFill must equal true before pixels updated because 
+  *  class @param this.disableFloodFill must equal true before pixels updated  
   *    so another floodfill isn't called before one finishes.
   *  class @param this.disableSubmit set equal to true before pixels updated 
   *    so submit isn't called before mask is drawn and url is updated.
