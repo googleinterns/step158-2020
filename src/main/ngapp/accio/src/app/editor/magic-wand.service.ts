@@ -13,56 +13,9 @@ export class MagicWandService {
   /* tslint:disable */
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
       tolerance: number): Set<number> {
-    // Stores a queue of coords for pixels that we need to visit in "visit".
-    const visit: Array<Array<number>> = new Array();
-    // Stores already-visited pixels in "visited" as index formatted numbers
-    // (as opposed to coord format; for Set funcs).
-    const visited: Set<number> = new Set();
-    // Uses a set for mask; mainly do iter and set operations on masks...
-    const mask: Set<number> = new Set();
-    // Represents [R,G,B] attributes of initial pixel.
-    const originalPixel: Array<number> =
-        this.dataArrayToRgb(imgData, xCoord, yCoord);
-
-    visit.push([xCoord, yCoord]);
-    // Converts [x,y] format coord to 1-D equivalent of
-    // imgData.data (DataArray).
-    const indexAsDataArray: number =
-        this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
-    visited.add(indexAsDataArray);
-
-    // Loops until no more adjacent pixels within tolerance level.
-    while (visit.length !== 0) {
-      const coord: Array<number> = visit.pop();
-      // Unpacks coord
-      const x: number = coord[0];
-      const y: number = coord[1];
-
-      // Operational part of while-loop.
-      mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
-
-      // Loop part of while-loop.
-
-      // Gets coords of adjacent pixels.
-      const neighbors: Array<Array<number>> =
-          [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
-      // Adds coords of adjacent pixels to the heap.
-      for (const neighborPixel of neighbors) {
-        const x: number = neighborPixel[0];
-        const y: number = neighborPixel[1];
-        // Checks if coord is in bounds and has not been visited first.
-        if (!this.getIsValid(imgData.width, imgData.height, x, y, visited)) {
-          continue;
-        }
-        // Visits the pixel and checks if it should be part of the mask.
-        visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
-        if (this.getIsMask(originalPixel, imgData, neighborPixel, tolerance)) {
-          visit.push(neighborPixel);
-        }
-      }
-    }  // End of while loop.
-
-    return mask;
+    // An empty set is given for the scribbles parameter, so only a basic 
+    // floodfill is performed. 
+    return this.doFloodfill(imgData, xCoord, yCoord, tolerance, new Set<number>());
   }
 
   /**Judges current pixel's RGB against original pixel's RGB to
@@ -212,58 +165,7 @@ export class MagicWandService {
 
   scribbleFloodfill(imgData: ImageData, xCoord: number, yCoord: number,
       tolerance: number, scribbles: Set<number>): Set<number> {
-    // Stores a queue of coords for pixels that we need to visit in "visit".
-    const visit: Array<Array<number>> = new Array();
-    // Stores already-visited pixels in "visited" as index formatted numbers
-    // (as opposed to coord format; for Set funcs).
-    const visited: Set<number> = new Set();
-    // Uses a set for mask; mainly do iter and set operations on masks.
-    const mask: Set<number> = new Set();
-    // Represents [R,G,B] attributes of initial pixel.
-    const originalPixel: Array<number> =
-        this.dataArrayToRgb(imgData, xCoord, yCoord);
-
-    visit.push([xCoord, yCoord]);
-    // Converts [x,y] format to 1-D equivalent of imgData.data (DataArray).
-    const indexAsDataArray: number =
-        this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
-    visited.add(indexAsDataArray);
-
-    // Filters scribbles by removing unnecessary pixels
-    scribbles = this.filterScribbles(scribbles, originalPixel, imgData, tolerance);
-
-    // Loops until no more adjacent pixels within tolerance level.
-    while (visit.length !== 0) {
-      const coord: Array<number> = visit.pop();
-      // Unpacks coord.
-      const x: number = coord[0];
-      const y: number = coord[1];
-
-      // Operational part of while-loop.
-      mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
-
-      // Loop part of while-loop.
-
-      // Gets coords of adjacent pixels.
-      const neighbors: Array<Array<number>> =
-          [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
-      // Adds coords of adjacent pixels to the heap.
-      for (const neighborPixel of neighbors) {
-        const x: number = neighborPixel[0];
-        const y: number = neighborPixel[1];
-        // Checks if coord is in bounds and has not been visited first.
-        if (!this.getIsValid(imgData.width, imgData.height, x, y, visited)) {
-          continue;
-        }
-        // Visits the pixel and check if it should be part of the mask.
-        visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
-        if (this.getIsScribbleMask(scribbles, imgData, neighborPixel, tolerance)) {
-          visit.push(neighborPixel);
-        }
-      }
-    }  // End of while loop.
-
-    return mask;
+    return this.doFloodfill(imgData, xCoord, yCoord, tolerance, scribbles);
   }
 
   /**Judges current pixel's RGB against a set of reference pixels' RGBs to
@@ -335,5 +237,99 @@ export class MagicWandService {
    */
   pixelIndexToXYCoord(pixelIndex: number, width: number): Array<number> {
     return [((pixelIndex / 4) % width), ((pixelIndex / 4) / width)];
+  }
+
+  /**Does the general floodfill algorithm, and switches to 
+   * scribbleFloodfill() if 
+   * @param {Set<number>} scribbles is provided as a non-empty set.
+   */
+  doFloodfill(imgData: ImageData, xCoord: number, yCoord: number,
+      tolerance: number, scribbles: Set<number>): Set<number> {
+    // Stores a queue of coords for pixels that we need to visit in "visit".
+    const visit: Array<Array<number>> = new Array();
+    // Stores already-visited pixels in "visited" as index formatted numbers
+    // (as opposed to coord format; for Set funcs).
+    const visited: Set<number> = new Set();
+    // Uses a set for mask; mainly do iter and set operations on masks...
+    const mask: Set<number> = new Set();
+    // Represents [R,G,B] attributes of initial pixel.
+    const originalPixel: Array<number> =
+        this.dataArrayToRgb(imgData, xCoord, yCoord);
+
+    visit.push([xCoord, yCoord]);
+    // Converts [x,y] format coord to 1-D equivalent of
+    // imgData.data (DataArray).
+    const indexAsDataArray: number =
+        this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
+    visited.add(indexAsDataArray);
+
+    // Performs a basic floodfill if the scribbles set is empty.
+    if (scribbles.size === 0) {
+      // Loops until no more adjacent pixels within tolerance level.
+      while (visit.length !== 0) {
+        const coord: Array<number> = visit.pop();
+        // Unpacks coord
+        const x: number = coord[0];
+        const y: number = coord[1];
+
+        // Operational part of while-loop.
+        mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
+
+        // Loop part of while-loop.
+
+        // Gets coords of adjacent pixels.
+        const neighbors: Array<Array<number>> =
+            [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
+        // Adds coords of adjacent pixels to the heap.
+        for (const neighborPixel of neighbors) {
+          const x: number = neighborPixel[0];
+          const y: number = neighborPixel[1];
+          // Checks if coord is in bounds and has not been visited first.
+          if (!this.getIsValid(imgData.width, imgData.height, x, y, visited)) {
+            continue;
+          }
+          // Visits the pixel and checks if it should be part of the mask.
+          visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
+          if (this.getIsMask(originalPixel, imgData, neighborPixel, tolerance)) {
+            visit.push(neighborPixel);
+          }
+        }
+      }  // End of while loop.
+    } else {
+      // Performs the scribble floodfill if the scribbles set is not empty.
+
+      // Loops until no more adjacent pixels within tolerance level.
+      while (visit.length !== 0) {
+        const coord: Array<number> = visit.pop();
+        // Unpacks coord.
+        const x: number = coord[0];
+        const y: number = coord[1];
+
+        // Operational part of while-loop.
+        mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
+
+        // Loop part of while-loop.
+
+        // Gets coords of adjacent pixels.
+        const neighbors: Array<Array<number>> =
+            [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
+        // Adds coords of adjacent pixels to the heap.
+        for (const neighborPixel of neighbors) {
+          const x: number = neighborPixel[0];
+          const y: number = neighborPixel[1];
+          // Checks if coord is in bounds and has not been visited first.
+          if (!this.getIsValid(imgData.width, imgData.height, x, y, visited)) {
+            continue;
+          }
+          // Visits the pixel and check if it should be part of the mask.
+          visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
+          if (this.getIsScribbleMask(scribbles, imgData, neighborPixel, tolerance)) {
+            visit.push(neighborPixel);
+          }
+        }
+      }  // End of while loop.
+    }
+    
+    return mask;
   }
 }
