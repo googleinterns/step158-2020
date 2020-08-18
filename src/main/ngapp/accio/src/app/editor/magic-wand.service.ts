@@ -225,7 +225,7 @@ export class MagicWandService {
     visited.add(indexAsDataArray);
 
     // Filters scribbles by removing unnecessary pixels
-    scribbles = filterScribbles(scribbles, tolerance);
+    scribbles = this.filterScribbles(scribbles, originalPixel, imgData, tolerance);
 
     // Loops until no more adjacent pixels within tolerance level.
     while (visit.length !== 0) {
@@ -272,16 +272,23 @@ export class MagicWandService {
     // Gets array of color attributes of current pixel.
     const curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);
 
-    // Color attributes of pixel (R,G, and B) must be within tolerance level.
-    for (let i = 0; i < 3; i++) {
-      const upperTolerance: boolean = curPixel[i] > originalPixel[i] + tolerance;
-      const lowerTolerance: boolean = curPixel[i] < originalPixel[i] - tolerance;
-      if (upperTolerance || lowerTolerance) {
-        return false;
+    for (let pixelIndex of scribbles) {
+      const pixelCoord: Array<number> = 
+          this.pixelIndexToXYCoord(pixelIndex, imgData.width);
+      const x = pixelCoord[0];
+      const y = pixelCoord[1];
+      const curPixel = this.dataArrayToRgba(imgData, x, y);
+
+      const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
+
+      // If the curPixel is tolerable for at least 1 of the reference pixels,
+      // then the curPixel will be part of the mask.
+      if (colorDifference <= tolerance) {
+        return true;
       }
     }
 
-    return true;
+    return false;
   }
 
   /**@returns {Set<number>} filtered set of pixels by removing indices 
@@ -294,16 +301,30 @@ export class MagicWandService {
       imgData: ImageData, tolerance: number): Set<number> {
     // TODO
     let result: Set<number> = new Set();
-    for (let pixelCoord of scribbles) {
-      const x = (pixelCoord / 4) % imgData.width;
-      const y = (pixelCoord / 4) / imgData.width;
+
+    for (let pixelIndex of scribbles) {
+      const pixelCoord: Array<number> = 
+          this.pixelIndexToXYCoord(pixelIndex, imgData.width);
+      const x = pixelCoord[0];
+      const y = pixelCoord[1];
       const curPixel = this.dataArrayToRgba(imgData, x, y);
+
       const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
+
       if (colorDifference > tolerance / 2) {
-        result.add(pixelCoord);
+        result.add(pixelIndex);
       }
     }
 
     return result;
+  }
+
+  /**@returns {Array<number> [x, y]} a 2-D coordinate by converting 
+   * @param {number} pixelIndex into the coordsponding [x, y] coordinate.
+   * @param {number} width should be the pixel width of the image that the 
+   * pixelIndex belongs to.
+   */
+  pixelIndexToXYCoord(pixelIndex: number, width: number): Array<number> {
+    return [((pixelIndex / 4) % width), ((pixelIndex / 4) / width)];
   }
 }
