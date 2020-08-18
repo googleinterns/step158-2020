@@ -38,10 +38,10 @@ export class MagicWandService {
       const x: number = coord[0];
       const y: number = coord[1];
 
-      // Operational part of while-loop...
+      // Operational part of while-loop.
       mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
 
-      // Loop part of while-loop...
+      // Loop part of while-loop.
 
       // Gets coords of adjacent pixels.
       const neighbors: Array<Array<number>> =
@@ -60,7 +60,7 @@ export class MagicWandService {
           visit.push(neighborPixel);
         }
       }
-    }  // End of while loop...
+    }  // End of while loop.
 
     return mask;
   }
@@ -234,10 +234,10 @@ export class MagicWandService {
       const x: number = coord[0];
       const y: number = coord[1];
 
-      // Operational part of while-loop...
+      // Operational part of while-loop.
       mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
 
-      // Loop part of while-loop...
+      // Loop part of while-loop.
 
       // Gets coords of adjacent pixels.
       const neighbors: Array<Array<number>> =
@@ -256,7 +256,7 @@ export class MagicWandService {
           visit.push(neighborPixel);
         }
       }
-    }  // End of while loop...
+    }  // End of while loop.
 
     return mask;
   }
@@ -299,7 +299,6 @@ export class MagicWandService {
   */
   filterScribbles(scribbles: Set<number>, originalPixel: Array<number>, 
       imgData: ImageData, tolerance: number): Set<number> {
-    // TODO
     let result: Set<number> = new Set();
 
     for (let pixelIndex of scribbles) {
