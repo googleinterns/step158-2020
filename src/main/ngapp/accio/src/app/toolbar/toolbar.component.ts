@@ -12,17 +12,17 @@ export class ToolbarComponent implements OnInit {
   @Output() newMaskToolEvent = new EventEmitter<string>();
   @Output() invertMaskEvent = new EventEmitter<void>();
   @Output() newToleranceEvent = new EventEmitter<number>();
-  @Output() newTintEvent = new EventEmitter<number>();
+  @Output() newMaskAlphaEvent = new EventEmitter<number>();
 
   toleranceValue: number;
-  tintValue: number;
+  maskAlphaValue: number;
   maskTool: string;
 
   constructor() { }
 
   ngOnInit(): void {
     this.toleranceValue = 30;
-    this.tintValue = 1;
+    this.maskAlphaValue = 1;
     this.maskTool = "MAGIC-WAND";
   }
 
@@ -47,8 +47,8 @@ export class ToolbarComponent implements OnInit {
     this.newToleranceEvent.emit(this.toleranceValue);
   }
 
-  /** Emits value of user inputed/slider tint. */
-  updateTint() {
-    this.newTintEvent.emit(this.tintValue);
+  /** Emits value of user inputed/slider alpha value. */
+  updateMaskAlpha() {
+    this.newMaskAlphaEvent.emit(this.maskAlphaValue);
   }
 }

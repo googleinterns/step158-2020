@@ -43,7 +43,7 @@ export class EditorComponent implements OnInit {
   scaleFactor: number;
   originalImageData: ImageData;
   tolerance: number;
-  tint:number;
+  maskAlpha:number;
   disableFloodFill: boolean;
   //  Declares the type of tool the user has selected from the tool bar:
   //      'magic-wand' = flood fill algorithm enabled.
@@ -66,7 +66,7 @@ export class EditorComponent implements OnInit {
     this.image = new Image();
     this.scaleFactor = .9;
     this.tolerance = 30;
-    this.tint = 1;
+    this.maskAlpha = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.magicWand;
     
@@ -197,8 +197,8 @@ export class EditorComponent implements OnInit {
         this.drawScaledImage(this.image);
       }
       this.ctx.save();
-      this.ctx.globalAlpha = this.tint;
-      console.log('global alpha = ' + this.tint);
+      this.ctx.globalAlpha = this.maskAlpha;
+      console.log('global alpha = ' + this.maskAlpha);
       this.drawScaledImage(mask);
       this.ctx.restore();
       this.disableSubmit = false;
@@ -315,24 +315,18 @@ export class EditorComponent implements OnInit {
 
 
  /** 
-  *  Retrieves new tint value from child component toolbar and draws mask with new tint.
-  *  If the tint value cannot be larger than 1 and if the value inputed is greater than 1, 
-  *    then the tint defaults to 1.
+  *  Retrieves new alpha value from child component toolbar and draws mask with new alpha.
+  *  The alpha value cannot be larger than 1 or less than 0, so the value is adjusted to fit in range.
   */
-  updateTint(value: number) {
-    if (value > 1) {
-      this.tint = 1;
-    }
-    else {
-      this.tint = value;
-    }
-    //  Draw mask with new tint value.
+  updateMaskAlpha(value: number) {
+    this.maskAlpha = (Math.abs(value) % 1);
+    //  Draw mask with new maskAlpha value.
     this.disableFloodFill = true;
     this.drawMask();
     if (this.maskTool == MaskTool.magicWand) {
       this.disableFloodFill = false;
     }
-    console.log('new tint: ' + value);
+    console.log('new maskAlpha: ' + value);
   }
 
  /** 
@@ -367,14 +361,6 @@ export class EditorComponent implements OnInit {
   *        Would decrease lag.
   */
   drawPixel(pixel: number) {
-    //Commented out would be the TODO but the pixels don't line up 1:1 so there would be a visual difference in what the 
-    /// user thinks they're clicking on and what they actully paint on the mask.
-    // let imageData = this.ctx.getImageData(0,0,this.canvas.nativeElement.width, this.canvas.nativeElement.height);
-    // imageData.data[pixel] = 255;
-    // imageData.data[pixel + 2] = 255;
-    // imageData.data[pixel + 3] = 255;
-    // this.ctx.putImageData(imageData, 0,0);
-
     this.maskImageData.data[pixel] = 255;
     this.maskImageData.data[pixel + 2] = 255;
     this.maskImageData.data[pixel + 3] = 255;

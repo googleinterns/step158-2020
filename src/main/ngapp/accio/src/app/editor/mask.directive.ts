@@ -17,7 +17,7 @@ export class MaskDirective {
   @Output() newMaskEvent = new EventEmitter<Set<number>>();
   @Output() newPaintEvent = new EventEmitter<number>();
 
-  //  Set containing pixels converted to theit red index in ImageData. Used for paint and scribble
+  //  Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
   mouseDown: boolean = false;
   //  Determines if the user moved after they clicked, and does scribble fill instead of flood. 
@@ -63,7 +63,7 @@ export class MaskDirective {
   }
 
   /** 
-   *  Listens for mouse movment over appMask, executes if user's mouse is clicked.
+   *  Listens for mouse movement over appMask, executes if user's mouse is clicked.
    *  For each movement, the pixel is added to the paintPixels set and then painted 
    *    on the canvas.
    */
@@ -91,18 +91,13 @@ export class MaskDirective {
   }
 
  /** 
-
-  *  Sends class @param paintPixels of pixels user painted to magic-wand.service
-  */
-
- /** 
   *  Executes once user releases mouse 
   *  Calls magic-wand.service paint/scribbleFloodFill/floodFill function
   *    depending on what tool is selected and if the user moved the mouse or not. 
   *  If normal floodFill, then records the x and y offset, retrieves the tolerance and calls the 
   *    floodfill algorithm. 
   *  If the user moved the mouse before picking up their mouse, then floodFill does not execute.
-  *    scribble is called instead. 
+  *    scribble is called instead with @param paintPixels.
   */ 
   @HostListener('mouseup', ['$event']) 
   onMouseUp(e: MouseEvent) {
