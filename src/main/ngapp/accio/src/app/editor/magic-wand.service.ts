@@ -252,7 +252,7 @@ export class MagicWandService {
         }
         // Visits the pixel and check if it should be part of the mask.
         visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
-        if (this.getIsScribbleMask(originalPixel, imgData, neighborPixel, tolerance)) {
+        if (this.getIsScribbleMask(originalPixel, imgData, neighborPixel, tolerance, scribbles)) {
           visit.push(neighborPixel);
         }
       }
@@ -284,12 +284,22 @@ export class MagicWandService {
     return true;
   }
 
-  filterScribbles(scribbles: Set<number>, tolerance: number): Set<number> {
+  /**@returns {Set<number>} filtered set of pixels by removing indices 
+   * of pixels whose color are too similar to the original pixel. 
+   * Judgement of 'too similar' is decided by a factor of 
+   * @param {number} tolerance and color value itself is retrieved from
+   * @param {ImageData} imgData
+  */
+  filterScribbles(scribbles: Set<number>, originalPixel: Array<number>, 
+      imgData: ImageData, tolerance: number): Set<number> {
     // TODO
     let result: Set<number> = new Set();
     for (let pixelCoord of scribbles) {
-      pixelColor = RgbEuclideanDist();
-      if (/* filter condition */) {
+      const x = (pixelCoord / 4) % imgData.width;
+      const y = (pixelCoord / 4) / imgData.width;
+      const curPixel = this.dataArrayToRgba(imgData, x, y);
+      const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
+      if (colorDifference > tolerance / 2) {
         result.add(pixelCoord);
       }
     }
