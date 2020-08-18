@@ -273,13 +273,13 @@ export class MagicWandService {
     const curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);
 
     for (let pixelIndex of scribbles) {
-      const pixelCoord: Array<number> = 
+      const refPixelCoord: Array<number> = 
           this.pixelIndexToXYCoord(pixelIndex, imgData.width);
-      const x = pixelCoord[0];
-      const y = pixelCoord[1];
-      const curPixel = this.dataArrayToRgba(imgData, x, y);
+      const x = refPixelCoord[0];
+      const y = refPixelCoord[1];
+      const refPixel = this.dataArrayToRgba(imgData, x, y);
 
-      const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
+      const colorDifference = this.rgbEuclideanDist(refPixel, curPixel);
 
       // If the curPixel is tolerable for at least 1 of the reference pixels,
       // then the curPixel will be part of the mask.
