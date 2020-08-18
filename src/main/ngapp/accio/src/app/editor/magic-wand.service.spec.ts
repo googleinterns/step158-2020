@@ -29,7 +29,7 @@ describe('MagicWandService', () => {
     imgData.data[56 + 1] = 111;  // Green
     imgData.data[56 + 2] = 117;  // Blue
     imgData.data[56 + 3] = 255;  // Alpha
-    expect(service.dataArrayToRgba(
+    expect(service.dataArrayToRgb(
         imgData, 3, 1)).toEqual([120, 111, 117]);
   });
   it('Test method: isInBounds() >> top left OutOfRange', () => {

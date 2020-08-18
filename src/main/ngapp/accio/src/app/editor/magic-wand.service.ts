@@ -22,7 +22,7 @@ export class MagicWandService {
     const mask: Set<number> = new Set();
     // Represents [R,G,B] attributes of initial pixel.
     const originalPixel: Array<number> =
-        this.dataArrayToRgba(imgData, xCoord, yCoord);
+        this.dataArrayToRgb(imgData, xCoord, yCoord);
 
     visit.push([xCoord, yCoord]);
     // Converts [x,y] format coord to 1-D equivalent of
@@ -74,7 +74,7 @@ export class MagicWandService {
     const curY: number = pixelCoord[1];
 
     // Gets [R, G, B] of current pixel.
-    const curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);
+    const curPixel: Array<number> = this.dataArrayToRgb(imgData, curX, curY);
 
     const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
 
@@ -141,7 +141,7 @@ export class MagicWandService {
    * @param {number} yCoord based off of the original image supplied by
    * @param {ImageData} imgData
    */
-  dataArrayToRgba(imgData: ImageData, xCoord: number, yCoord: number):
+  dataArrayToRgb(imgData: ImageData, xCoord: number, yCoord: number):
       Array<number> {
     // Unpacks imgData for readability.
     const data: Uint8ClampedArray = imgData.data;
@@ -216,7 +216,7 @@ export class MagicWandService {
     const mask: Set<number> = new Set();
     // Represents [R,G,B] attributes of initial pixel.
     const originalPixel: Array<number> =
-        this.dataArrayToRgba(imgData, xCoord, yCoord);
+        this.dataArrayToRgb(imgData, xCoord, yCoord);
 
     visit.push([xCoord, yCoord]);
     // Converts [x,y] format to 1-D equivalent of imgData.data (DataArray).
@@ -270,14 +270,14 @@ export class MagicWandService {
     const curY: number = pixelCoord[1];
 
     // Gets array of color attributes of current pixel.
-    const curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);
+    const curPixel: Array<number> = this.dataArrayToRgb(imgData, curX, curY);
 
     for (let pixelIndex of scribbles) {
       const refPixelCoord: Array<number> = 
           this.pixelIndexToXYCoord(pixelIndex, imgData.width);
       const x = refPixelCoord[0];
       const y = refPixelCoord[1];
-      const refPixel = this.dataArrayToRgba(imgData, x, y);
+      const refPixel = this.dataArrayToRgb(imgData, x, y);
 
       const colorDifference = this.rgbEuclideanDist(refPixel, curPixel);
 
@@ -307,7 +307,7 @@ export class MagicWandService {
           this.pixelIndexToXYCoord(pixelIndex, imgData.width);
       const x = pixelCoord[0];
       const y = pixelCoord[1];
-      const curPixel = this.dataArrayToRgba(imgData, x, y);
+      const curPixel = this.dataArrayToRgb(imgData, x, y);
 
       const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
 
