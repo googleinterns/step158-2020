@@ -161,8 +161,15 @@ export class MagicWandService {
   }
 
 
-  /* Smarter flood fill tool */
-
+  /**Smarter flood fill tool:
+   *
+   * Compares the tolerance against a set of 
+   * reference pixels' colors as opposed to just an initial pixel's color.
+   * The user supplies a
+   * @param {Set<number>} scribbles set of pixels that is used to essentailly
+   * expand the range of the tolerance threshold as the floodfill
+   * percolates from the first-selected pixel. 
+   */
   scribbleFloodfill(imgData: ImageData, xCoord: number, yCoord: number,
       tolerance: number, scribbles: Set<number>): Set<number> {
     return this.doFloodfill(imgData, xCoord, yCoord, tolerance, scribbles);
