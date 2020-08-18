@@ -9,6 +9,9 @@
   <mat-button-toggle mat-icon-button value="PAINT" title="Paint Mask">
     <mat-icon>brush</mat-icon>
   </mat-button-toggle>
+  <mat-button-toggle mat-icon-button value="ERASE" title="Erase Mask">
+    <span class="iconify" data-icon="mdi-eraser" data-inline="false"></span>
+  </mat-button-toggle>
   <mat-button-toggle mat-icon-button value="MASK-ONLY" title="Mask Only">
     <mat-icon>image</mat-icon>
   </mat-button-toggle>
@@ -37,7 +40,11 @@
   <br/>
   <mat-form-field class="slider-value">
     <mat-label style="color=white">Tolerance</mat-label>
-    <input matInput type="number" [(ngModel)]="toleranceValue" style="color=white">
+    <input
+      (change)="updateTolerance()" 
+      matInput type="number" 
+      [(ngModel)]="toleranceValue" 
+      style="color=white">
   </mat-form-field>
   <br/>
   <p style="color:white">Tint</p>
@@ -49,6 +56,10 @@
   <br/>
   <mat-form-field class="slider-value">
     <mat-label style="color=white">Tint</mat-label>
-    <input matInput type="number" [(ngModel)]="tintValue" style="color=white">
+    <input 
+      (change)="updateTint()" 
+      matInput type="number" 
+      [(ngModel)]="tintValue" 
+      style="color=white">
   </mat-form-field>
 </div>

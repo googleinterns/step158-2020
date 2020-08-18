@@ -152,7 +152,6 @@ export class EditorComponent implements OnInit {
   */
   private drawScaledImage(image: HTMLImageElement) {
     this.ctx.save();
-    console.log('When drawing image, global alpha = ' + this.tint);
     this.ctx.scale(this.scaleFactor, this.scaleFactor); 
     this.ctx.drawImage(image, 0, 0, image.width, image.height);
     this.ctx.restore();
@@ -219,8 +218,6 @@ export class EditorComponent implements OnInit {
     this.maskImageUrl = this.maskCanvas.nativeElement.toDataURL();
     return this.maskImageUrl;
   }
-
-  // TODO(shmcaffrey): change Alpha value to incorporate user input.
 
   /** 
    *  Initializes Form group and data as new
