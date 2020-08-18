@@ -319,7 +319,7 @@ export class EditorComponent implements OnInit {
   *  The alpha value cannot be larger than 1 or less than 0, so the value is adjusted to fit in range.
   */
   updateMaskAlpha(value: number) {
-    this.maskAlpha = (Math.abs(value) % 1);
+    this.maskAlpha = Math.min(Math.max(value, 0.0), 1.0);
     //  Draw mask with new maskAlpha value.
     this.disableFloodFill = true;
     this.drawMask();
