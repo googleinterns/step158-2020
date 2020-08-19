@@ -92,7 +92,7 @@ export class EditorComponent implements OnInit {
     this.tolerance = 30;
     this.maskAlpha = 1;
     this.disableFloodFill = false;
-    this.maskTool = MaskTool.magicWand;
+    this.maskTool = MaskTool.magicWandAdd;
 
     //  Gets last image array that user sorted on img-gallery page. 
     this.fetchImagesService.currentImages.subscribe(newImages => this.imageArray = newImages);
@@ -213,10 +213,13 @@ export class EditorComponent implements OnInit {
   addToMask(maskPixels: Set<number>) {
     this.disableSubmit = this.disableFloodFill = true;
 
+    //  Chenges if set of pixels are added or removed from the mask depending on the tool.
+    let alphaValue = (this.maskTool == MaskTool.magicWandAdd) ? 255: 0;
+
     for (let pixel of maskPixels) {
       this.maskImageData.data[pixel] = 255;
       this.maskImageData.data[pixel + 2] = 255;
-      this.maskImageData.data[pixel + 3] = 255;
+      this.maskImageData.data[pixel + 3] = alphaValue;
     }
     this.drawMask();
     this.disableSubmit = this.disableFloodFill = false;
@@ -319,7 +322,7 @@ export class EditorComponent implements OnInit {
     this.disableFloodFill = true;
     this.maskImageData = new ImageData(this.image.width, this.image.height);
     this.drawMask();
-    if (this.maskTool == MaskTool.magicWand) {
+    if (this.maskTool == MaskTool.magicWandAdd) {
       this.disableFloodFill = false;
     }
   }
@@ -341,7 +344,7 @@ export class EditorComponent implements OnInit {
       this.maskImageData.data[i + 3] = 255 - this.maskImageData.data[i+ 3];
     }
     this.drawMask();
-    if (this.maskTool == MaskTool.magicWand) {
+    if (this.maskTool == MaskTool.magicWandAdd) {
       this.disableFloodFill = false;
     }
     this.disableSubmit = false;
@@ -363,7 +366,7 @@ export class EditorComponent implements OnInit {
     //  Draw mask with new maskAlpha value.
     this.disableFloodFill = true;
     this.drawMask();
-    if (this.maskTool == MaskTool.magicWand) {
+    if (this.maskTool == MaskTool.magicWandAdd) {
       this.disableFloodFill = false;
     }
     console.log('new maskAlpha: ' + value);
@@ -377,16 +380,23 @@ export class EditorComponent implements OnInit {
     //  All cases beside 'magic-wand' must disableFloodFill.
     this.disableFloodFill = true;
     switch (tool) {
-      case 'MAGIC-WAND': 
-        this.maskTool = MaskTool.magicWand;
+      case MaskTool.magicWandAdd: 
+        this.maskTool = MaskTool.magicWandAdd;
         this.disableFloodFill = false;
         break;
-      case 'PAINT':
+      case MaskTool.magicWandSub: 
+        this.maskTool = MaskTool.magicWandSub;
+        break;
+      case MaskTool.paint:
         this.maskTool = MaskTool.paint;
         break;
-      case 'MASK-ONLY':
+      case MaskTool.erase:
+        this.maskTool = MaskTool.erase;
+        break;
+      case MaskTool.maskOnly:
         this.maskTool = MaskTool.maskOnly;
         break;
+
     }
     console.log('switched tool to ' + this.maskTool);
     //  Always redraw mask/image when switching between features because of MaskOnly tool.
@@ -394,16 +404,17 @@ export class EditorComponent implements OnInit {
   }
 
  /**
-  *  Adds pixel user painted to mask.
+  *  Adds/Erases pixel user painted/erased to mask.
   *  TODO: Possibly change the implementation so the pixel drawn is
   *        replecated on the screen ASAP, and then once the user finishes 
   *        drawing (mouse up) then the real mask is drawn based on the set.
   *        Would decrease lag.
   */
   drawPixel(pixel: number) {
+    let alphaValue = (this.maskTool == MaskTool.paint) ? 255: 0;
     this.maskImageData.data[pixel] = 255;
     this.maskImageData.data[pixel + 2] = 255;
-    this.maskImageData.data[pixel + 3] = 255;
+    this.maskImageData.data[pixel + 3] = alphaValue;
     this.drawMask();
   }
 
