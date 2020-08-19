@@ -112,7 +112,7 @@ export class MaskDirective {
     else if (this.tool == MaskTool.magicWand && this.scribbleFill) {
       this.scribbleFill = false;
       //  TODO: uncomment once scribble flood fill implemented
-      // const maskPixels = this.magicWandService.scribbleFloodFill(
+      // const maskPixels = this.magicWandService.scribbleFloodfill(
       //   this.originalImageData,
       //   Math.floor(this.xCoord / this.scale), 
       //   Math.floor(this.yCoord / this.scale), 
