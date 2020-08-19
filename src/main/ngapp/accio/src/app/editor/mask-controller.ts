@@ -1,12 +1,17 @@
-import { MaskCommand } from './mask-command';
+import { MaskAction } from './mask-action';
 
 export enum Status {
   STATUS_FAILURE = -1,
   STATUS_SUCCESS = 0,
 }
 
+export enum Move {
+  BACK_ONE = -1,
+  FORWARD_ONE = 1,
+}
+
 export class MaskController {
-  private history: Array<MaskCommand> = [];
+  private history: Array<MaskAction> = [];
   // pPresent at an invalid index until an action is performed
   private pPresent: number = -1;
 
@@ -16,8 +21,8 @@ export class MaskController {
     return this.mask;
   }
 
-  private do(direction: number): Status {
-    if (direction !== -1 && direction !== 1) {
+  private move(direction: Move): Status {
+    if (direction !== Move.BACK_ONE && direction !== Move.FORWARD_ONE) {
       console.log(
         'Error: Must move through edit history one action at a time.'
       );
@@ -29,33 +34,27 @@ export class MaskController {
     }
     this.pPresent = newIndex;
 
-    let newMask: Set<number> = this.history[this.pPresent].apply(
-      direction,
-      this.mask
-    );
-
-    if (newMask === null) {
-      console.log('Error: Action cannot be completed.');
-      return Status.STATUS_FAILURE;
+    if (direction === Move.FORWARD_ONE) {
+      this.mask = this.history[this.pPresent].apply(direction, this.mask);
+    } else {
+      this.mask = this.history[this.pPresent + 1].apply(direction, this.mask);
     }
-
-    this.mask = newMask;
     return Status.STATUS_SUCCESS;
   }
 
-  public addAction(action: MaskCommand): Status {
+  public do(command: MaskAction): Status {
     if (this.pPresent < this.history.length - 1) {
       this.history.splice(this.pPresent + 1);
     }
-    this.history.push(action);
-    return this.do(1);
+    this.history.push(command);
+    return this.move(Move.FORWARD_ONE);
   }
 
   public undo(): Status {
-    return this.do(-1);
+    return this.move(Move.BACK_ONE);
   }
 
   public redo(): Status {
-    return this.do(1);
+    return this.move(Move.FORWARD_ONE);
   }
 }
