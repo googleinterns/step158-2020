@@ -243,7 +243,7 @@ export class MagicWandService {
    * pixelIndex belongs to.
    */
   pixelIndexToXYCoord(pixelIndex: number, width: number): Array<number> {
-    return [((pixelIndex / 4) % width), ((pixelIndex / 4) / width)];
+    return [((pixelIndex / 4) % width), (Math.floor((pixelIndex / 4) / width))];
   }
 
   /**Does the general floodfill algorithm, and switches to 
