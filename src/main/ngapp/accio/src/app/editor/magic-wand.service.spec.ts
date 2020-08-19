@@ -105,33 +105,79 @@ describe('MagicWandService', () => {
 
   // Test suite for additional tools
   it('Test method: erase()', () => {
-  // Should return a mask with pixels from the input set being excluded
-  const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
-  const mistake: Set<number> = new Set([12, 40]);
-  const expected: Set<number> = new Set([0, 8, 44]);
-  expect(service.erase(originalMask, mistake)).toEqual(expected);
+    // Should return a mask with pixels from the input set being excluded
+    const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
+    const mistake: Set<number> = new Set([12, 40]);
+    const expected: Set<number> = new Set([0, 8, 44]);
+    expect(service.erase(originalMask, mistake)).toEqual(expected);
   });
   it('Test method: invert()', () => {
-  // Should return a mask with pixels from the input set being excluded
-  const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
-  const expected: Set<number> = new Set([4, 16, 20, 24, 28, 32, 36]);
-  expect(service.invert(originalMask, 4, 3)).toEqual(expected);
+    // Should return a mask with pixels from the input set being excluded
+    const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
+    const expected: Set<number> = new Set([4, 16, 20, 24, 28, 32, 36]);
+    expect(service.invert(originalMask, 4, 3)).toEqual(expected);
   });
 
   it('Test method: rgbEuclideanDist() valid', () => {
-  // Should return the straight line distance between two pixels' colors
-  const pixelA = [2, 4, 1];
-  const pixelB = [7, 2, 2];
-  // Euclidean distance is the sqrt( sum( a[n] - b[n] ) )
-  expect(service.rgbEuclideanDist(pixelA, pixelB)).toEqual(30);
+    // Should return the straight line distance between two pixels' colors
+    const pixelA = [2, 4, 1];
+    const pixelB = [7, 2, 2];
+    // Euclidean distance is the sqrt( sum( a[n] - b[n] ) )
+    expect(service.rgbEuclideanDist(pixelA, pixelB)).toEqual(30);
   });
   it('rbgEuclideanDist() Error(arrays different length)', () => {
-  expect(() => {service.rgbEuclideanDist([1, 2, 3], [4, 2])}).toThrow(
-      new Error('basisColor and secondColor must be same lengthed arrays...'));
+    expect(() => {service.rgbEuclideanDist([1, 2, 3], [4, 2])}).toThrow(
+        new Error(
+        'basisColor and secondColor must be same lengthed arrays...'));
   });
   it('rbgEuclideanDist() Error(length must be 3)', () => {
-  expect(() => {service.rgbEuclideanDist([1, 2], [4, 2])}).toThrow(
-      new Error('Arguments must be an array of [R, G, B] (length == 3)...'));
+    expect(() => {service.rgbEuclideanDist([1, 2], [4, 2])}).toThrow(
+        new Error('Arguments must be an array of [R, G, B] (length == 3)...'));
+  });
+
+  it('Test method: pixelIndexToXYCoord()', () => {
+    expect(service.pixelIndexToXYCoord(8, 4)).toEqual([2, 0]);
+    expect(service.pixelIndexToXYCoord(148, 11)).toEqual([4, 3]);
+  });
+  it('Test method: getIsScribbleMask() true', () => {
+    const imgData: ImageData = makeTestImage(
+        4, 4, [255, 255, 255, 255], new Set<number>(
+        [8, 12, 16]));
+
+    expect(service.getIsScribbleMask(
+        new Set<number>([4, 8]), imgData, [1, 0], 5)).toEqual(
+        true);
+    expect(service.getIsScribbleMask(
+        new Set<number>([4, 8]), imgData, [2, 0], 5)).toEqual(
+        true);
+  });
+  it('Test method: getIsScribbleMask() false', () => {
+    const imgData: ImageData = makeTestImage(
+        4, 4, [255, 255, 255, 255], new Set<number>(
+        [8, 12, 16]));
+    imgData.data[20] = 120;
+    imgData.data[20 + 1] = 120;
+    imgData.data[20 + 2] = 120;
+    imgData.data[20 + 3] = 120;
+
+    expect(service.getIsScribbleMask(
+        new Set<number>([4, 8]), imgData, [1, 1], 5)).toEqual(
+        false);
+  });
+  it('Test method: scribbleFloodfill()', () => {
+    const imgData: ImageData = makeTestImage(
+        4, 4, [255, 255, 255, 255], new Set<number>(
+        [8, 12, 16]));
+    for (let i of [20, 24, 28, 32]) {
+      imgData.data[i] = 120;
+      imgData.data[i + 1] = 120;
+      imgData.data[i + 2] = 120;
+      imgData.data[i + 3] = 120;
+    }
+
+    expect(service.scribbleFloodfill(
+        imgData, 1, 0, 5, new Set<number>([4, 8]))).toEqual(
+        new Set<number>([0, 4, 8, 12, 16]));
   });
 });
 
