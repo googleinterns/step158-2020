@@ -229,7 +229,7 @@ export class MagicWandService {
 
       const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
 
-      if (colorDifference > squaredTolerance / 2) {
+      if (colorDifference !== 0 && colorDifference > squaredTolerance / 2) {
         result.add(pixelIndex);
       }
     }
