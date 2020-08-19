@@ -354,7 +354,6 @@ export class EditorComponent implements OnInit {
     console.log('new tolerance: ' + value);
   }
 
-
  /** 
   *  Retrieves new alpha value from child component toolbar and draws mask with new alpha.
   *  The alpha value cannot be larger than 1 or less than 0, so the value is adjusted to fit in range.
