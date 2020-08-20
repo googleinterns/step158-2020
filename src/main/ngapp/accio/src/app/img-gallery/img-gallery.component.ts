@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
+import { FetchImagesService } from '../fetch-images.service';
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
 import * as $ from 'jquery';
@@ -34,6 +35,7 @@ export class ImgGalleryComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private postBlobsService: PostBlobsService,
+    private fetchImagesService: FetchImagesService
   ) { }
 
   ngOnInit(): void {
@@ -58,16 +60,14 @@ export class ImgGalleryComponent implements OnInit {
       });
     }
 
-    console.log('projID ' + this.projectId);
-    console.log('now fetching...')
-
     //  Get the blobstore url initalized and show the form.
     this.postBlobsService.fetchBlob();
     this.displayUpload = true;
     this.getImages();
   }
 
-  async getImages(): Promise<any> {
+  /** Calls the fetchImageService to get all images under parameters */
+  getImages() {
     console.log('fetching from projectId: ' + this.projectId);
     let fetchUrl = '/blobs?' + $.param({
       'proj-id': this.projectId,
@@ -78,12 +78,13 @@ export class ImgGalleryComponent implements OnInit {
       'sort-mask': this.sortMask,
       'tag': this.tag
     });
+    
+    this.fetchImagesService.changeImages(fetchUrl).then(() => {
+      this.fetchImagesService.currentImages.subscribe(images => this.imageArray = images);
+      console.log('fetching imageArray');
+    });
 
-    //  fetchUrl returns a list of image objects: 'url', 'name', 'utc', 'tags[]', 'masks[]'
-    const response = await fetch(fetchUrl);
-    const imageContent = await response.json();
-    this.imageArray = imageContent;
-
+    console.log(this.imageArray.length + ' items in image array');
     if (this.imageArray.length > 0) {
       this.displayImages = true;
     }
@@ -117,8 +118,6 @@ export class ImgGalleryComponent implements OnInit {
       );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);
-
-    //  Reset form values.
-    this.uploadImageForm.reset;
+    window.location.reload();
   }
 }

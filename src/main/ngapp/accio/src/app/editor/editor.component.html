@@ -24,18 +24,27 @@
       (newMaskAlphaEvent)="updateMaskAlpha($event)">
     </app-toolbar>
   </mat-drawer>
+
   <mat-drawer-content>
+    <div>
+      <span (click)="newImage(true)" class="material-icons" title="Previous Image">navigate_before</span>
+      <span (click)="newImage(false)" class="material-icons" title="Next Image">navigate_next</span>
+    </div>
       <!-- Retrieves new mask via output event emiter -->
-    <canvas #canvas appMask 
-      [originalImageData]="originalImageData"
-      [scale]="scaleFactor"
-      [tolerance]="tolerance"
-      [disableFloodFill]="disableFloodFill"
-      [tool]="maskTool"
-      (newMaskEvent)="addToMask($event)"
-      (newPaintEvent)="drawPixel($event)">
-    </canvas>
-    <canvas #maskCanvas style="display:none">
-    </canvas>
+    <div id="stage">
+      <canvas #canvas appMask id="mask-layer"
+        [originalImageData]="originalImageData"
+        [scale]="scaleFactor"
+        [tolerance]="tolerance"
+        [disableFloodFill]="disableFloodFill"
+        [tool]="maskTool"
+        (newMaskEvent)="addToMask($event)"
+        (newPaintEvent)="drawPixel($event)">
+      </canvas>
+      <canvas #imageCanvas id="image-layer">
+      </canvas>
+      <canvas #maskCanvas style="display:none">
+      </canvas>
+    </div>
   </mat-drawer-content>
 </mat-drawer-container>

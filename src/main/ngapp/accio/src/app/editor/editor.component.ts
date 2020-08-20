@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
 
 import { PostBlobsService } from '../post-blobs.service';
+import { FetchImagesService } from '../fetch-images.service';
 import { ImageBlob } from '../ImageBlob';
 import { MaskTool } from './MaskToolEnum';
+import * as $ from 'jquery';
 
 @Component({
   selector: 'app-editor',
@@ -13,14 +15,33 @@ import { MaskTool } from './MaskToolEnum';
   styleUrls: ['./editor.component.css']
 })
 export class EditorComponent implements OnInit {
+  mySubscription: any;
+
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private postBlobsService: PostBlobsService,
-  ) { }
+    private fetchImagesService: FetchImagesService,
+  ) {
+    //  Tells Router to not reuse route so when url is changed,
+    //    reloads component with new url info.
+    this.router.routeReuseStrategy.shouldReuseRoute = function () {
+      return false;
+    };
+
+    //  If the current route ends (ie url changes) trick router to believe it wasn't loaded
+    //    in order to reload the component.
+    this.mySubscription = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.router.navigated = false;
+      }
+    });
+  }
 
   //  Display variables.
   private image: HTMLImageElement;
   imageUrl: string;
+  index: number;
   displayMaskForm: boolean = false;
   disableSubmit: boolean = false;
 
@@ -50,6 +71,9 @@ export class EditorComponent implements OnInit {
   //      'mask-only' = user sees only the mask and cannot use the magic wand tool. 
   maskTool: MaskTool;
 
+  //  Stores image that user queued from img-Gallery for next and prev arrows.
+  imageArray: Array<any>;
+
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
   canvas: ElementRef<HTMLCanvasElement>; 
@@ -69,12 +93,22 @@ export class EditorComponent implements OnInit {
     this.maskAlpha = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND;
+
+    //  Gets last image array that user sorted on img-gallery page. 
+    this.fetchImagesService.currentImages.subscribe(newImages => this.imageArray = newImages);
+    console.log(this.imageArray.length + ': size of image array from img-Gallery');
     
     this.route.paramMap.subscribe(params => {
       this.projectId = params.get('proj-id ');
       this.parentName = params.get('parent-img ');
-      this.imageUrl = params.get('imgUrl');
-      
+      this.imageUrl = params.get('imgUrl ');
+      try {
+        this.index = Number(params.get('index'));
+      }
+      catch {
+        console.log('index: ' + params.get('index') + 'could not be parsed as number.');
+        this.index = 0;
+      }
       console.log('proj id for mask: ' + this.projectId);
     });
 
@@ -90,6 +124,13 @@ export class EditorComponent implements OnInit {
     //  Fetch blob for mask upload and show maskUploadForm.
     this.postBlobsService.fetchBlob();
     this.displayMaskForm = true;
+  }
+
+  /** Unsubscribe from subscription when component reloaded */
+  ngOnDestroy() {
+    if (this.mySubscription) {
+      this.mySubscription.unsubscribe();
+    }
   }
   
   /**  
@@ -364,5 +405,25 @@ export class EditorComponent implements OnInit {
     this.maskImageData.data[pixel + 2] = 255;
     this.maskImageData.data[pixel + 3] = 255;
     this.drawMask();
+  }
+
+ /** 
+  *  Returns the RouterLink for the next or previous image in the user's last selection 
+  *    of gallery images.
+  *  @param previous signifies whether the user has selected the previous image button.
+  */
+  newImage(previous: boolean) {
+    if (previous) {
+      (this.index - 1 <= 0) ? this.index = this.imageArray.length - 1 : --this.index;
+    }
+    else {
+      (this.index + 1 >= this.imageArray.length) ? this.index = 0 : ++this.index;
+    }
+    let nextImage = this.imageArray[this.index];
+
+    console.log('nextImage of index: ' + this.index);
+    console.log(nextImage);
+    this.router.navigate(['/editor', this.projectId, nextImage['name'], nextImage['url'], this.index]);
+    //  Component reloaded when router url changes, If the user refreshes the page, the imageArray is lost.**
   }
 }
