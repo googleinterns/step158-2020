@@ -7,65 +7,21 @@ import { SetOperator } from './set-operator';
 })
 export class MagicWandService {
   /**4-Way floodfill (left, right, up, down):
-   * Return set of coordinates(formatted as a 1-D array).
+   * @returns {Set<number>} set of coordinates(formatted as a 1-D array).
    * Coordinates correspond to pixels considered part of the mask.
    */
   /* tslint:disable */
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
       tolerance: number): Set<number> {
-    /**Store a queue of coords for pixels that we need to visit in "visit".
-     * Store already-visited pixels in "visited" as index formatted numbers
-     * (as opposed to coord format; for Set funcs).
-     */
-    const visit: Array<Array<number>> = new Array();
-    const visited: Set<number> = new Set();
-    // Use a set for mask; mainly do iter and set operations on masks
-    const mask: Set<number> = new Set();
-    // Represent [R,G,B,A] attributes of initial pixel
-    const originalPixel: Array<number> =
-        this.dataArrayToRgba(imgData, xCoord, yCoord);
-
-    visit.push([xCoord, yCoord]);
-    // Convert [x,y] format coord to 1-D equivalent of imgData.data (DataArray)
-    const indexAsDataArray: number =
-        this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
-    visited.add(indexAsDataArray);
-
-    // Loop until no more adjacent pixels within tolerance level
-    while (visit.length !== 0) {
-      const coord: Array<number> = visit.pop();
-      // Unpack coord
-      const x: number = coord[0];
-      const y: number = coord[1];
-
-      // Operational part of while-loop
-      mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
-
-      // Loop part of while-loop
-
-      // Get coords of adjacent pixels
-      const neighbors: Array<Array<number>> =
-          [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
-      // Add coords of adjacent pixels to the heap
-      for (const neighborPixel of neighbors) {
-        const x: number = neighborPixel[0];
-        const y: number = neighborPixel[1];
-        // Check if coord is in bounds and has not been visited first
-        if (!this.getIsValid(imgData.width, imgData.height, x, y, visited)) {
-          continue;
-        }
-        // Visit the pixel and check if it should be part of the mask
-        visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
-        if (this.getIsMask(originalPixel, imgData, neighborPixel, tolerance)) {
-          visit.push(neighborPixel);
-        }
-      }
-    }  // end of while loop
-
-    return mask;
+    // An empty set is given for the scribbles parameter, so only a basic 
+    // floodfill is performed.
+    const scribbles = 
+        new Set<number>(
+        [this.coordToDataArrayIndex(xCoord, yCoord, imgData.width)]);
+    return this.doFloodfill(imgData, xCoord, yCoord, tolerance, scribbles);
   }
 
-  /**Judge current pixel's RGBA against original pixel's RGBA to
+  /**Judges current pixel's RGB against original pixel's RGB to
    * see if it can still be part of the mask (using tolerance criteria).
    */
   getIsMask(originalPixel: Array<number>, imgData: ImageData,
@@ -73,29 +29,55 @@ export class MagicWandService {
     const curX: number = pixelCoord[0];
     const curY: number = pixelCoord[1];
 
-    // Get array of attributes of current pixel
-    const curPixel: Array<number> = this.dataArrayToRgba(imgData, curX, curY);
+    // Gets [R, G, B] of current pixel.
+    const curPixel: Array<number> = this.dataArrayToRgb(imgData, curX, curY);
 
-    // All attributes of the pixel (R,G,B, and A) must be within tolerance level
-    for (let i = 0; i < 4; i++) {
-      const upperTolerance: boolean = curPixel[i] > originalPixel[i] + tolerance;
-      const lowerTolerance: boolean = curPixel[i] < originalPixel[i] - tolerance;
-      if (upperTolerance || lowerTolerance) {
-        return false;
-      }
+    const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
+    // Work with tolerance logic in squared space for Euclidean distance.
+    const squaredTolerance = tolerance * tolerance;
+
+    if (colorDifference > squaredTolerance) {
+      return false;
     }
 
     return true;
   }
 
-  // Check if @pixelCoord is in bounds and makes sure it's not a repeat coord
+  /**@returns {number} the straight line distance between the two colors
+   * @param {Array<number> [R, G, B]} basisColor and 
+   * @param {Array<number> [R, G, B]} secondColor
+   */
+  rgbEuclideanDist(basisColor: Array<number>, secondColor: Array<number>)
+      : number {
+    if (basisColor.length != secondColor.length) {
+      throw new Error(
+          'basisColor and secondColor must be same lengthed arrays...');
+    }
+    if (basisColor.length != 3) {
+      throw new Error(
+          'Arguments must be an array of [R, G, B] (length == 3)...');
+    }
+
+    let distance = 0;
+
+    for (let i = 0; i < basisColor.length; i++) {
+      distance += Math.pow((basisColor[i] - secondColor[i]), 2);
+    }
+
+    // Does not sqrt distance to complete eucidean dist formula b/c sqrt is
+    // an expense operation. Instead, can compare against tolerance in the 
+    // squared space.
+    return distance;
+  } 
+
+  // Checks if @pixelCoord is in bounds and makes sure it's not a repeat coord.
   getIsValid(imgWidth: number, imgHeight: number, curX: number, curY: number,
       visited: Set<number>): boolean {
     return this.isInBounds(imgWidth, imgHeight, curX, curY) &&
         this.notVisited(imgWidth, curX, curY, visited);
   }
 
-  // Check bounds of indexing for img dimensions
+  // Checks bounds of indexing for img dimensions.
   isInBounds(imgWidth: number, imgHeight: number, curX: number, curY: number):
       boolean {
     let yInBounds: boolean = curY >= 0 && curY < imgHeight;
@@ -104,10 +86,10 @@ export class MagicWandService {
     return yInBounds && xInBounds;
   }
 
-  // Checks if pixel has been visited already
+  // Checks if pixel has been visited already.
   notVisited(imgWidth: number, curX: number, curY: number,
       visited: Set<number>): boolean {
-    // Do not push repeat coords to heap
+    // Do not push repeating coords to heap...
     const index: number =
         this.coordToDataArrayIndex(curX, curY, imgWidth);
 
@@ -115,29 +97,32 @@ export class MagicWandService {
   }
 
 
-  // Return pixel attributes of @imgData at [@xCoord, @yCoord] as [R, G, B, A]
-  dataArrayToRgba(imgData: ImageData, xCoord: number, yCoord: number):
+  /**@returns {Array<number> [R, G, B]} color attribute of the pixel at 
+   * @param {number} xCoord and 
+   * @param {number} yCoord based off of the original image supplied by
+   * @param {ImageData} imgData
+   */
+  dataArrayToRgb(imgData: ImageData, xCoord: number, yCoord: number):
       Array<number> {
-    // Unpack imgData for readability
+    // Unpacks imgData for readability.
     const data: Uint8ClampedArray = imgData.data;
     const imgWidth: number = imgData.width;
 
-    // Pixel attributes in imgData are organized adjacently in a 1-D array
+    // Pixel attributes in imgData are organized adjacently in a 1-D array.
     const pixelIndex: number =
         this.coordToDataArrayIndex(xCoord, yCoord, imgWidth);
     const red: number = data[pixelIndex];
     const green: number = data[pixelIndex + 1];
     const blue: number = data[pixelIndex + 2];
-    const alpha: number = data[pixelIndex + 3];
-    // Store original pixel's attributes
-    return [red, green, blue, alpha];
+    
+    return [red, green, blue];
   }
 
-  // Convert coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
-  /**Returns index of start of pixel at @x, @y
+  // Converts coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
+  /**@returns {number} index of the start of the pixel at
+   * @param {number} x and 
+   * @param {number} y 
    * (which represents the red attribute of that pixel)
-   * Important: Returns array of number representing indices.
-   * First element contains value of index for attribute: red and so on
    */
   coordToDataArrayIndex(x: number, y: number, width: number): number {
     return (x + (y * width)) * 4;
@@ -148,7 +133,8 @@ export class MagicWandService {
 
   /**@returns {Set<number>} mask that excludes the
    * @param {Set<number>} mistake from original
-   * @param {Set<number>} mask*/
+   * @param {Set<number>} mask
+   */
   erase(mask: Set<number>, mistake: Set<number>): Set<number> {
     return SetOperator.difference(mask, mistake);
   }
@@ -157,7 +143,8 @@ export class MagicWandService {
    * @param {Set<number>} originalMask .
    * Relative container that encompasses @originalMask is based on
    * @param {number} height and 
-   * @param {number} width */
+   * @param {number} width 
+   */
   invert(originalMask: Set<number>, width: number, height: number)
       : Set<number> {
     let invertedMask: Set<number> = new Set();
@@ -174,5 +161,149 @@ export class MagicWandService {
     }
 
     return invertedMask;
+  }
+
+
+  /**Smarter flood fill tool:
+   *
+   * Compares the tolerance against a set of 
+   * reference pixels' colors as opposed to just an initial pixel's color.
+   * The user supplies a
+   * @param {Set<number>} scribbles set of pixels that is used to essentailly
+   * expand the range of the tolerance threshold as the floodfill
+   * percolates from the first-selected pixel. 
+   */
+  scribbleFloodfill(imgData: ImageData, xCoord: number, yCoord: number,
+      tolerance: number, scribbles: Set<number>): Set<number> {
+    return this.doFloodfill(imgData, xCoord, yCoord, tolerance, scribbles);
+  }
+
+  /**Judges current pixel's RGB against a set of reference pixels' RGBs to
+   * see if it can still be part of the mask (using tolerance criteria).
+   */
+  getIsScribbleMask(scribbles: Set<number>, imgData: ImageData,
+      pixelCoord: Array<number>, tolerance: number): boolean {
+    const curX: number = pixelCoord[0];
+    const curY: number = pixelCoord[1];
+
+    // Gets array of color attributes of current pixel.
+    const curPixel: Array<number> = this.dataArrayToRgb(imgData, curX, curY);
+    // Work with tolerance logic in squared space for Euclidean distance.
+    const squaredTolerance = tolerance * tolerance;
+
+    for (let pixelIndex of scribbles) {
+      const refPixelCoord: Array<number> = 
+          this.pixelIndexToXYCoord(pixelIndex, imgData.width);
+      const x = refPixelCoord[0];
+      const y = refPixelCoord[1];
+      const refPixel = this.dataArrayToRgb(imgData, x, y);
+
+      const colorDifference = this.rgbEuclideanDist(refPixel, curPixel);
+
+      // If the curPixel is tolerable for at least 1 of the reference pixels,
+      // then the curPixel will be part of the mask.
+      if (colorDifference <= squaredTolerance) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**@returns {Set<number>} filtered set of pixels by removing indices 
+   * of pixels whose color are too similar to the original pixel. 
+   * Judgement of 'too similar' is decided by a factor of 
+   * @param {number} tolerance and color value itself is retrieved from
+   * @param {ImageData} imgData
+  */
+  filterScribbles(scribbles: Set<number>, originalPixel: Array<number>, 
+      imgData: ImageData, tolerance: number): Set<number> {
+    let result: Set<number> = new Set();
+
+    // Work with tolerance logic in squared space for Euclidean distance.
+    const squaredTolerance = tolerance * tolerance;
+
+    for (let pixelIndex of scribbles) {
+      const pixelCoord: Array<number> = 
+          this.pixelIndexToXYCoord(pixelIndex, imgData.width);
+      const x = pixelCoord[0];
+      const y = pixelCoord[1];
+      const curPixel = this.dataArrayToRgb(imgData, x, y);
+
+      const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
+
+      if (colorDifference !== 0 && colorDifference > squaredTolerance / 2) {
+        result.add(pixelIndex);
+      }
+    }
+
+    return result;
+  }
+
+  /**@returns {Array<number> [x, y]} a 2-D coordinate by converting 
+   * @param {number} pixelIndex into the coordsponding [x, y] coordinate.
+   * @param {number} width should be the pixel width of the image that the 
+   * pixelIndex belongs to.
+   */
+  pixelIndexToXYCoord(pixelIndex: number, width: number): Array<number> {
+    return [((pixelIndex / 4) % width), (Math.floor((pixelIndex / 4) / width))];
+  }
+
+  /**Does the general floodfill algorithm, and switches to 
+   * scribbleFloodfill() if 
+   * @param {Set<number>} scribbles is provided as a non-empty set.
+   */
+  doFloodfill(imgData: ImageData, xCoord: number, yCoord: number,
+      tolerance: number, scribbles: Set<number>): Set<number> {
+    // Stores a queue of coords for pixels that we need to visit in "visit".
+    const visit: Array<Array<number>> = new Array();
+    // Stores already-visited pixels in "visited" as index formatted numbers
+    // (as opposed to coord format; for Set funcs).
+    const visited: Set<number> = new Set();
+    // Uses a set for mask; mainly do iter and set operations on masks...
+    const mask: Set<number> = new Set();
+    // Represents [R,G,B] attributes of initial pixel.
+    const originalPixel: Array<number> =
+        this.dataArrayToRgb(imgData, xCoord, yCoord);
+
+    visit.push([xCoord, yCoord]);
+    // Converts [x,y] format coord to 1-D equivalent of
+    // imgData.data (DataArray).
+    const indexAsDataArray: number =
+        this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
+    visited.add(indexAsDataArray);
+
+    // Loops until no more adjacent pixels within tolerance level.
+    while (visit.length !== 0) {
+      const coord: Array<number> = visit.pop();
+      // Unpacks coord.
+      const x: number = coord[0];
+      const y: number = coord[1];
+
+      // Operational part of while-loop.
+      mask.add(this.coordToDataArrayIndex(x, y, imgData.width));
+
+      // Loop part of while-loop.
+
+      // Gets coords of adjacent pixels.
+      const neighbors: Array<Array<number>> =
+          [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
+      // Adds coords of adjacent pixels to the heap.
+      for (const neighborPixel of neighbors) {
+        const x: number = neighborPixel[0];
+        const y: number = neighborPixel[1];
+        // Checks if coord is in bounds and has not been visited first.
+        if (!this.getIsValid(imgData.width, imgData.height, x, y, visited)) {
+          continue;
+        }
+        // Visits the pixel and check if it should be part of the mask.
+        visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
+        if (this.getIsScribbleMask(scribbles, imgData, neighborPixel, tolerance)) {
+          visit.push(neighborPixel);
+        }
+      }
+    }  // End of while loop.
+    
+    return mask;
   }
 }

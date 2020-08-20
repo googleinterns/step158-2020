@@ -34,12 +34,12 @@ export class MaskDirective {
   ) { }
 
 /**
- * Listens for user mousedown on 'appMask'. When user mouse goes down
- * It initialized the set and paints the single pixel. 
+ *  Listens for user mousedown on 'appMask'. When user mouse goes down.
+ *  Initializes the 'paintPixels' set and paints a single pixel when the user presses the mouse.
  */
   @HostListener('mousedown', ['$event'])
   onMouseDown(e: MouseEvent) {
-    if (this.tool == MaskTool.paint || this.tool == MaskTool.magicWand) {
+    if (this.tool == MaskTool.PAINT || this.tool == MaskTool.MAGIC_WAND) {
       this.xCoord = e.offsetX;
       this.yCoord = e.offsetY;
 
@@ -69,7 +69,7 @@ export class MaskDirective {
    */
   @HostListener('mousemove', ['$event'])  
   onMouseMove(e: MouseEvent) {
-    if ((this.tool == MaskTool.paint || this.tool == MaskTool.magicWand) && this.mouseDown) {
+    if ((this.tool == MaskTool.PAINT || this.tool == MaskTool.MAGIC_WAND) && this.mouseDown) {
       const xCoord = e.offsetX;
       const yCoord = e.offsetY;
 
@@ -103,13 +103,13 @@ export class MaskDirective {
   onMouseUp(e: MouseEvent) {
       this.mouseDown = false;
     //  If user has paint selected, call paint to add pixels painted to master.
-    if (this.tool == MaskTool.paint) {
+    if (this.tool == MaskTool.PAINT) {
       this.scribbleFill = false;
       //  TODO: call to save pixels painted in mask once function implemented
 
     }
     //  If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
-    else if (this.tool == MaskTool.magicWand && this.scribbleFill) {
+    else if (this.tool == MaskTool.MAGIC_WAND && this.scribbleFill) {
       this.scribbleFill = false;
       //  TODO: uncomment once scribble flood fill implemented
       // const maskPixels = this.magicWandService.scribbleFloodfill(
@@ -121,7 +121,7 @@ export class MaskDirective {
 
       // this.newMaskEvent.emit(maskPixels);
     }
-    else if (this.tool == MaskTool.magicWand && !this.scribbleFill) {
+    else if (this.tool == MaskTool.MAGIC_WAND && !this.scribbleFill) {
       console.log('tolerace in mask.dr ' + this.tolerance);
       
       //  Returns an array indices of each pixel in the mask.

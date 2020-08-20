@@ -3,6 +3,7 @@ package com.google.sps.servlets;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
@@ -119,6 +120,38 @@ public final class DataUtils {
     }
 
     return projEntity;
+  }
+
+  /**
+   * Removes a project and all of its children from the database.
+   * @param     {Key}       projectKey  
+   */
+  public static void deleteProjectAndChildren(Key projectKey) {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    Query childQuery = new Query(projectKey);
+    List<Entity> children =
+        datastore.prepare(childQuery)
+            .asList(FetchOptions.Builder.withDefaults());
+    for (Entity child : children) {
+      deleteImageAndChildren(child.getKey());
+    }
+    datastore.delete(projectKey);
+  }
+
+  /**
+   * Removes an image and all of its children from the database.
+   * @param     {Key}       imgKey  
+   */
+  public static void deleteImageAndChildren(Key imgKey) {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    Query childQuery = new Query(imgKey);
+    List<Entity> children =
+        datastore.prepare(childQuery)
+            .asList(FetchOptions.Builder.withDefaults());
+    for (Entity child : children) {
+      datastore.delete(child.getKey());
+    }
+    datastore.delete(imgKey);
   }
 
   private DataUtils() {}
