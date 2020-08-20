@@ -72,6 +72,7 @@ export class EditorComponent implements OnInit {
   maskTool: MaskTool;
 
   //  Stores image that user queued from img-Gallery for next and prev arrows.
+  //  Array<any> because info comes from survlet as json array
   imageArray: Array<any>;
 
   // inject canvas from html.
@@ -137,7 +138,7 @@ export class EditorComponent implements OnInit {
    *  Draws the image user selects from gallery on Canvas
    *    and creates a hidden canvas to store the original image 
    *    as a reference when scaling the imageUI.
-   *  Assumes Image has loaded, ie. image src is set before initCanvas
+   *  Assumes Image has loaded, i.e. image src is set before initCanvas
    *    is called (using onload).
    */
   private initCanvas(): void {
@@ -414,7 +415,7 @@ export class EditorComponent implements OnInit {
   */
   newImage(previous: boolean) {
     if (previous) {
-      (this.index - 1 <= 0) ? this.index = this.imageArray.length - 1 : --this.index;
+      (this.index - 1 < 0) ? this.index = this.imageArray.length - 1 : --this.index;
     }
     else {
       (this.index + 1 >= this.imageArray.length) ? this.index = 0 : ++this.index;

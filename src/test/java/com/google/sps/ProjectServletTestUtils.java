@@ -94,7 +94,8 @@ public final class ProjectServletTestUtils {
                                   Arrays.asList("abc@xyz.com", "def@uvw.com"));
     projEntity.setIndexedProperty("editors",
                                   Arrays.asList("xyz@abc.com", "uvw@def.com"));
-    String projId = KeyFactory.keyToString(datastore.put(projEntity));
+    Key projKey = datastore.put(projEntity);
+    String projId = KeyFactory.keyToString(projKey);
     projEntity.setProperty("proj-id", projId);
 
     Entity imgEntity = new Entity(DataUtils.IMAGE, 1, projKey);
