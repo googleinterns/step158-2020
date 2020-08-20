@@ -93,7 +93,7 @@ export class EditorComponent implements OnInit {
     let imageUrl: string;
     this.scaleFactor = .9;
     this.tolerance = 30;
-    this.maskAlpha = .5;
+    this.maskAlpha = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
 
@@ -244,10 +244,10 @@ export class EditorComponent implements OnInit {
     this.clearScaledCanvas();
 
     this.scaledCtx.save();
+    this.scaledCtx.scale(this.scaleFactor, this.scaleFactor);
     createImageBitmap(this.maskImageData).then(renderer => {    
       this.scaledCtx.globalAlpha = this.maskAlpha;
       console.log('global alpha when drawing mask: ' + this.scaledCtx.globalAlpha);
-      this.scaledCtx.scale(this.scaleFactor, this.scaleFactor);
       this.scaledCtx.drawImage(renderer, 0, 0, this.scaledCanvas.nativeElement.width, this.scaledCanvas.nativeElement.height);
     });
     console.log('mask drawn');

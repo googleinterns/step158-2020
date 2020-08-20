@@ -94,7 +94,7 @@ public final class ProjectServletTestUtils {
                                   Arrays.asList("abc@xyz.com", "def@uvw.com"));
     projEntity.setIndexedProperty("editors",
                                   Arrays.asList("xyz@abc.com", "uvw@def.com"));
-        Key projKey = datastore.put(projEntity);
+    Key projKey = datastore.put(projEntity);
     String projId = KeyFactory.keyToString(projKey);
     projEntity.setProperty("proj-id", projId);
 
