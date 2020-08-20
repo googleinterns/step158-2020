@@ -80,7 +80,11 @@ export class MaskDirective {
 
       const xCoord = e.offsetX;
       const yCoord = e.offsetY;
+      //  TODO: IF USER MOVES OFF CANVAS TREAT IT AS
 
+      console.log('offset: ' + xCoord);
+      console.log('offset: ' + e.clientX);
+    
       //  User moved mouse, use scribble fill. 
       this.scribbleFill = true;
 

@@ -22,8 +22,8 @@ export class ToolbarComponent implements OnInit {
 
   ngOnInit(): void {
     this.toleranceValue = 30;
-    this.maskAlphaValue = 1;
-    this.maskTool = "MAGIC-WAND";
+    this.maskAlphaValue = .5;
+    this.maskTool = "MAGIC-WAND-ADD";
   }
 
   /** Changes selected tool value and emits change. */

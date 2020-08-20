@@ -81,13 +81,12 @@ export class ImgGalleryComponent implements OnInit {
     
     this.fetchImagesService.changeImages(fetchUrl).then(() => {
       this.fetchImagesService.currentImages.subscribe(images => this.imageArray = images);
+      console.log(this.imageArray.length + ' items in image array');
+      if (this.imageArray.length > 0) {
+        this.displayImages = true;
+      }
       console.log('fetching imageArray');
     });
-
-    console.log(this.imageArray.length + ' items in image array');
-    if (this.imageArray.length > 0) {
-      this.displayImages = true;
-    }
   }
 
  /** 
@@ -97,7 +96,7 @@ export class ImgGalleryComponent implements OnInit {
   */
   onSubmit() {
      // Name is a required input. If it's null, do nothing.
-    if(!this.uploadImageForm.get('imgName').value) {
+    if (!this.uploadImageForm.get('imgName').value) {
       return;
     }
     
