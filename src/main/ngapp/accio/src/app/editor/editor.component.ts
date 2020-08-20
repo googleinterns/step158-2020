@@ -5,6 +5,7 @@ import { FormGroup, FormControl } from '@angular/forms';
 
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
+import { MaskTool } from './MaskToolEnum';
 
 @Component({
   selector: 'app-editor',
@@ -42,12 +43,12 @@ export class EditorComponent implements OnInit {
   scaleFactor: number;
   originalImageData: ImageData;
   tolerance: number;
+  maskAlpha:number;
   disableFloodFill: boolean;
   //  Declares the type of tool the user has selected from the tool bar:
   //      'magic-wand' = flood fill algorithm enabled.
   //      'mask-only' = user sees only the mask and cannot use the magic wand tool. 
-  //  TODO(shmcaffrey): make string enum.
-  maskTool: string;
+  maskTool: MaskTool;
 
   // inject canvas from html.
   @ViewChild('canvas', { static: true })
@@ -65,7 +66,9 @@ export class EditorComponent implements OnInit {
     this.image = new Image();
     this.scaleFactor = .9;
     this.tolerance = 30;
+    this.maskAlpha = 1;
     this.disableFloodFill = false;
+    this.maskTool = MaskTool.MAGIC_WAND;
     
     this.route.paramMap.subscribe(params => {
       this.projectId = params.get('proj-id ');
@@ -158,10 +161,10 @@ export class EditorComponent implements OnInit {
   *  Sets new pixels in magenta, clears canvas of previous data 
   *    and draws image and mask as scaled. Disables submit
   *    on mask until the url is set. 
-  *  class @param this.disableFloodFill must equal true before called because 
-  *    maskImageData is being updated.
-  *  class @param this.disableSubmit must equal true before called because 
-  *    maskUrl is being updated in drawMask(). 
+  *  class @param this.disableFloodFill must equal true before pixels updated  
+  *    so another floodfill isn't called before one finishes.
+  *  class @param this.disableSubmit set equal to true before pixels updated 
+  *    so submit isn't called before mask is drawn and url is updated.
   *  class @param maskPixels event Output() from mask.directive
   *    Gives the new pixels to add to the mask
   *  Only returned when maskTool is 'magic-wand', no need to check maskTool
@@ -183,16 +186,22 @@ export class EditorComponent implements OnInit {
   *  Clears canvas, draws the original image and draws the mask.
   *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
   *  Disables Flood fill before maskUrl is being set so new data isn't added
-  *  class @param this.disableSubmit must equal true before called because maskUrl is being updated.
+  *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
   */  
   private drawMask() {
+    this.disableSubmit = true;
     let mask = new Image();
     mask.onload = () => {
       this.clearCanvas();
-      if (this.maskTool != 'mask-only') {
+      if (this.maskTool != MaskTool.MASK_ONLY) {
         this.drawScaledImage(this.image);
       }
+      this.ctx.save();
+      this.ctx.globalAlpha = this.maskAlpha;
+      console.log('global alpha = ' + this.maskAlpha);
       this.drawScaledImage(mask);
+      this.ctx.restore();
+      this.disableSubmit = false;
     }
     mask.src = this.updateMaskUrl();
   }
@@ -209,8 +218,6 @@ export class EditorComponent implements OnInit {
     this.maskImageUrl = this.maskCanvas.nativeElement.toDataURL();
     return this.maskImageUrl;
   }
-
-  // TODO(shmcaffrey): change Alpha value to incorporate user input.
 
   /** 
    *  Initializes Form group and data as new
@@ -263,36 +270,27 @@ export class EditorComponent implements OnInit {
  /**
   *  Emitted from toolbar. Clears canvas of old mask and draws image anew.
   *  Clears old image data. Disables submit while mask is updating.
-  *  class @param this.disableSubmit must equal true before called because 
-  *    maskUrl is being updated in getMaskUrl. 
   *  class @param this.disableFloodFill must equal true before called because 
   *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
   *     (flood fill not allowed any other time).
   */
   clearMask() {
-    this.disableSubmit = this.disableFloodFill = true;
+    this.disableFloodFill = true;
     this.maskImageData = new ImageData(this.image.width, this.image.height);
     this.drawMask();
-    this.disableSubmit = false;
-    if (this.maskTool == 'magic-wand') {
-      this.disableFloodFill = false
+    if (this.maskTool == MaskTool.MAGIC_WAND) {
+      this.disableFloodFill = false;
     }
-  }
-
-  /**  Retrieves new tolerance value from child component toolbar and updates. */
-  updateTolerance(value: number) {
-    this.tolerance = value;
-    console.log('new tolerance: ' + value);
   }
   
   /**  
   *  Sets all pixels to magenta and inverts their alpha to display them or not. 
   *  Disables flood fill and submit to avoid conflict as mask updates.
-  *  class @param this.disableSubmit must equal true before called because 
-  *    maskUrl is being updated in drawMask(). 
+  *  class @param this.disableSubmit set equal to true before pixels updated 
+  *    so submit isn't called before mask is drawn and url is updated.
   *  class @param this.disableFloodFill must equal true before called because 
-  *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
-  *     (flood fill not allowed any other time).
+  *    maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
+  *    (flood fill not allowed any other time).
   */
   invertMask() {
     this.disableSubmit = this.disableFloodFill = true;
@@ -302,32 +300,69 @@ export class EditorComponent implements OnInit {
       this.maskImageData.data[i + 3] = 255 - this.maskImageData.data[i+ 3];
     }
     this.drawMask();
-    this.disableSubmit = false;
-    if (this.maskTool == 'magic-wand') {
-      this.disableFloodFill = false
+    if (this.maskTool == MaskTool.MAGIC_WAND) {
+      this.disableFloodFill = false;
     }
+    this.disableSubmit = false;
+  }
+
+
+  /**  Retrieves new tolerance value from child component toolbar and updates. */
+  updateTolerance(value: number) {
+    this.tolerance = value;
+    console.log('new tolerance: ' + value);
+  }
+
+ /** 
+  *  Retrieves new alpha value from child component toolbar and draws mask with new alpha.
+  *  The alpha value cannot be larger than 1 or less than 0, so the value is adjusted to fit in range.
+  */
+  updateMaskAlpha(value: number) {
+    this.maskAlpha = Math.min(Math.max(value, 0.0), 1.0);
+    //  Draw mask with new maskAlpha value.
+    this.disableFloodFill = true;
+    this.drawMask();
+    if (this.maskTool == MaskTool.MAGIC_WAND) {
+      this.disableFloodFill = false;
+    }
+    console.log('new maskAlpha: ' + value);
   }
 
  /** 
   *  Updates the value of the Toolbar toggle group.
-  *  All cases beside 'magic-wand' must disableFloodFill.
   */
   updateMaskTool(tool: string) {
-    // change value selected on form;
-    this.maskTool = tool;
+    console.log('New Tool: ' + tool);
+    //  All cases beside 'magic-wand' must disableFloodFill.
     this.disableFloodFill = true;
     switch (tool) {
-      case 'magic-wand': 
+      case 'MAGIC-WAND': 
+        this.maskTool = MaskTool.MAGIC_WAND;
         this.disableFloodFill = false;
-        // redraw mask and image
-        this.drawMask();
         break;
-      case 'mask-only':
-        let mask = new Image();
-        this.disableSubmit = true;
-        this.drawMask();
-        this.disableSubmit = false;
+      case 'PAINT':
+        this.maskTool = MaskTool.PAINT;
+        break;
+      case 'MASK-ONLY':
+        this.maskTool = MaskTool.MASK_ONLY;
         break;
     }
+    console.log('switched tool to ' + this.maskTool);
+    //  Always redraw mask/image when switching between features because of MaskOnly tool.
+    this.drawMask();
+  }
+
+ /**
+  *  Adds pixel user painted to mask.
+  *  TODO: Possibly change the implementation so the pixel drawn is
+  *        replicated on the screen ASAP, and then once the user finishes 
+  *        drawing (mouse up) then the real mask is drawn based on the set.
+  *        Would decrease lag.
+  */
+  drawPixel(pixel: number) {
+    this.maskImageData.data[pixel] = 255;
+    this.maskImageData.data[pixel + 2] = 255;
+    this.maskImageData.data[pixel + 3] = 255;
+    this.drawMask();
   }
 }

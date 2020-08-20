@@ -9,18 +9,21 @@ import { Output, EventEmitter } from '@angular/core';
 export class ToolbarComponent implements OnInit {
 
   @Output() clearMaskEvent = new EventEmitter<void>();
-  @Output() newToleranceEvent = new EventEmitter<number>();
   @Output() newMaskToolEvent = new EventEmitter<string>();
   @Output() invertMaskEvent = new EventEmitter<void>();
+  @Output() newToleranceEvent = new EventEmitter<number>();
+  @Output() newMaskAlphaEvent = new EventEmitter<number>();
 
-  value: number;
+  toleranceValue: number;
+  maskAlphaValue: number;
   maskTool: string;
 
   constructor() { }
 
   ngOnInit(): void {
-    this.value = 30;
-    this.maskTool = 'magic-wand';
+    this.toleranceValue = 30;
+    this.maskAlphaValue = 1;
+    this.maskTool = "MAGIC-WAND";
   }
 
   /** Changes selected tool value and emits change. */
@@ -34,12 +37,18 @@ export class ToolbarComponent implements OnInit {
     this.clearMaskEvent.emit();
   }
 
-  /** Emits value of user inputed/slider tolerance. */
-  updateTolerance() {
-    this.newToleranceEvent.emit(this.value);
-  }
-
+  /** Called when user clicks the invert mask button. */
   invertMask() {
     this.invertMaskEvent.emit();
+  }
+
+  /** Emits value of user inputed/slider tolerance. */
+  updateTolerance() {
+    this.newToleranceEvent.emit(this.toleranceValue);
+  }
+
+  /** Emits value of user inputed/slider alpha value. */
+  updateMaskAlpha() {
+    this.newMaskAlphaEvent.emit(this.maskAlphaValue);
   }
 }
