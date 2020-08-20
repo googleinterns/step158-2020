@@ -148,12 +148,20 @@ public final class ProjectServletTest {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     assertEquals(
         5, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    assertEquals(
+        2, datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(
+        2, datastore.prepare(new Query(DataUtils.MASK)).countEntities());
     when(request.getParameter("mode")).thenReturn("update");
     when(request.getParameter("proj-id")).thenReturn(projId);
     when(request.getParameter("delete")).thenReturn("true");
     servlet.doPost(request, response);
     assertEquals(
         4, datastore.prepare(new Query(DataUtils.PROJECT)).countEntities());
+    assertEquals(
+        0, datastore.prepare(new Query(DataUtils.IMAGE)).countEntities());
+    assertEquals(
+        0, datastore.prepare(new Query(DataUtils.MASK)).countEntities());
     assertEquals(0,
                  datastore
                      .prepare(new Query(DataUtils.PROJECT)

@@ -78,7 +78,11 @@ public final class ProjectServletTestUtils {
           Arrays.asList(MyProject1))) +
       "\n";
 
-  // Database setup performed before each test
+  /**
+   * Set up database before each test and return one project ID for use in
+   * tests.
+   * @return    {String}
+   */
   public static String databaseSetup() {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
@@ -92,6 +96,34 @@ public final class ProjectServletTestUtils {
                                   Arrays.asList("xyz@abc.com", "uvw@def.com"));
     String projId = KeyFactory.keyToString(datastore.put(projEntity));
     projEntity.setProperty("proj-id", projId);
+
+    Entity imgEntity = new Entity(DataUtils.IMAGE, 1, projKey);
+    imgEntity.setProperty("name", "Image0");
+    imgEntity.setProperty("utc", "2020-08-12T05:39:02.383Z");
+    imgEntity.setProperty("blobkey", "abc");
+    imgEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
+
+    Entity imgEntity2 = new Entity(DataUtils.IMAGE, 2, projKey);
+    imgEntity2.setProperty("name", "Image1");
+    imgEntity2.setProperty("utc", "2020-08-12T05:39:02.384Z");
+    imgEntity2.setProperty("blobkey", "def");
+    imgEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));
+
+    datastore.put(Arrays.asList(imgEntity, imgEntity2));
+
+    Entity maskEntity = new Entity(DataUtils.MASK, 1, imgEntity.getKey());
+    maskEntity.setProperty("name", "Mask0");
+    maskEntity.setProperty("utc", "2020-08-12T05:39:02.384Z");
+    maskEntity.setProperty("blobkey", "ghi");
+    maskEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
+
+    Entity maskEntity2 = new Entity(DataUtils.MASK, 2, imgEntity.getKey());
+    maskEntity2.setProperty("name", "Mask1");
+    maskEntity2.setProperty("utc", "2020-08-12T05:39:02.383Z");
+    maskEntity2.setProperty("blobkey", "jkl");
+    maskEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));
+
+    datastore.put(Arrays.asList(maskEntity, maskEntity2));
 
     Entity projEntity2 = new Entity(DataUtils.PROJECT, 456);
     projEntity2.setProperty("name", "MyProject2");

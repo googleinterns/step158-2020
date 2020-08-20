@@ -71,7 +71,7 @@ public class ProjectServlet extends HttpServlet {
       // Delete overrides all other updates
       boolean delete = Boolean.parseBoolean(request.getParameter("delete"));
       if (delete) {
-        datastore.delete(projEntity.getKey());
+        DataUtils.deleteProjectAndChildren(projEntity.getKey());
         response.sendRedirect("/"); // TODO: should redirect to projects gallery
         return;
       }
