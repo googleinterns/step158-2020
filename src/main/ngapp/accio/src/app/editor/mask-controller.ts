@@ -21,6 +21,11 @@ export class MaskController {
     return this.mask;
   }
 
+  /**
+   * Moves history and updates mask.
+   * @param     {Move}          direction
+   * @return    {Status}
+   */
   private move(direction: Move): Status {
     if (direction !== Move.BACK_ONE && direction !== Move.FORWARD_ONE) {
       console.log(
@@ -29,7 +34,7 @@ export class MaskController {
       return Status.STATUS_FAILURE;
     }
     let newIndex: number = this.pPresent + direction;
-    if (newIndex < -1 || newIndex > history.length - 1) {
+    if (newIndex < -1 || newIndex > this.history.length - 1) {
       return Status.STATUS_FAILURE;
     }
     this.pPresent = newIndex;
@@ -42,11 +47,16 @@ export class MaskController {
     return Status.STATUS_SUCCESS;
   }
 
-  public do(command: MaskAction): Status {
+  /**
+   * Adds a new action to the history.
+   * @param     {MaskAction}    action
+   * @return    {Status}
+   */
+  public do(action: MaskAction): Status {
     if (this.pPresent < this.history.length - 1) {
       this.history.splice(this.pPresent + 1);
     }
-    this.history.push(command);
+    this.history.push(action);
     return this.move(Move.FORWARD_ONE);
   }
 
