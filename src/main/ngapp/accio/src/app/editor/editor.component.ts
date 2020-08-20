@@ -68,7 +68,7 @@ export class EditorComponent implements OnInit {
     this.tolerance = 30;
     this.maskAlpha = 1;
     this.disableFloodFill = false;
-    this.maskTool = MaskTool.magicWand;
+    this.maskTool = MaskTool.MAGIC_WAND;
     
     this.route.paramMap.subscribe(params => {
       this.projectId = params.get('proj-id ');
@@ -193,7 +193,7 @@ export class EditorComponent implements OnInit {
     let mask = new Image();
     mask.onload = () => {
       this.clearCanvas();
-      if (this.maskTool != MaskTool.maskOnly) {
+      if (this.maskTool != MaskTool.MASK_ONLY) {
         this.drawScaledImage(this.image);
       }
       this.ctx.save();
@@ -278,7 +278,7 @@ export class EditorComponent implements OnInit {
     this.disableFloodFill = true;
     this.maskImageData = new ImageData(this.image.width, this.image.height);
     this.drawMask();
-    if (this.maskTool == MaskTool.magicWand) {
+    if (this.maskTool == MaskTool.MAGIC_WAND) {
       this.disableFloodFill = false;
     }
   }
@@ -300,7 +300,7 @@ export class EditorComponent implements OnInit {
       this.maskImageData.data[i + 3] = 255 - this.maskImageData.data[i+ 3];
     }
     this.drawMask();
-    if (this.maskTool == MaskTool.magicWand) {
+    if (this.maskTool == MaskTool.MAGIC_WAND) {
       this.disableFloodFill = false;
     }
     this.disableSubmit = false;
@@ -322,7 +322,7 @@ export class EditorComponent implements OnInit {
     //  Draw mask with new maskAlpha value.
     this.disableFloodFill = true;
     this.drawMask();
-    if (this.maskTool == MaskTool.magicWand) {
+    if (this.maskTool == MaskTool.MAGIC_WAND) {
       this.disableFloodFill = false;
     }
     console.log('new maskAlpha: ' + value);
@@ -337,14 +337,14 @@ export class EditorComponent implements OnInit {
     this.disableFloodFill = true;
     switch (tool) {
       case 'MAGIC-WAND': 
-        this.maskTool = MaskTool.magicWand;
+        this.maskTool = MaskTool.MAGIC_WAND;
         this.disableFloodFill = false;
         break;
       case 'PAINT':
-        this.maskTool = MaskTool.paint;
+        this.maskTool = MaskTool.PAINT;
         break;
       case 'MASK-ONLY':
-        this.maskTool = MaskTool.maskOnly;
+        this.maskTool = MaskTool.MASK_ONLY;
         break;
     }
     console.log('switched tool to ' + this.maskTool);
@@ -355,7 +355,7 @@ export class EditorComponent implements OnInit {
  /**
   *  Adds pixel user painted to mask.
   *  TODO: Possibly change the implementation so the pixel drawn is
-  *        replecated on the screen ASAP, and then once the user finishes 
+  *        replicated on the screen ASAP, and then once the user finishes 
   *        drawing (mouse up) then the real mask is drawn based on the set.
   *        Would decrease lag.
   */
