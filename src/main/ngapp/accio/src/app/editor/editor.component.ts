@@ -414,6 +414,12 @@ export class EditorComponent implements OnInit {
   *  @param previous signifies whether the user has selected the previous image button.
   */
   newImage(previous: boolean) {
+    //if nothing in the image gallery or there is only one image then just reload.
+    if (this.imageArray.length <= 1) {
+      this.router.navigateByUrl(this.router.url);
+      return;
+    }
+    
     if (previous) {
       (this.index - 1 < 0) ? this.index = this.imageArray.length - 1 : --this.index;
     }
