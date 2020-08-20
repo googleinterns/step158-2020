@@ -95,7 +95,7 @@ export class EditorComponent implements OnInit {
     this.tolerance = 30;
     this.maskAlpha = .5;
     this.disableFloodFill = false;
-    this.maskTool = MaskTool.magicWandAdd;
+    this.maskTool = MaskTool.MAGIC_WAND_ADD;
 
     //  Gets last image array that user sorted on img-gallery page. 
     this.fetchImagesService.currentImages.subscribe(newImages => this.imageArray = newImages);
@@ -221,7 +221,7 @@ export class EditorComponent implements OnInit {
     this.disableSubmit = this.disableFloodFill = true;
 
     //  Chenges if set of pixels are added or removed from the mask depending on the tool.
-    let alphaValue = (this.maskTool == MaskTool.magicWandAdd) ? 255: 0;
+    let alphaValue = (this.maskTool == MaskTool.MAGIC_WAND_ADD) ? 255: 0;
 
     for (let pixel of maskPixels) {
       this.maskImageData.data[pixel] = 255;
@@ -324,7 +324,7 @@ export class EditorComponent implements OnInit {
     this.disableFloodFill = true;
     this.maskImageData = new ImageData(this.image.width, this.image.height);
     this.clearScaledCanvas();
-    if (this.maskTool == MaskTool.magicWandAdd || this.maskTool == MaskTool.magicWandSub) {
+    if (this.maskTool == MaskTool.MAGIC_WAND_ADD || this.maskTool == MaskTool.MAGIC_WAND_SUB) {
       this.disableFloodFill = false;
     }
   }
@@ -346,7 +346,7 @@ export class EditorComponent implements OnInit {
       this.maskImageData.data[i + 3] = 255 - this.maskImageData.data[i+ 3];
     }
     this.drawMask();
-    if (this.maskTool == MaskTool.magicWandAdd || this.maskTool == MaskTool.magicWandSub) {
+    if (this.maskTool == MaskTool.MAGIC_WAND_ADD || this.maskTool == MaskTool.MAGIC_WAND_SUB) {
       this.disableFloodFill = false;
     }
     this.disableSubmit = false;
@@ -368,7 +368,7 @@ export class EditorComponent implements OnInit {
     //  Draw mask with new maskAlpha value.
     this.disableFloodFill = true;
     this.drawMask();
-    if (this.maskTool == MaskTool.magicWandAdd || this.maskTool == MaskTool.magicWandSub) {
+    if (this.maskTool == MaskTool.MAGIC_WAND_ADD || this.maskTool == MaskTool.MAGIC_WAND_SUB) {
       this.disableFloodFill = false;
     }
     console.log('new maskAlpha: ' + value);
@@ -382,28 +382,27 @@ export class EditorComponent implements OnInit {
     console.log('New Tool: ' + tool);
     //  All cases beside 'magic-wand' must disableFloodFill.
     this.disableFloodFill = true;
-    if (this.maskTool == MaskTool.maskOnly) {
+    if (this.maskTool == MaskTool.MASK_ONLY) {
       this.drawScaledImage();
     }
     switch (tool) {
-      case MaskTool.magicWandAdd: 
-        this.maskTool = MaskTool.magicWandAdd;
+      case MaskTool.MAGIC_WAND_ADD: 
+        this.maskTool = MaskTool.MAGIC_WAND_ADD;
         this.disableFloodFill = false;
         break;
-      case MaskTool.magicWandSub: 
-        this.maskTool = MaskTool.magicWandSub;
+      case MaskTool.MAGIC_WAND_SUB: 
+        this.maskTool = MaskTool.MAGIC_WAND_SUB;
         break;
-      case MaskTool.paint:
-        this.maskTool = MaskTool.paint;
+      case MaskTool.PAINT:
+        this.maskTool = MaskTool.PAINT;
         break;
-      case MaskTool.erase:
-        this.maskTool = MaskTool.erase;
+      case MaskTool.ERASE:
+        this.maskTool = MaskTool.ERASE;
         break;
-      case MaskTool.maskOnly:
-        this.maskTool = MaskTool.maskOnly;
+      case MaskTool.MASK_ONLY:
+        this.maskTool = MaskTool.MASK_ONLY;
         this.imageCtx.clearRect(0,0,this.imageCanvas.nativeElement.width, this.imageCanvas.nativeElement.height);
         break;
-
     }
     console.log('switched tool to ' + this.maskTool);
   }
@@ -411,12 +410,12 @@ export class EditorComponent implements OnInit {
  /**
   *  Adds/Erases pixel user painted/erased to mask.
   *  TODO: Possibly change the implementation so the pixel drawn is
-  *        replecated on the screen ASAP, and then once the user finishes 
+  *        replicated on the screen ASAP, and then once the user finishes 
   *        drawing (mouse up) then the real mask is drawn based on the set.
   *        Would decrease lag.
   */
   drawPixel(pixel: number) {
-    let alphaValue = (this.maskTool == MaskTool.paint || this.maskTool == MaskTool.magicWandAdd) ? 255: 0;
+    let alphaValue = (this.maskTool == MaskTool.PAINT || this.maskTool == MaskTool.MAGIC_WAND_ADD) ? 255: 0;
     this.maskImageData.data[pixel] = 255;
     this.maskImageData.data[pixel + 2] = 255;
     this.maskImageData.data[pixel + 3] = alphaValue;

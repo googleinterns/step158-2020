@@ -29,8 +29,8 @@ describe('MagicWandService', () => {
     imgData.data[56 + 1] = 111;  // Green
     imgData.data[56 + 2] = 117;  // Blue
     imgData.data[56 + 3] = 255;  // Alpha
-    expect(service.dataArrayToRgba(
-        imgData, 3, 1)).toEqual([120, 111, 117, 255]);
+    expect(service.dataArrayToRgb(
+        imgData, 3, 1)).toEqual([120, 111, 117]);
   });
   it('Test method: isInBounds() >> top left OutOfRange', () => {
     // Should return false if inputted pixel's coord is out of range of the img
@@ -68,7 +68,7 @@ describe('MagicWandService', () => {
     const imgData: ImageData = makeTestImage(
         11, 4, [120, 117, 108, 255], new Set<number>([24]));
     expect(service.getIsMask(
-        [131, 117, 108, 255], imgData, [6, 0], 10)).toEqual(
+        [131, 117, 108], imgData, [6, 0], 10)).toEqual(
         false);
   });
   it('Test method: getIsMask() >> valid', () => {
@@ -76,7 +76,7 @@ describe('MagicWandService', () => {
     const imgData: ImageData = makeTestImage(
         11, 4, [120, 117, 108, 255], new Set<number>([24]));
     expect(service.getIsMask(
-        [130, 117, 108, 255], imgData, [6, 0], 10)).toEqual(
+        [130, 117, 108], imgData, [6, 0], 10)).toEqual(
         true);
   });
   it('Test method: floodfill() >> no adjacent pixels in mask', () => {
@@ -102,19 +102,82 @@ describe('MagicWandService', () => {
     expect(service.floodfill(imgData, 6, 1, 1)).toEqual(new Set<number>(
         [68, 72]));
   });
-// Test suite for additional tools
+
+  // Test suite for additional tools
   it('Test method: erase()', () => {
-  // Should return a mask with pixels from the input set being excluded
-  const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
-  const mistake: Set<number> = new Set([12, 40]);
-  const expected: Set<number> = new Set([0, 8, 44]);
-  expect(service.erase(originalMask, mistake)).toEqual(expected);
+    // Should return a mask with pixels from the input set being excluded
+    const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
+    const mistake: Set<number> = new Set([12, 40]);
+    const expected: Set<number> = new Set([0, 8, 44]);
+    expect(service.erase(originalMask, mistake)).toEqual(expected);
   });
   it('Test method: invert()', () => {
-  // Should return a mask with pixels from the input set being excluded
-  const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
-  const expected: Set<number> = new Set([4, 16, 20, 24, 28, 32, 36]);
-  expect(service.invert(originalMask, 4, 3)).toEqual(expected);
+    // Should return a mask with pixels from the input set being excluded
+    const originalMask: Set<number> = new Set([0, 8, 12, 40, 44]);
+    const expected: Set<number> = new Set([4, 16, 20, 24, 28, 32, 36]);
+    expect(service.invert(originalMask, 4, 3)).toEqual(expected);
+  });
+
+  it('Test method: rgbEuclideanDist() valid', () => {
+    // Should return the straight line distance between two pixels' colors
+    const pixelA = [2, 4, 1];
+    const pixelB = [7, 2, 2];
+    // Euclidean distance is the sqrt( sum( a[n] - b[n] ) )
+    expect(service.rgbEuclideanDist(pixelA, pixelB)).toEqual(30);
+  });
+  it('rbgEuclideanDist() Error(arrays different length)', () => {
+    expect(() => {service.rgbEuclideanDist([1, 2, 3], [4, 2])}).toThrow(
+        new Error(
+        'basisColor and secondColor must be same lengthed arrays...'));
+  });
+  it('rbgEuclideanDist() Error(length must be 3)', () => {
+    expect(() => {service.rgbEuclideanDist([1, 2], [4, 2])}).toThrow(
+        new Error('Arguments must be an array of [R, G, B] (length == 3)...'));
+  });
+
+  it('Test method: pixelIndexToXYCoord()', () => {
+    expect(service.pixelIndexToXYCoord(8, 4)).toEqual([2, 0]);
+    expect(service.pixelIndexToXYCoord(148, 11)).toEqual([4, 3]);
+  });
+  it('Test method: getIsScribbleMask() true', () => {
+    const imgData: ImageData = makeTestImage(
+        4, 4, [255, 255, 255, 255], new Set<number>(
+        [8, 12, 16]));
+
+    expect(service.getIsScribbleMask(
+        new Set<number>([4, 8]), imgData, [1, 0], 5)).toEqual(
+        true);
+    expect(service.getIsScribbleMask(
+        new Set<number>([4, 8]), imgData, [2, 0], 5)).toEqual(
+        true);
+  });
+  it('Test method: getIsScribbleMask() false', () => {
+    const imgData: ImageData = makeTestImage(
+        4, 4, [255, 255, 255, 255], new Set<number>(
+        [8, 12, 16]));
+    imgData.data[20] = 120;
+    imgData.data[20 + 1] = 120;
+    imgData.data[20 + 2] = 120;
+    imgData.data[20 + 3] = 120;
+
+    expect(service.getIsScribbleMask(
+        new Set<number>([4, 8]), imgData, [1, 1], 5)).toEqual(
+        false);
+  });
+  it('Test method: scribbleFloodfill()', () => {
+    const imgData: ImageData = makeTestImage(
+        4, 4, [255, 255, 255, 255], new Set<number>(
+        [8, 12, 16]));
+    for (let i of [20, 24, 28, 32]) {
+      imgData.data[i] = 120;
+      imgData.data[i + 1] = 120;
+      imgData.data[i + 2] = 120;
+      imgData.data[i + 3] = 120;
+    }
+
+    expect(service.scribbleFloodfill(
+        imgData, 1, 0, 5, new Set<number>([4, 8]))).toEqual(
+        new Set<number>([0, 4, 8, 12, 16]));
   });
 });
 

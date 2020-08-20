@@ -1,7 +1,7 @@
 export enum MaskTool {
-  magicWandAdd = 'MAGIC-WAND-ADD',
-  magicWandSub = 'MAGIC-WAND-SUB',
-  maskOnly = 'MASK-ONLY',
-  paint = 'PAINT',
-  erase = 'ERASE'
+  MAGIC_WAND_ADD = 'MAGIC-WAND', 
+  MAGIC_WAND_SUB = 'MAGIC-WAND-SUB',
+  MASK_ONLY = 'MASK-ONLY',
+  PAINT = 'PAINT',
+  ERASE = 'ERASE'
 }
