@@ -1,11 +1,10 @@
 #img-editor {
   position: relative;
-  text-align: center;
   top: 100px;
-  padding-bottom: 200px;
-  padding-top: 200px;
   background-color: #28292b;
   border: 10px solid #5e6469;
+  height: 100vh;
+  width: 100%;
 }
 
 mat-drawer-content{
@@ -15,22 +14,25 @@ mat-drawer-content{
 #stage {
   position: relative;
   border: 2px solid black;
-  text-align: center;
+  margin-left: auto;
+  margin-right:auto;
 }
 
 canvas {
-  position: relative;
+  position: absolute;
 }
 
 #mask-layer {
   z-index: 2;
 }
-#image-layer {
-  z-index: 1;
+
+#mask-layer:hover {
+  cursor: pointer;
 }
 
-canvas:hover {
-  cursor: pointer;
+#image-layer {
+  z-index: 1;
+  background-color:white;
 }
 
 #toolbar {
