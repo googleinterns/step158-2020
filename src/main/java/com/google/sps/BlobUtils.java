@@ -30,6 +30,7 @@ public final class BlobUtils {
 
   /**
    * Checks if the file uploaded to Blobstore is valid.
+   * Throws an exception if invalid.
    * @param     {BlobKey}   blobKey   key for the file in question
    * @param     {boolean}   isMask    mask or image
    * @return    {void}
