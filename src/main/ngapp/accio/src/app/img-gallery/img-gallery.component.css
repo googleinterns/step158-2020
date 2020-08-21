@@ -1,7 +1,7 @@
 #upload-image-form {
   position: relative;
   color: black;
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   width: 70%;
   left: 15%;
   top: 100px;
@@ -14,25 +14,41 @@
 }
 
 #upload-button {
-  background-color: #91BFFF;
+  background-color: #91bfff;
   color: white;
 }
 
 .gallery {
   position: relative;
-  background-color: black;
+  background-color: grey;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-gap: .5vw;
-  padding: .5vw;
+  grid-gap: 0.5vw;
+  padding: 0.5vw;
   top: 200px;
   left: 15%;
   width: 70%;
   border-style: solid;
+  border-color: white;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
+.gallery-item-name {
+  float: left;
+  padding-left: 4%;
+}
+
+.download {
+  float: right;
 }
 
 .gallery-item {
   border-style: solid;
+  border-color: white;
 }
 
 .gallery-img {
@@ -42,7 +58,14 @@
 }
 
 img.gallery-img:hover {
-  opacity: .8;
+  opacity: 0.8;
+}
+
+.container {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 .hidden {
