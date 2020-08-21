@@ -11,3 +11,15 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 mat-form-field {
   padding: 2px;
 }
+
+.end-page {
+  padding: 5%;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+mat-raised-button {
+  padding: 10%;
+}

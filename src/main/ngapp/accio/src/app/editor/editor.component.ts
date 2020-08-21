@@ -7,6 +7,7 @@ import { PostBlobsService } from '../post-blobs.service';
 import { FetchImagesService } from '../fetch-images.service';
 import { ImageBlob } from '../ImageBlob';
 import { MaskTool } from './MaskToolEnum';
+import { Coordinate } from './Coordinate';
 import * as $ from 'jquery';
 
 @Component({
@@ -46,6 +47,11 @@ export class EditorComponent implements OnInit {
   disableSubmit: boolean = false;
   stageWidth: number;
   stageHeight: number;
+  brushWidth: number;
+
+  MAGENTA: string = 'rgba(255, 0, 255, 1)';
+  DESTINATION_OUT: string = 'destination-out';
+  SOURCE_OVER: string = 'source-over';
   
   //  Form variables.
   uploadMaskForm: FormGroup;
@@ -97,6 +103,7 @@ export class EditorComponent implements OnInit {
     this.maskAlpha = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
+    this.brushWidth = 1;
 
     //  Gets last image array that user sorted on img-gallery page. 
     this.fetchImagesService.currentImages.subscribe(newImages => this.imageArray = newImages);
@@ -163,6 +170,8 @@ export class EditorComponent implements OnInit {
     this.maskCanvas.nativeElement.width = imgWidth;
     this.maskCanvas.nativeElement.height = imgHeight;
     this.maskCtx = this.maskCanvas.nativeElement.getContext('2d');
+    this.maskCtx.lineCap = this.maskCtx.lineJoin = 'round';
+    this.maskCtx.strokeStyle = this.MAGENTA;
 
     //  Canvas to show mask scaled.
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
@@ -184,7 +193,7 @@ export class EditorComponent implements OnInit {
     this.originalImageData = this.imageCtx.getImageData(0, 0, imgWidth, imgHeight);
 
     this.drawScaledImage();
-    console.log('put imagedata')
+    console.log('put imagedata');
   }
   
  /**
@@ -239,7 +248,6 @@ export class EditorComponent implements OnInit {
   *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
   */  
   private drawMask() {
-    this.disableSubmit = true;
     this.clearScaledCanvas();
 
     this.scaledCtx.save();
@@ -251,7 +259,6 @@ export class EditorComponent implements OnInit {
     });
     console.log('mask drawn');
     this.scaledCtx.restore();
-    this.disableSubmit = false;
   }
 
   /** 
@@ -261,9 +268,8 @@ export class EditorComponent implements OnInit {
   private initMaskForm() {
     this.uploadMaskForm = new FormGroup({
       maskName: new FormControl(),
-      labels: new FormControl(),
+      tags: new FormControl(),
     });
-
     this.formData = new FormData();
   }
 
@@ -285,7 +291,7 @@ export class EditorComponent implements OnInit {
       /*image=*/this.blobMask,
       /*parentImageName=*/this.parentName,
       /*newImageName=*/'',
-      /*tags=*/this.uploadMaskForm.get('labels').value
+      /*tags=*/this.uploadMaskForm.get('tags').value
     );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, this.parentName + 'Mask.png');
@@ -406,6 +412,10 @@ export class EditorComponent implements OnInit {
     console.log('switched tool to ' + this.maskTool);
   }
 
+  updateBrushWidth(width: number) {
+    this.brushWidth = width
+  }
+
  /**
   *  Adds/Erases pixel user painted/erased to mask.
   *  TODO: Possibly change the implementation so the pixel drawn is
@@ -413,11 +423,39 @@ export class EditorComponent implements OnInit {
   *        drawing (mouse up) then the real mask is drawn based on the set.
   *        Would decrease lag.
   */
-  drawPixel(pixel: number) {
-    let alphaValue = (this.maskTool == MaskTool.PAINT || this.maskTool == MaskTool.MAGIC_WAND_ADD) ? 255: 0;
-    this.maskImageData.data[pixel] = 255;
-    this.maskImageData.data[pixel + 2] = 255;
-    this.maskImageData.data[pixel + 3] = alphaValue;
+  private startPixel: Coordinate;
+
+ /** 
+  *  Sets the start pixel where the users initially clicks the canvas to draw.
+  *  @param pixel is the (x,y) coordinate the user first clicks on.
+  *  The global composition changes depending on whether the user is painting or erasing.
+  *  DESTINATION_OUT for erase, SOURCE_OVER for draw
+  */
+  startDraw(pixel: Coordinate) {
+    this.startPixel = pixel;
+    this.maskCtx.clearRect(0, 0, this.image.width, this.image.height);
+    this.maskCtx.putImageData(this.maskImageData, 0, 0);
+    this.maskCtx.globalCompositeOperation = 
+            (this.maskTool == MaskTool.PAINT || this.maskTool == MaskTool.MAGIC_WAND_ADD) 
+             ? this.SOURCE_OVER : this.DESTINATION_OUT;
+    console.log(this.brushWidth + ' brush width');
+  }
+ /** 
+  *  Draws or erases line between previous point user moved over and next point moved over.
+  *  Adjusts line width based on user input.
+  *  @param pixel is emitted after user moves over a new x,y coordinate on the canvas.
+  *  Sets this.startPixel to @param pixel to keep continuous drawing line.
+  */
+  drawPixel(pixel: Coordinate) {
+    this.maskCtx.beginPath();
+    this.maskCtx.lineWidth = this.brushWidth;
+
+    this.maskCtx.moveTo(this.startPixel.x, this.startPixel.y);
+    this.maskCtx.lineTo(pixel.x, pixel.y);
+    this.maskCtx.stroke();
+
+    this.startPixel = pixel;
+    this.maskImageData = this.maskCtx.getImageData(0, 0, this.image.width, this.image.height);
     this.drawMask();
   }
 

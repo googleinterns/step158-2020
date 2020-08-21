@@ -2,6 +2,7 @@ import { Directive, HostListener, ElementRef, Input, SimpleChanges } from '@angu
 import { MagicWandService } from './magic-wand.service';
 import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
+import { Coordinate } from './Coordinate';
 
 @Directive({
   selector: '[appMask]',
@@ -15,7 +16,8 @@ export class MaskDirective {
   @Input() tool: MaskTool;
 
   @Output() newMaskEvent = new EventEmitter<Set<number>>();
-  @Output() newPaintEvent = new EventEmitter<number>();
+  @Output() newPaintEvent = new EventEmitter<Coordinate>();
+  @Output() continuePaintEvent = new EventEmitter<Coordinate>();
 
   //  Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
@@ -24,8 +26,7 @@ export class MaskDirective {
   scribbleFill: boolean = false;
 
   //  Initial x&y coords.
-  private xCoord: number;
-  private yCoord: number;
+  private coord: Array<number>;
 
   //  Create direct reference of canvas on editor.html
   constructor(
@@ -35,7 +36,7 @@ export class MaskDirective {
 
 /**
  *  Listens for user mousedown on 'appMask'. When user mouse goes down.
- *  Initializes the 'paintPixels' set and paints a single pixel when the user presses the mouse.
+ *  Initializes the 'paintPixels' set and emits starting pixel when the user presses the mouse.
  */
   @HostListener('mousedown', ['$event'])
   onMouseDown(e: MouseEvent) {
@@ -44,25 +45,21 @@ export class MaskDirective {
         || this.tool == MaskTool.MAGIC_WAND_ADD
         || this.tool == MaskTool.MAGIC_WAND_SUB)  {
 
-      this.xCoord = e.offsetX;
-      this.yCoord = e.offsetY;
+      this.coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
 
       this.mouseDown = true;
       this.paintPixels = new Set<number>();
 
       //  Get pixel of original image that user clicked on.
-      let pixel = this.magicWandService.coordToDataArrayIndex(
-        Math.floor(this.xCoord / this.scale),
-        Math.floor(this.yCoord / this.scale), 
-        this.originalImageData.width);
-      
-      //  Add pixel to set for scribble fill or for master pixel list.       
-      this.paintPixels.add(pixel);
+      let pixel = new Coordinate(this.coord[0], this.coord[1]);
+
+      // //  Add pixel to set for scribble fill or for master pixel list.       
+      this.paintPixels.add(this.magicWandService.coordToDataArrayIndex(
+          this.coord[0], this.coord[1], this.originalImageData.width));
 
       console.log('drawing pixel mousedown');
       // Fire event to draw pixel
-      this.newPaintEvent.emit(pixel);
-
+      this.newPaintEvent.emit(pixel); 
     }
   }
 
@@ -79,27 +76,27 @@ export class MaskDirective {
         || this.tool == MaskTool.MAGIC_WAND_SUB) 
         && this.mouseDown) {
 
-      const xCoord = e.offsetX;
-      const yCoord = e.offsetY;
-      //  TODO: IF USER MOVES OFF CANVAS TREAT IT AS
+      const coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
 
-      console.log('offset: ' + xCoord);
-      console.log('offset: ' + e.clientX);
-    
       //  User moved mouse, use scribble fill. 
       this.scribbleFill = true;
 
       //  Get pixel of user moved over.
-      let pixel = this.magicWandService.coordToDataArrayIndex(
-        Math.floor(xCoord / this.scale),
-        Math.floor(yCoord / this.scale), 
-        this.originalImageData.width);
+      let pixel = new Coordinate(coord[0], coord[1]);
 
-      this.paintPixels.add(pixel);
-
-      console.log('drawing pixel mousemove');
+      this.paintPixels.add(this.magicWandService.coordToDataArrayIndex(
+          coord[0], coord[1], this.originalImageData.width));
       //  Fire event to draw pixel
-      this.newPaintEvent.emit(pixel);
+      this.continuePaintEvent.emit(pixel);
+    }
+  }
+
+     //TODO: IF USER MOVES OFF CANVAS TREAT IT AS USER RELEASED CLICK
+  /** If user's cursor leaves canvas, drawing is done. */
+  @HostListener('mouseout', ['$event']) 
+  onMouseLeave(e: MouseEvent) {
+    if (this.mouseDown) {
+      this.onMouseUp(e);
     }
   }
 
@@ -141,17 +138,17 @@ export class MaskDirective {
     else if ((this.tool == MaskTool.MAGIC_WAND_ADD
         || this.tool == MaskTool.MAGIC_WAND_SUB) 
         && !this.scribbleFill) {
-
-      console.log('tolerace in mask.dr ' + this.tolerance);
       
       //  Returns an array indices of each pixel in the mask.
       const maskPixels = this.magicWandService.floodfill(
-        this.originalImageData, 
-        Math.floor(this.xCoord / this.scale), 
-        Math.floor(this.yCoord / this.scale), 
-        this.tolerance);
+          this.originalImageData, this.coord[0], 
+          this.coord[1], this.tolerance);
 
       this.newMaskEvent.emit(maskPixels);
     }
+  }
+
+  convertToUnscaledCoord(xIn: number, yIn: number): Array<number> {
+    return new Array<number>(Math.floor(xIn / this.scale), Math.floor(yIn / this.scale));
   }
 }
