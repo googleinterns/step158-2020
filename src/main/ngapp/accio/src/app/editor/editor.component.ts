@@ -84,7 +84,7 @@ export class EditorComponent implements OnInit {
   private imageCtx: CanvasRenderingContext2D;
 
   //  Unscaled canvas that is used to save mask
-  //    as the same size as it's image.
+  //    as the same size as its image.
   @ViewChild('maskCanvas', { static: true })
   maskCanvas: ElementRef<HTMLCanvasElement>; 
   private maskCtx: CanvasRenderingContext2D;
@@ -192,12 +192,10 @@ export class EditorComponent implements OnInit {
   */
   private clearScaledCanvas() {
     this.scaledCtx.clearRect(0, 0, this.scaledCanvas.nativeElement.width, this.scaledCanvas.nativeElement.height);
-    this.scaledCtx.beginPath();
   }
 
  /**
   *  Draws user's image scaled to canvas and restores ctx.
-  *  @param image is either the mask image or image user is making a mask of.
   */
   private drawScaledImage() {
     this.imageCtx.save();
@@ -221,7 +219,7 @@ export class EditorComponent implements OnInit {
   floodfillMask(maskPixels: Set<number>) {
     this.disableSubmit = this.disableFloodFill = true;
 
-    //  Chenges if set of pixels are added or removed from the mask depending on the tool.
+    //  Changes if set of pixels are added or removed from the mask depending on the tool.
     let alphaValue = (this.maskTool == MaskTool.MAGIC_WAND_ADD) ? 255: 0;
 
     for (let pixel of maskPixels) {
