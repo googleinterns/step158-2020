@@ -1,16 +1,17 @@
 <!-- Form to save Mask -->
 <form novalidate [formGroup]="uploadMaskForm" (ngSubmit)="onSubmit()"  
       *ngIf="displayMaskForm" method="POST" enctype="multipart/form-data" id="mask-form">
+  <h1>Save Mask As:</h1>
   <mat-form-field appearance="fill">
     <mat-label>Mask Name</mat-label>
     <input required matInput formControlName="maskName" placeholder="Mask Name"/>
   </mat-form-field>
   <mat-form-field appearance="fill">
     <mat-label>Mask Labels</mat-label>
-    <input matInput formControlName="labels" placeholder="Labels (optional)"/>
-    <mat-hint>Enter list seperated by commas: "Label 1, Label 2, Label 3"</mat-hint>
+    <input matInput formControlName="tags" placeholder="Tags (optional)"/>
+    <mat-hint>Enter list seperated by commas: "tag 1, tag 2, tag 3"</mat-hint>
   </mat-form-field>
-  <button [disabled]="disableSubmit" type="submit" mat-button style="background-color:white padding:2%" id="save">Save Mask</button>
+  <button [disabled]="disableSubmit" type="submit" mat-raised-button id="save-button">Save Mask</button>
 </form>
 
 <!-- Editor -->
@@ -21,7 +22,8 @@
       (newMaskToolEvent)="updateMaskTool($event)"
       (invertMaskEvent)="invertMask()"
       (newToleranceEvent)="updateTolerance($event)"
-      (newMaskAlphaEvent)="updateMaskAlpha($event)">
+      (newMaskAlphaEvent)="updateMaskAlpha($event)"
+      (newWidthEvent)="updateBrushWidth($event)">
     </app-toolbar>
   </mat-drawer>
 
@@ -40,7 +42,8 @@
         [disableFloodFill]="disableFloodFill"
         [tool]="maskTool"
         (newMaskEvent)="floodfillMask($event)"
-        (newPaintEvent)="drawPixel($event)">
+        (newPaintEvent)="startDraw($event)"
+        (continuePaintEvent)="drawPixel($event)">
       </canvas>
       <canvas #imageCanvas id="image-layer"
         width="100px" height="100px">
@@ -50,3 +53,5 @@
     </div>
   </mat-drawer-content>
 </mat-drawer-container>
+
+<div class="end-page"></div>
