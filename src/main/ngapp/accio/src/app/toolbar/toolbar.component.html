@@ -15,6 +15,14 @@
   <mat-button-toggle mat-icon-button value="ERASE" title="Erase Mask">
     <mat-icon>remove_circle_outline</mat-icon>
   </mat-button-toggle>
+  <div>
+    <p style="color:white">Brush Width</p>
+    <mat-slider 
+      title="Brush Width"  
+      (change)="updateWidth()"
+      vertical min="0" max="80" step="1" [(ngModel)]="brushWidth">
+    </mat-slider>
+  </div>
   <mat-button-toggle mat-icon-button value="MASK-ONLY" title="Mask Only">
     <mat-icon>image</mat-icon>
   </mat-button-toggle>
