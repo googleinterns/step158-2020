@@ -81,11 +81,9 @@ export class ImgGalleryComponent implements OnInit {
     
     this.fetchImagesService.changeImages(fetchUrl).then(() => {
       this.fetchImagesService.currentImages.subscribe(images => this.imageArray = images);
-      console.log(this.imageArray.length + ' items in image array');
       if (this.imageArray.length > 0) {
         this.displayImages = true;
       }
-      console.log('fetching imageArray');
     });
   }
 
