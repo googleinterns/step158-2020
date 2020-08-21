@@ -420,10 +420,14 @@ export class EditorComponent implements OnInit {
         this.imageCtx.clearRect(0,0,this.imageCanvas.nativeElement.width, this.imageCanvas.nativeElement.height);
         break;
       case MaskTool.ZOOM_IN:
+        this.maskTool = MaskTool.ZOOM_IN;
+        this.zoom();
         break;
       case MaskTool.ZOOM_OUT:
+        this.maskTool = MaskTool.ZOOM_OUT;
         break;
       case MaskTool.PAN:
+        this.maskTool = MaskTool.PAN;
         break;
     }
     console.log('switched tool to ' + this.maskTool);
@@ -494,5 +498,18 @@ export class EditorComponent implements OnInit {
     console.log(nextImage);
     this.router.navigate(['/editor', this.projectId, nextImage['name'], nextImage['url'], this.index]);
     //  Component reloaded when router url changes, If the user refreshes the page, the imageArray is lost.**
+  }
+
+  zoom() {
+    if (this.maskTool == MaskTool.ZOOM_IN) {
+
+    }
+    else {
+
+    }
+  }
+
+  pan() {
+    
   }
 }

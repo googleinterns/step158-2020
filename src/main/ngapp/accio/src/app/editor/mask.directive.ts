@@ -26,7 +26,7 @@ export class MaskDirective {
   scribbleFill: boolean = false;
 
   //  Initial x&y coords.
-  private coord: Array<number>;
+  private coord: Coordinate;
 
   //  Create direct reference of canvas on editor.html
   constructor(
@@ -50,15 +50,21 @@ export class MaskDirective {
       this.mouseDown = true;
       this.paintPixels = new Set<number>();
 
-      //  Get pixel of original image that user clicked on.
-      let pixel = new Coordinate(this.coord[0], this.coord[1]);
-
       // //  Add pixel to set for scribble fill or for master pixel list.       
       this.paintPixels.add(this.magicWandService.coordToDataArrayIndex(
-          this.coord[0], this.coord[1], this.originalImageData.width));
+          this.coord.x, this.coord.y, this.originalImageData.width));
 
       // Fire event to draw pixel
-      this.newPaintEvent.emit(pixel); 
+      this.newPaintEvent.emit(this.coord); 
+    }
+    else if (this.tool == MaskTool.ZOOM_IN) {
+
+    }
+    else if (this.tool == MaskTool.ZOOM_OUT) {
+
+    }
+    else if (this.tool == MaskTool.PAN) {
+
     }
   }
 
@@ -80,13 +86,13 @@ export class MaskDirective {
       //  User moved mouse, use scribble fill. 
       this.scribbleFill = true;
 
-      //  Get pixel of user moved over.
-      let pixel = new Coordinate(coord[0], coord[1]);
-
       this.paintPixels.add(this.magicWandService.coordToDataArrayIndex(
-          coord[0], coord[1], this.originalImageData.width));
+          coord.x, coord.y, this.originalImageData.width));
       //  Fire event to draw pixel
-      this.continuePaintEvent.emit(pixel);
+      this.continuePaintEvent.emit(coord);
+    }
+    if (this.tool == MaskTool.PAN) {
+
     }
   }
 
@@ -124,12 +130,9 @@ export class MaskDirective {
 
       this.scribbleFill = false;
       //  TODO: uncomment once scribble flood fill implemented
-      // const maskPixels = this.magicWandService.scribbleFloodfill(
-      //   this.originalImageData,
-      //   Math.floor(this.xCoord / this.scale), 
-      //   Math.floor(this.yCoord / this.scale), 
-      //   this.tolerance, 
-      //   this.paintPixels);
+      const maskPixels = this.magicWandService.scribbleFloodfill(
+        this.originalImageData, this.coord.x, this.coord.y, 
+        this.tolerance, this.paintPixels);
 
       // this.newMaskEvent.emit(maskPixels);
     }
@@ -145,11 +148,21 @@ export class MaskDirective {
 
       this.newMaskEvent.emit(maskPixels);
     }
+
+    else if (this.tool == MaskTool.ZOOM_IN) {
+      
+    }
+    else if (this.tool == MaskTool.ZOOM_OUT) {
+
+    }
+    else if (this.tool == MaskTool.PAN) {
+
+    }
   }
 
-  convertToUnscaledCoord(xIn: number, yIn: number): Array<number> {
+  convertToUnscaledCoord(xIn: number, yIn: number): Coordinate {
    // if (this.scale >= 1) {
-      return new Array<number>(Math.floor(xIn / this.scale), Math.floor(yIn / this.scale));
+      return new Coordinate(Math.floor(xIn / this.scale), Math.floor(yIn / this.scale));
    // }
     
   }
