@@ -1,6 +1,5 @@
 #img-editor {
   position: relative;
-  top: 100px;
   background-color: #28292b;
   border: 10px solid #5e6469;
   height: 100vh;
@@ -12,6 +11,7 @@ mat-drawer-content{
 }
 
 #stage {
+  top: 10%;
   position: relative;
   border: 2px solid black;
   margin-left: auto;
@@ -45,19 +45,18 @@ canvas {
 #mask-form {
   position: relative;
   color: black;
-  background-color: #F5F5F5;
-  padding: 20px;
-  height: 120px;
-  width: 100%;
-  top: 20px;
+  padding: 5%;
 }
 
 .material-icons {
   position: relative;
   color: white;
   border: none;
-  width: 5%;
 }
 .material-icons:hover {
   cursor: pointer;
+}
+
+#save {
+  padding: 5%;
 }

@@ -1,11 +1,7 @@
-#upload-image-form {
+.form {
   position: relative;
   color: black;
-  background-color: #F5F5F5;
-  width: 70%;
-  left: 15%;
-  top: 100px;
-  padding: 10px;
+  padding: 5%;
 }
 
 .user-input {
@@ -13,26 +9,14 @@
   width: 300px;
 }
 
-#upload-button {
-  background-color: #91BFFF;
-  color: white;
-}
-
 .gallery {
   position: relative;
-  background-color: black;
+  background-color: #c4e1ff;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-gap: .5vw;
-  padding: .5vw;
+  padding: 5%;
   top: 200px;
-  left: 15%;
-  width: 70%;
-  border-style: solid;
-}
-
-.gallery-item {
-  border-style: solid;
 }
 
 .gallery-img {
@@ -47,8 +31,4 @@ img.gallery-img:hover {
 
 .hidden {
   display: none;
-}
-
-h1 {
-  padding-top: 200px;
 }
