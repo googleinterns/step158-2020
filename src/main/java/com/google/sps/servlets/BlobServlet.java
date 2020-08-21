@@ -133,7 +133,7 @@ public class BlobServlet extends HttpServlet {
     List<BlobKey> blobKeys = blobs.get("image");
 
     // User submitted form without selecting a file
-    if (blobKeys.isEmpty() || blobKeys == null) {
+    if (blobKeys == null || blobKeys.isEmpty()) {
       if (isCreateMode) {
         throw new IOException("Form submitted without a file.");
       }
