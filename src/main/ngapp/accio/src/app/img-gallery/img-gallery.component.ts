@@ -96,7 +96,7 @@ export class ImgGalleryComponent implements OnInit {
   */
   onSubmit() {
      // Name is a required input. If it's null, do nothing.
-    if(!this.uploadImageForm.get('imgName').value) {
+    if (!this.uploadImageForm.get('imgName').value) {
       return;
     }
     

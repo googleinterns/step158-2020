@@ -16,6 +16,7 @@ export class FetchImagesService {
   */
   async changeImages(fetchUrl: string): Promise<void> {
     const response = await fetch(fetchUrl);
+    console.log('fetchurl: ' + fetchUrl);
     const imageContent = await response.json();
     this.imageArray.next(imageContent);
   }
