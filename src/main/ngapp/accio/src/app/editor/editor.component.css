@@ -52,7 +52,6 @@ canvas {
   position: relative;
   color: white;
   border: none;
-  /* width: 5%; */
 }
 .material-icons:hover {
   cursor: pointer;
