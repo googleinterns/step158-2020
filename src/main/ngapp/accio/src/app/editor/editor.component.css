@@ -8,10 +8,25 @@
   border: 10px solid #5e6469;
 }
 
+mat-drawer-content{
+  position: relative;
+}
+
+#stage {
+  position: relative;
+  border: 2px solid black;
+  text-align: center;
+}
+
 canvas {
   position: relative;
-  border: 1px solid black;
-  background-color: white;
+}
+
+#mask-layer {
+  z-index: 2;
+}
+#image-layer {
+  z-index: 1;
 }
 
 canvas:hover {
@@ -33,4 +48,14 @@ canvas:hover {
   height: 120px;
   width: 100%;
   top: 20px;
+}
+
+.material-icons {
+  position: relative;
+  color: white;
+  border: none;
+  width: 5%;
+}
+.material-icons:hover {
+  cursor: pointer;
 }
