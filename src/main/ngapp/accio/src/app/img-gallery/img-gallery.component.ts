@@ -90,8 +90,8 @@ export class ImgGalleryComponent implements OnInit {
     }
   }
 
-  async download(){
-    saveAs(this.imageArray[0].url, this.imageArray[0].name + '.' + this.imageArray[0].type);
+  downloadImage(image: any){
+    saveAs(image.url, image.name + '.' + image.type);
   }
 
  /** 

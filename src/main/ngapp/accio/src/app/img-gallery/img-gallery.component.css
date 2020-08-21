@@ -18,6 +18,21 @@
   color: white;
 }
 
+#project-download-bar {
+  position: relative;
+  background-color: #f5f5f5;
+  left: 15%;
+  width: 70%;
+}
+
+#project-download {
+  float: right;
+}
+
+.download {
+  float: right;
+}
+
 .gallery {
   position: relative;
   background-color: #f5f5f5;
@@ -32,33 +47,9 @@
   border-color: #f5f5f5;
 }
 
-#project-download-bar {
-  position: relative;
-  background-color: #f5f5f5;
-  left: 15%;
-  width: 70%;
-}
-
-#project-download {
-  float: right;
-}
-
-a {
-  text-decoration: none;
-  color: black;
-}
-
-a:hover {
-  font-weight: bold;
-}
-
 .gallery-item-name {
   float: left;
   padding-left: 4%;
-}
-
-.download {
-  float: right;
 }
 
 .gallery-item {
@@ -90,4 +81,13 @@ img.gallery-img:hover {
 
 h1 {
   padding-top: 200px;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
+a:hover {
+  font-weight: bold;
 }
