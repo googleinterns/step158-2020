@@ -112,14 +112,14 @@ export class MaskDirective {
     else if (this.tool == MaskTool.MAGIC_WAND && this.scribbleFill) {
       this.scribbleFill = false;
       //  TODO: uncomment once scribble flood fill implemented
-      // const maskPixels = this.magicWandService.scribbleFloodfill(
-      //   this.originalImageData,
-      //   Math.floor(this.xCoord / this.scale), 
-      //   Math.floor(this.yCoord / this.scale), 
-      //   this.tolerance, 
-      //   this.paintPixels);
+      const maskPixels = this.magicWandService.scribbleFloodfill(
+        this.originalImageData,
+        Math.floor(this.xCoord / this.scale), 
+        Math.floor(this.yCoord / this.scale), 
+        this.tolerance, 
+        this.paintPixels);
 
-      // this.newMaskEvent.emit(maskPixels);
+      this.newMaskEvent.emit(maskPixels);
     }
     else if (this.tool == MaskTool.MAGIC_WAND && !this.scribbleFill) {
       console.log('tolerace in mask.dr ' + this.tolerance);
