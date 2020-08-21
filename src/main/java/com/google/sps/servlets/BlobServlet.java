@@ -130,9 +130,10 @@ public class BlobServlet extends HttpServlet {
     }
 
     // Process blobkey if an image was uploaded
-    String blobKeyString = BlobUtils.getBlobKeyString(request);
-    if (blobKeyString != null) {
-      imgEntity.setProperty("blobkey", blobKeyString);
+    ArrayList<String> fileInfo = BlobUtils.processBlobKey(request);
+    if (fileInfo != null) {
+      imgEntity.setProperty("blobkey", fileInfo.get(0));
+      imgEntity.setProperty("filetype", fileInfo.get(1));
     }
 
     // Last-modified time
@@ -236,6 +237,7 @@ public class BlobServlet extends HttpServlet {
       String imageUrl =
           "/blob-host?blobkey=" + (String)storedImage.getProperty("blobkey");
       String imageName = (String)storedImage.getProperty("name");
+      String imageType = (String)storedImage.getProperty("filetype");
       String imageTime = (String)storedImage.getProperty("utc");
       ArrayList<String> imageTags =
           (ArrayList<String>)storedImage.getProperty("tags");
@@ -264,15 +266,17 @@ public class BlobServlet extends HttpServlet {
           String maskUrl =
               "/blob-host?blobkey=" + (String)storedMask.getProperty("blobkey");
           String maskName = (String)storedMask.getProperty("name");
+          String maskType = (String)storedMask.getProperty("filetype");
           String maskTime = (String)storedMask.getProperty("utc");
           ArrayList<String> maskTags =
               (ArrayList<String>)storedMask.getProperty("tags");
-          imageMasks.add(new MaskInfo(maskUrl, maskName, maskTime, maskTags));
+          imageMasks.add(
+              new MaskInfo(maskUrl, maskName, maskType, maskTime, maskTags));
         }
       }
 
-      imageObjects.add(
-          new ImageInfo(imageUrl, imageName, imageTime, imageTags, imageMasks));
+      imageObjects.add(new ImageInfo(imageUrl, imageName, imageType, imageTime,
+                                     imageTags, imageMasks));
     }
 
     Gson gson =

@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
+import { saveAs } from 'file-saver';
 import * as $ from 'jquery';
 
 @Component({
@@ -79,7 +80,7 @@ export class ImgGalleryComponent implements OnInit {
       'tag': this.tag
     });
 
-    //  fetchUrl returns a list of image objects: 'url', 'name', 'utc', 'tags[]', 'masks[]'
+    //  fetchUrl returns a list of image objects: 'url', 'name', 'type', 'utc', 'tags[]', 'masks[]'
     const response = await fetch(fetchUrl);
     const imageContent = await response.json();
     this.imageArray = imageContent;
@@ -87,6 +88,10 @@ export class ImgGalleryComponent implements OnInit {
     if (this.imageArray.length > 0) {
       this.displayImages = true;
     }
+  }
+
+  async download(){
+    saveAs(this.imageArray[0].url, this.imageArray[0].name + '.' + this.imageArray[0].type);
   }
 
  /** 

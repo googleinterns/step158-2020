@@ -20,7 +20,7 @@
 
 .gallery {
   position: relative;
-  background-color: grey;
+  background-color: #f5f5f5;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-gap: 0.5vw;
@@ -29,12 +29,27 @@
   left: 15%;
   width: 70%;
   border-style: solid;
-  border-color: white;
+  border-color: #f5f5f5;
+}
+
+#project-download-bar {
+  position: relative;
+  background-color: #f5f5f5;
+  left: 15%;
+  width: 70%;
+}
+
+#project-download {
+  float: right;
 }
 
 a {
   text-decoration: none;
   color: black;
+}
+
+a:hover {
+  font-weight: bold;
 }
 
 .gallery-item-name {
@@ -48,7 +63,8 @@ a {
 
 .gallery-item {
   border-style: solid;
-  border-color: white;
+  background-color: #d3d3d3;
+  border-color: #d3d3d3;
 }
 
 .gallery-img {
