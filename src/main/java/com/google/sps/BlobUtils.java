@@ -143,7 +143,7 @@ public final class BlobUtils {
     boolean isMask = !DataUtils.isEmptyParameter(parentImg);
 
     // User submitted form without selecting a file
-    if (blobKeys.isEmpty() || blobKeys == null) {
+    if (blobKeys == null || blobKeys.isEmpty()) {
       if (isCreateMode) {
         throw new IOException("Form submitted without a file.");
       }
