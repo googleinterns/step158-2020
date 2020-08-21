@@ -1,8 +1,8 @@
 <form  novalidate [formGroup]="uploadImageForm" (ngSubmit)="onSubmit()" 
-      *ngIf="displayUpload" id="upload-image-form" method="POST" 
+      *ngIf="displayUpload" class="form" method="POST" 
       enctype="multipart/form-data">
 
-  <div style="width:10%">Upload an Image</div>
+  <h1>Upload an Image:</h1>
   
   <mat-form-field appearance="fill" class="user-input">
     <mat-label>Image Name</mat-label>
@@ -21,12 +21,12 @@
     <mat-hint>Enter list seperated by commas: "tag 1, tag 2, tag 3"</mat-hint>
   </mat-form-field>
 
-  <button type="submit" mat-button  id="upload-button">Upload</button>
+  <button type="submit" mat-raised-button id="upload-button">Upload Image</button>
 </form>
 
 <!--Filter Bar-->
-<h1>Search by:</h1>
-<div class="container">
+<div class="form" style="background-color: #f5f5f5">
+  <h1>Search by:</h1>
   <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
     <mat-label>Image Name</mat-label>
     <input matInput [(ngModel)]="imgName" placeholder="Ex. MyImage">
@@ -84,4 +84,6 @@
     </div>
   </ng-container>
 </div>
+
+<div class="end-page"></div>
 <!--Fetched Images-->

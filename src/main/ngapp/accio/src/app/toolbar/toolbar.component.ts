@@ -13,10 +13,12 @@ export class ToolbarComponent implements OnInit {
   @Output() invertMaskEvent = new EventEmitter<void>();
   @Output() newToleranceEvent = new EventEmitter<number>();
   @Output() newMaskAlphaEvent = new EventEmitter<number>();
+  @Output() newWidthEvent = new EventEmitter<number>();
 
   toleranceValue: number;
   maskAlphaValue: number;
   maskTool: string;
+  brushWidth: number;
 
   constructor() { }
 
@@ -24,6 +26,7 @@ export class ToolbarComponent implements OnInit {
     this.toleranceValue = 30;
     this.maskAlphaValue = 1;
     this.maskTool = "MAGIC-WAND-ADD";
+    this.brushWidth = 1;
   }
 
   /** Changes selected tool value and emits change. */
@@ -50,5 +53,9 @@ export class ToolbarComponent implements OnInit {
   /** Emits value of user inputed/slider alpha value. */
   updateMaskAlpha() {
     this.newMaskAlphaEvent.emit(this.maskAlphaValue);
+  }
+
+  updateWidth() {
+    this.newWidthEvent.emit(this.brushWidth);
   }
 }
