@@ -71,6 +71,7 @@
       <img class="gallery-img" [src]="image['url']">
       <p>{{ image['name'] }}</p>
     </a>
+    <button mat-raised-button (click)="updateButton(image['name'], '')">Update Image</button>
   </div>
 </div>
 
@@ -81,6 +82,7 @@
         <img class="gallery-img" [src]="mask['url']">
         <p>{{ mask['name'] }}</p>
       </a>
+      <button mat-raised-button (click)="updateButton(mask['name'], image['name'])">Update Image</button>
     </div>
   </ng-container>
 </div>
