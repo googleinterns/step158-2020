@@ -77,7 +77,7 @@ export class EditorComponent implements OnInit {
 
   //  Stores image that user queued from img-Gallery for next and prev arrows.
   //  Array<any> because info comes from survlet as json array
-  imageArray: Array<any>;
+  imageArray: Array<Object>;
 
   // Inject canvas from html.
   @ViewChild('scaledCanvas', { static: true })
@@ -105,9 +105,15 @@ export class EditorComponent implements OnInit {
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
     this.brushWidth = 1;
 
-    //  Gets last image array that user sorted on img-gallery page. 
-    this.fetchImagesService.currentImages.subscribe(newImages => this.imageArray = newImages);
-    console.log(this.imageArray.length + ': size of image array from img-Gallery');
+    //  Gets last image array that user sorted on img-gallery page. Saves to session storage to keep through refresh.
+    if (!window.sessionStorage.getItem('imageArray')) {
+      this.fetchImagesService.currentImages.subscribe(newImages => this.imageArray = newImages);
+      window.sessionStorage.setItem('imageArray', JSON.stringify(this.imageArray));
+    }
+    else {
+      this.imageArray = JSON.parse(window.sessionStorage.getItem('imageArray'));
+      console.log('object:');
+    }
     
     this.route.paramMap.subscribe(params => {
       this.projectId = params.get('proj-id ');
@@ -376,7 +382,6 @@ export class EditorComponent implements OnInit {
     if (this.maskTool == MaskTool.MAGIC_WAND_ADD || this.maskTool == MaskTool.MAGIC_WAND_SUB) {
       this.disableFloodFill = false;
     }
-    console.log('new maskAlpha: ' + value);
   }
 
  /** 
@@ -442,13 +447,16 @@ export class EditorComponent implements OnInit {
   }
  /** 
   *  Draws or erases line between previous point user moved over and next point moved over.
-  *  Adjusts line width based on user input.
+  *  Adjusts line width based on user input if user is in paint mode.
   *  @param pixel is emitted after user moves over a new x,y coordinate on the canvas.
   *  Sets this.startPixel to @param pixel to keep continuous drawing line.
   */
   drawPixel(pixel: Coordinate) {
     this.maskCtx.beginPath();
-    this.maskCtx.lineWidth = this.brushWidth;
+    
+    this.maskCtx.lineWidth = 
+        (this.maskTool == MaskTool.MAGIC_WAND_ADD || this.maskTool == MaskTool.MAGIC_WAND_SUB) 
+        ? 1 : this.brushWidth;
 
     this.maskCtx.moveTo(this.startPixel.x, this.startPixel.y);
     this.maskCtx.lineTo(pixel.x, pixel.y);
