@@ -23,6 +23,15 @@
       vertical min="0" max="80" step="1" [(ngModel)]="brushWidth">
     </mat-slider>
   </div>
+  <mat-button-toggle mat-icon-button value="ZOOM-IN" title="Zoom In">
+    <mat-icon>zoom_in</mat-icon>
+  </mat-button-toggle>
+  <mat-button-toggle mat-icon-button value="ZOOM-OUT" title="Zoom Out">
+    <mat-icon>zoom_out</mat-icon>
+  </mat-button-toggle>
+  <mat-button-toggle mat-icon-button value="PAN" title="Pan">
+    <mat-icon>pan_tool</mat-icon>
+  </mat-button-toggle>
   <mat-button-toggle mat-icon-button value="MASK-ONLY" title="Mask Only">
     <mat-icon>image</mat-icon>
   </mat-button-toggle>
@@ -33,6 +42,10 @@
 <!-- Single use buttons -->
 <div id="single-click-buttons">
   <mat-icon class="button" title="Invert Mask" (click)="invertMask()">invert_colors</mat-icon>
+  <div class="small-break"></div>
+  <mat-icon class="button" title="Undo">undo</mat-icon>
+  <div class="small-break"></div>
+  <mat-icon class="button" title="Redo">redo</mat-icon>
   <div class="small-break"></div>
   <mat-icon class="button" title="Clear Mask" (click)="clearMask()">clear</mat-icon>
 </div>

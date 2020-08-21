@@ -157,13 +157,21 @@ export class EditorComponent implements OnInit {
     //  Initialize transparent black image data to use for mask size of image
     this.maskImageData = new ImageData(imgWidth,  imgHeight);
 
-    //  Used to scale the image to the window size, 
+    //  Used to scale the image to the window size, cuts off after two decimals
     //    scaleFactor = .9 so the scaled image is smaller than the user's window.
     this.scaleFactor = Math.floor(window.innerHeight / imgHeight * this.scaleFactor);
-    //  TODO(shmcaffrey): add scaling if image is larger than window
-    if (this.scaleFactor <= 0) {
-      this.scaleFactor =  1;
+    if (this.scaleFactor == 0) {
+      this.scaleFactor = 1;
     }
+    //  TODO: image scale is image larger than window. Not currently working
+    // let fixedDecimal = this.scaleFactor.toFixed(2);
+    // try { this.scaleFactor = Number(fixedDecimal); } 
+    // catch { this.scaleFactor = 1; }
+    // //  In the event that the scale would be less than .01, give set scale
+    // if (this.scaleFactor == 0) {
+    //   this.scaleFactor = .001;
+    // }
+    console.log(`SCALEFACTOR ${this.scaleFactor}`)
 
     //  Canvas to draw mask, hidden.
     this.maskCanvas.nativeElement.width = imgWidth;
@@ -193,6 +201,8 @@ export class EditorComponent implements OnInit {
 
     this.drawScaledImage();
     console.log('put imagedata');
+    console.log('image width: ' + this.image.width);
+    console.log('canvas width: ' + this.scaledCanvas.nativeElement.width);
   }
   
  /**
@@ -408,6 +418,12 @@ export class EditorComponent implements OnInit {
       case MaskTool.MASK_ONLY:
         this.maskTool = MaskTool.MASK_ONLY;
         this.imageCtx.clearRect(0,0,this.imageCanvas.nativeElement.width, this.imageCanvas.nativeElement.height);
+        break;
+      case MaskTool.ZOOM_IN:
+        break;
+      case MaskTool.ZOOM_OUT:
+        break;
+      case MaskTool.PAN:
         break;
     }
     console.log('switched tool to ' + this.maskTool);

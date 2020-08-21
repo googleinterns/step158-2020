@@ -3,5 +3,8 @@ export enum MaskTool {
   MAGIC_WAND_SUB = 'MAGIC-WAND-SUB',
   MASK_ONLY = 'MASK-ONLY',
   PAINT = 'PAINT',
-  ERASE = 'ERASE'
+  ERASE = 'ERASE',
+  ZOOM_IN = 'ZOOM-IN',
+  ZOOM_OUT = 'ZOOM-OUT',
+  PAN = 'PAN'
 }

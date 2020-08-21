@@ -46,7 +46,7 @@ export class MaskDirective {
         || this.tool == MaskTool.MAGIC_WAND_SUB)  {
 
       this.coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
-
+      console.log(`Original (x,y): (${e.offsetX}, ${e.offsetY}) translated (${this.coord[0]}, ${this.coord[1]})`)
       this.mouseDown = true;
       this.paintPixels = new Set<number>();
 
@@ -57,7 +57,6 @@ export class MaskDirective {
       this.paintPixels.add(this.magicWandService.coordToDataArrayIndex(
           this.coord[0], this.coord[1], this.originalImageData.width));
 
-      console.log('drawing pixel mousedown');
       // Fire event to draw pixel
       this.newPaintEvent.emit(pixel); 
     }
@@ -149,6 +148,9 @@ export class MaskDirective {
   }
 
   convertToUnscaledCoord(xIn: number, yIn: number): Array<number> {
-    return new Array<number>(Math.floor(xIn / this.scale), Math.floor(yIn / this.scale));
+   // if (this.scale >= 1) {
+      return new Array<number>(Math.floor(xIn / this.scale), Math.floor(yIn / this.scale));
+   // }
+    
   }
 }
