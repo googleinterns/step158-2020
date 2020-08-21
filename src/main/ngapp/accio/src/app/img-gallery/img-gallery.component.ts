@@ -200,7 +200,7 @@ export class UpdateImageDialog {
     this.updateImageForm.reset;
   }
 
-  /**Closes dialog popup without changing or saving any editted values.
+  /**Closes dialog popup without changing or saving any edited values.
    */
   onNoClick(): void {
     this.dialogRef.close();
