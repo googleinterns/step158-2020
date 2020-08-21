@@ -14,15 +14,25 @@
   background-color: #c4e1ff;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
   grid-gap: .5vw;
   padding: 5%;
   top: 200px;
 }
 
+.gallery-item {
+  height: 100%
+}
+
 .gallery-img {
   width: 100%;
-  height: 100%;
+  height: 80%;
   object-fit: cover;
+}
+.tab {
+  width: 100%;
+  height: 10%;
+  display: inline;
 }
 
 img.gallery-img:hover {

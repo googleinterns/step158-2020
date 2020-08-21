@@ -8,7 +8,7 @@ export class FetchImagesService {
 
   constructor() { }
 
-  private imageArray = new BehaviorSubject<Array<any>>(new Array<any>());
+  private imageArray = new BehaviorSubject<Array<Object>>(new Array<Object>());
   currentImages = this.imageArray.asObservable();
 
  /**

@@ -69,9 +69,11 @@
   <div *ngFor="let image of imageArray; index as i" class="gallery-item">
     <a [routerLink]="['/editor', projectId, image['name'], image['url'], i]">
       <img class="gallery-img" [src]="image['url']">
-      <p>{{ image['name'] }}</p>
     </a>
-    <button mat-raised-button (click)="updateButton(image['name'], '')">Update Image</button>
+    <div class="tab">
+      <p>{{ image['name'] }}</p>
+      <button mat-raised-button style="display:inline" (click)="updateButton(image['name'], '')">Update Image</button>
+    </div>
   </div>
 </div>
 
@@ -80,9 +82,11 @@
     <div *ngFor="let mask of image['masks']" class="gallery-item">
       <a [routerLink]="['/editor', projectId, mask['name'], mask['url'], image['name'], image['url']]">
         <img class="gallery-img" [src]="mask['url']">
-        <p>{{ mask['name'] }}</p>
       </a>
-      <button mat-raised-button (click)="updateButton(mask['name'], image['name'])">Update Image</button>
+      <div class="tab">      
+        <p>{{ mask['name'] }}</p>
+        <button mat-raised-button style="display:inline" (click)="updateButton(mask['name'], image['name'])">Update Mask</button>
+      </div>
     </div>
   </ng-container>
 </div>
