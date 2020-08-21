@@ -3,14 +3,17 @@
   #group="matButtonToggleGroup" 
   vertical style="border:none" 
   [value]="maskTool" (change)="updateTool(group.value)">
-  <mat-button-toggle mat-icon-button value="MAGIC-WAND" title="Magic Wand">
+  <mat-button-toggle mat-icon-button value="MAGIC-WAND-ADD" title="Magic Wand - Add">
     <mat-icon>format_color_fill</mat-icon>
+  </mat-button-toggle>
+  <mat-button-toggle mat-icon-button value="MAGIC-WAND-SUB" title="Magic Wand - Subtract">
+    <mat-icon>remove</mat-icon>
   </mat-button-toggle>
   <mat-button-toggle mat-icon-button value="PAINT" title="Paint Mask">
     <mat-icon>brush</mat-icon>
   </mat-button-toggle>
   <mat-button-toggle mat-icon-button value="ERASE" title="Erase Mask">
-    <span class="iconify" data-icon="mdi-eraser" data-inline="false"></span>
+    <mat-icon>remove_circle_outline</mat-icon>
   </mat-button-toggle>
   <mat-button-toggle mat-icon-button value="MASK-ONLY" title="Mask Only">
     <mat-icon>image</mat-icon>
@@ -22,6 +25,10 @@
 <!-- Single use buttons -->
 <div id="single-click-buttons">
   <mat-icon class="button" title="Invert Mask" (click)="invertMask()">invert_colors</mat-icon>
+    <div class="small-break"></div>
+  <mat-icon class="button" title="Undo">undo</mat-icon>
+  <div class="small-break"></div>
+  <mat-icon class="button" title="Redo">redo</mat-icon>
   <div class="small-break"></div>
   <mat-icon class="button" title="Clear Mask" (click)="clearMask()">clear</mat-icon>
 </div>
