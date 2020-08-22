@@ -79,7 +79,7 @@
       <mat-icon>more_vert</mat-icon>
     </button>
     <mat-menu #menu1="matMenu">
-      <button mat-menu-item>
+      <button mat-menu-item (click)="downloadProjectImages()">
         <mat-icon>folder</mat-icon>
         <span>Download project files</span>
       </button>
@@ -114,7 +114,7 @@
           <mat-icon>image</mat-icon>
           <span>Download image</span>
         </button>
-        <button mat-menu-item>
+        <button mat-menu-item (click)="downloadImageAndItsMasks(image)">
           <mat-icon>photo_library</mat-icon>
           <span>Download image and masks</span>
         </button>
@@ -165,7 +165,7 @@
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu3="matMenu">
-          <button mat-menu-item>
+          <button mat-menu-item (click)="downloadImage(mask)">
             <mat-icon>image</mat-icon>
             <span>Download mask</span>
           </button>
