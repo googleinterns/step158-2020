@@ -3,6 +3,8 @@ import { MagicWandService } from './magic-wand.service';
 import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
 import { Coordinate } from './Coordinate';
+//import { MaskAction, Action, Tool } from './mask-action';
+//import { MaskController } from './mask-controller';
 
 @Directive({
   selector: '[appMask]',
@@ -32,6 +34,8 @@ export class MaskDirective {
   constructor(
     private canvas: ElementRef<HTMLCanvasElement>, 
     private magicWandService: MagicWandService,
+    /*private maskAction: MaskAction,
+    public maskController: MaskController,*/
   ) { }
 
 /**
@@ -113,10 +117,15 @@ export class MaskDirective {
   onMouseUp(e: MouseEvent) {
       this.mouseDown = false;
     //  If user has paint selected, call paint to add pixels painted to master.
-    if (this.tool == MaskTool.PAINT || this.tool == MaskTool.ERASE) {
+    if (this.tool == MaskTool.PAINT) {
       this.scribbleFill = false;
-      //  TODO: call to save pixels painted in mask once function implemented
 
+      //this.maskController.do(new MaskAction(Action.ADD, Tool.PAINTBRUSH, this.paintPixels));
+    }
+    else if (this.tool == MaskTool.ERASE) {
+      this.scribbleFill = false;
+
+      //this.maskController.do(new MaskAction(Action.SUBTRACT, Tool.ERASER, this.paintPixels));
     }
     //  If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
     else if ((this.tool == MaskTool.MAGIC_WAND_ADD
@@ -126,11 +135,13 @@ export class MaskDirective {
       this.scribbleFill = false;
       //  TODO: uncomment once scribble flood fill implemented
       const maskPixels = this.magicWandService.scribbleFloodfill(
-        this.originalImageData,
-        Math.floor(this.xCoord / this.scale), 
-        Math.floor(this.yCoord / this.scale), 
-        this.tolerance, 
-        this.paintPixels);
+        this.originalImageData, this.coord[0], this.coord[1], 
+        this.tolerance, this.paintPixels);
+
+    /*this.maskController.do(new MaskAction(
+        (this.tool == MaskTool.MAGIC_WAND_ADD) ? Action.ADD : Action.SUBTRACT, 
+        Tool.SCRIBBLE, this.paintPixels)
+    );*/
 
       this.newMaskEvent.emit(maskPixels);
     }
@@ -144,6 +155,10 @@ export class MaskDirective {
           this.originalImageData, this.coord[0], 
           this.coord[1], this.tolerance);
 
+    /*this.maskController.do(new MaskAction(
+        (this.tool == MaskTool.MAGIC_WAND_ADD) ? Action.ADD : Action.SUBTRACT, 
+        Tool.MAGIC_WAND, maskPixels)
+    );*/
       this.newMaskEvent.emit(maskPixels);
     }
   }

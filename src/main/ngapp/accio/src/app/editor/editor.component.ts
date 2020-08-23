@@ -193,11 +193,12 @@ export class EditorComponent implements OnInit {
     this.stageHeight = imgHeight * this.scaleFactor;
 
     //   Draws image non scaled on full canvas
-    this.imageCtx.drawImage(this.image, 0, 0);
+    this.maskCtx.drawImage(this.image, 0, 0);
 
     //  Only gets the image data from (0,0) to (width,height) of image.
-    this.originalImageData = this.imageCtx.getImageData(0, 0, imgWidth, imgHeight);
-
+    this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth, imgHeight);
+    this.maskCtx.clearRect(0,0,imgWidth, imgHeight);
+    
     this.drawScaledImage();
     console.log('put imagedata');
   }
