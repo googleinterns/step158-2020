@@ -21,6 +21,14 @@ export class MaskAction {
   constructor(
     private actionType: Action,
     private toolName: Tool,
+    
+    /* 
+     * Expected values for changedPixels:
+     *   ADD: the added pixels
+     *   SUBTRACT: the removed pixels
+     *   INVERT: every pixel of the image
+     *   CLEAR: the pixels of the current mask
+    */ 
     private changedPixels: Set<number>
   ) {}
 
