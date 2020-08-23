@@ -17,6 +17,9 @@ export class MaskController {
 
   constructor(private mask: Set<number> = new Set()) {}
 
+  /**
+   * Returns present mask.
+   */
   public getMask(): Set<number> {
     return this.mask;
   }
