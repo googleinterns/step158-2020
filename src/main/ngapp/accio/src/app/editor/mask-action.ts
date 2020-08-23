@@ -4,7 +4,8 @@ import { Move } from './mask-controller';
 export enum Action {
   ADD = 'add',
   SUBTRACT = 'subtract',
-  INVERT = 'invert',
+  INVERT = 'invert', 
+  CLEAR = 'clear,'
 }
 
 export enum Tool {
@@ -13,6 +14,7 @@ export enum Tool {
     PAINTBRUSH = 'paintbrush',
     ERASER = 'erase',
     INVERT = 'invert',
+    CLEAR = 'clear',
 }
 
 export class MaskAction {
@@ -50,6 +52,11 @@ export class MaskAction {
         return SetOperator.union(currentMask, this.changedPixels);
       case Action.INVERT:
         return SetOperator.symmetricDifference(currentMask, this.changedPixels);
+      case Action.CLEAR:
+        if (direction === Move.FORWARD_ONE) {
+          return new Set([]);
+        }
+        return this.changedPixels;
     }
   }
 }

@@ -1,7 +1,7 @@
 import { Move } from './mask-controller';
 import { MaskAction, Action, Tool } from './mask-action';
 
-describe('MaskController', () => {
+describe('MaskAction', () => {
   const initialMask = new Set([1, 2, 3, 4]);
 
   it('should be correct action type', () => {
@@ -78,7 +78,30 @@ describe('MaskController', () => {
       Tool.MAGIC_WAND,
       new Set([1, 2, 3, 4, 5, 6])
     );
+    expect(maskAction.apply(Move.BACK_ONE, initialMask)).toEqual(
+      expectedMask
+    );
+  });
+  it('should do clear', () => {
+    let expectedMask = new Set([]);
+    let maskAction = new MaskAction(
+      Action.CLEAR,
+      Tool.CLEAR,
+      new Set([1, 2, 3, 4])
+    );
     expect(maskAction.apply(Move.FORWARD_ONE, initialMask)).toEqual(
+      expectedMask
+    );
+  });
+  it('should undo clear', () => {
+    let initialClearedMask = new Set([]);
+    let expectedMask = new Set([1, 2, 3, 4]);
+    let maskAction = new MaskAction(
+      Action.INVERT,
+      Tool.CLEAR,
+      new Set([1, 2, 3, 4])
+    );
+    expect(maskAction.apply(Move.BACK_ONE, initialClearedMask)).toEqual(
       expectedMask
     );
   });
