@@ -169,11 +169,11 @@ export class ImgGalleryComponent implements OnInit {
   async downloadImageAndItsMasks(image: any): Promise<any> {
     let zip = new JSZip();
 
-    let img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.src = image.url;
+    let newImageObject = new Image();
+    newImageObject.crossOrigin = 'Anonymous';
+    newImageObject.src = image.url;
     let loadImageString: Promise<string> = new Promise((resolve, reject) => {
-      img.onload = () => resolve(this.getBase64String(img));
+      newImageObject.onload = () => resolve(this.getBase64String(newImageObject));
     });
     zip.file(image.name + '.' + image.type, await loadImageString, {
       base64: true,
@@ -188,14 +188,12 @@ export class ImgGalleryComponent implements OnInit {
 
     let images: any;
     images = await this.fetchImages();
-
-    for (let i = 0; i < images[0]['masks'].length; i++) {
-      let mask = images[0]['masks'][i];
-      let msk = new Image();
-      msk.crossOrigin = 'Anonymous';
-      msk.src = mask.url;
+    for (let mask of images[0]['masks']) {
+      let newMaskObject = new Image();
+      newMaskObject.crossOrigin = 'Anonymous';
+      newMaskObject.src = mask.url;
       let loadMaskString: Promise<string> = new Promise((resolve, reject) => {
-        msk.onload = () => resolve(this.getBase64String(msk));
+        newMaskObject.onload = () => resolve(this.getBase64String(newMaskObject));
       });
 
       zip.file('masks/' + mask.name + '.' + mask.type, await loadMaskString, {
@@ -224,13 +222,12 @@ export class ImgGalleryComponent implements OnInit {
     let images: any;
     images = await this.fetchImages();
 
-    for (let i = 0; i < images.length; i++) {
-      let image = images[i];
-      let img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.src = image.url;
+    for (let image of images) {
+      let newImageObject = new Image();
+      newImageObject.crossOrigin = 'Anonymous';
+      newImageObject.src = image.url;
       let loadImageString: Promise<string> = new Promise((resolve, reject) => {
-        img.onload = () => resolve(this.getBase64String(img));
+        newImageObject.onload = () => resolve(this.getBase64String(newImageObject));
       });
       zip.file(
         image.name + '/' + image.name + '.' + image.type,
@@ -239,13 +236,12 @@ export class ImgGalleryComponent implements OnInit {
           base64: true,
         }
       );
-      for (let j = 0; j < images[i]['masks'].length; j++) {
-        let mask = images[i]['masks'][j];
-        let msk = new Image();
-        msk.crossOrigin = 'Anonymous';
-        msk.src = mask.url;
+      for (let mask of image['masks']) {
+        let newMaskObject = new Image();
+        newMaskObject.crossOrigin = 'Anonymous';
+        newMaskObject.src = mask.url;
         let loadMaskString: Promise<string> = new Promise((resolve, reject) => {
-          msk.onload = () => resolve(this.getBase64String(msk));
+          newMaskObject.onload = () => resolve(this.getBase64String(newMaskObject));
         });
 
         zip.file(
