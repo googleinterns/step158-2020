@@ -131,9 +131,9 @@ public final class BlobUtils {
    * Returns either the blobkey string and file extension for storage in the
    * database or null.
    * @param     {HttpServletRequest}    request
-   * @return    {ArrayList<String>}
+   * @return    {CustomBlobInfo}
    */
-  public static ArrayList<String> processBlobKey(HttpServletRequest request)
+  public static CustomBlobInfo processBlobKey(HttpServletRequest request)
       throws IOException {
     BlobstoreService blobstoreService =
         BlobstoreServiceFactory.getBlobstoreService();
@@ -165,8 +165,8 @@ public final class BlobUtils {
 
       // Set blobkey property
       if (isCreateMode || (!isCreateMode && hasNonEmptyImage)) {
-        return new ArrayList<String>(Arrays.asList(
-            blobKey.getKeyString(), checkFileValidity(blobKey, isMask)));
+        return new CustomBlobInfo(blobKey.getKeyString(),
+                                  checkFileValidity(blobKey, isMask));
       }
     }
     return null;

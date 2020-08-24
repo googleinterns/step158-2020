@@ -130,10 +130,10 @@ public class BlobServlet extends HttpServlet {
     }
 
     // Process blobkey if an image was uploaded
-    ArrayList<String> fileInfo = BlobUtils.processBlobKey(request);
+    CustomBlobInfo fileInfo = BlobUtils.processBlobKey(request);
     if (fileInfo != null) {
-      imgEntity.setProperty("blobkey", fileInfo.get(0));
-      imgEntity.setProperty("filetype", fileInfo.get(1));
+      imgEntity.setProperty("blobkey", fileInfo.blobKeyString);
+      imgEntity.setProperty("filetype", fileInfo.fileExtension);
     }
 
     // Last-modified time

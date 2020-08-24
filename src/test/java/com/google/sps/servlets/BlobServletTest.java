@@ -81,7 +81,7 @@ public final class BlobServletTest {
     Mockito.when(request.getParameter("mode")).thenReturn("create");
     Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
     Mockito.when(request.getParameter("img-name")).thenReturn("Image2");
-    PowerMockito.doReturn(new ArrayList<String>(Arrays.asList("mno", "png")))
+    PowerMockito.doReturn(new CustomBlobInfo("mno", "png"))
         .when(BlobUtils.class, "processBlobKey", request);
     servlet.doPost(request, response);
     assertEquals(3,
@@ -107,7 +107,7 @@ public final class BlobServletTest {
     Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
     Mockito.when(request.getParameter("parent-img")).thenReturn("Image0");
     Mockito.when(request.getParameter("img-name")).thenReturn("Mask2");
-    PowerMockito.doReturn(new ArrayList<String>(Arrays.asList("mno", "png")))
+    PowerMockito.doReturn(new CustomBlobInfo("mno", "png"))
         .when(BlobUtils.class, "processBlobKey", request);
     servlet.doPost(request, response);
     assertEquals(2,
@@ -133,7 +133,7 @@ public final class BlobServletTest {
     Mockito.when(request.getParameter("proj-id")).thenReturn(projId);
     Mockito.when(request.getParameter("img-name")).thenReturn("Image0");
     Mockito.when(request.getParameter("tags")).thenReturn("m, n, o");
-    PowerMockito.doReturn(new ArrayList<String>(Arrays.asList("mno", "png")))
+    PowerMockito.doReturn(new CustomBlobInfo("mno", "png"))
         .when(BlobUtils.class, "processBlobKey", request);
     servlet.doPost(request, response);
     assertEquals(3,
@@ -164,7 +164,7 @@ public final class BlobServletTest {
     Mockito.when(request.getParameter("parent-img")).thenReturn("Image0");
     Mockito.when(request.getParameter("img-name")).thenReturn("Mask0");
     Mockito.when(request.getParameter("tags")).thenReturn("m, n, o");
-    PowerMockito.doReturn(new ArrayList<String>(Arrays.asList("mno", "png")))
+    PowerMockito.doReturn(new CustomBlobInfo("mno", "png"))
         .when(BlobUtils.class, "processBlobKey", request);
     servlet.doPost(request, response);
     assertEquals(2,
@@ -194,7 +194,7 @@ public final class BlobServletTest {
     Mockito.when(request.getParameter("img-name")).thenReturn("Image0");
     Mockito.when(request.getParameter("new-name")).thenReturn("Image10");
     Mockito.when(request.getParameter("tags")).thenReturn("m, n, o");
-    PowerMockito.doReturn(new ArrayList<String>(Arrays.asList("mno", "png")))
+    PowerMockito.doReturn(new CustomBlobInfo("mno", "png"))
         .when(BlobUtils.class, "processBlobKey", request);
     servlet.doPost(request, response);
     assertEquals(2,
@@ -223,7 +223,7 @@ public final class BlobServletTest {
     Mockito.when(request.getParameter("img-name")).thenReturn("Mask0");
     Mockito.when(request.getParameter("new-name")).thenReturn("Mask10");
     Mockito.when(request.getParameter("tags")).thenReturn("m, n, o");
-    PowerMockito.doReturn(new ArrayList<String>(Arrays.asList("mno", "png")))
+    PowerMockito.doReturn(new CustomBlobInfo("mno", "png"))
         .when(BlobUtils.class, "processBlobKey", request);
     servlet.doPost(request, response);
     assertEquals(2,

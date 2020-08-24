@@ -223,8 +223,8 @@ export class ImgGalleryComponent implements OnInit {
     this.sortMask = '';
     this.tag = '';
 
-    let images: any;
-    images = await this.fetchImages();
+    let images: any = await this.fetchImages();
+    
     for (let mask of images[0]['masks']) {
       let newMaskObject = new Image();
       newMaskObject.crossOrigin = 'Anonymous';
@@ -256,8 +256,7 @@ export class ImgGalleryComponent implements OnInit {
     this.sortMask = '';
     this.tag = '';
 
-    let images: any;
-    images = await this.fetchImages();
+    let images: any = await this.fetchImages();
 
     for (let image of images) {
       let newImageObject = new Image();
