@@ -15,7 +15,9 @@
   </mat-form-field>
 
   <mat-form-field class="user-input" appearance="fill">
+
     <ngx-mat-file-input formControlName="image"> </ngx-mat-file-input>
+
     <mat-hint>Select an Image</mat-hint>
   </mat-form-field>
 
@@ -25,11 +27,11 @@
     <mat-hint>Enter list seperated by commas: "tag1, tag2, tag3"</mat-hint>
   </mat-form-field>
 
-  <button type="submit" mat-button id="upload-button">Upload</button>
+  <button type="submit" mat-raised-button id="upload-button">Upload Image</button>
 </form>
 
 <!--Filter Bar-->
-<div class="container">
+<div class="form" style="background-color: #f5f5f5">
   <h1>Search by:</h1>
   <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
     <mat-label>Image Name</mat-label>
@@ -175,3 +177,5 @@
   </ng-container>
 </div>
 <!--Fetched Masks-->
+
+<div class="end-page"></div>

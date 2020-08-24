@@ -16,11 +16,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { HttpClientModule } from '@angular/common/http'
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TopBarComponent} from './top-bar/top-bar.component';
-import { ImgGalleryComponent } from './img-gallery/img-gallery.component';
+import { ImgGalleryComponent, UpdateImageDialog } from './img-gallery/img-gallery.component';
 import { EditorComponent } from './editor/editor.component';
 import { HomeComponent } from './home/home.component';
 import { MaskDirective } from './editor/mask.directive';
@@ -39,7 +40,8 @@ import { LogoutComponent } from './logout/logout.component';
     CreateProjectComponent,
     ToolbarComponent,
     ToolbarComponent,
-    LogoutComponent
+    LogoutComponent,
+    UpdateImageDialog
   ],
   imports: [
     BrowserModule,
@@ -59,6 +61,7 @@ import { LogoutComponent } from './logout/logout.component';
     MatSelectModule,
     HttpClientModule,
     MatDialogModule,
+    MatCheckboxModule,
     AppRoutingModule,
   ],
   providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],

@@ -56,7 +56,9 @@ export class PostBlobsService {
     formData.append('proj-id', imageBlob.projectId);
     formData.append('img-name',  imageBlob.imageName);
     formData.append('mode', imageBlob.mode);
-    formData.append('image', imageBlob.image, fileName)
+    if (imageBlob.image) {
+      formData.append('image', imageBlob.image, fileName);
+    }
     formData.append('parent-img', imageBlob.parentImageName);
     formData.append('new-name', imageBlob.newImageName);
     formData.append('tags', tags);

@@ -1,11 +1,7 @@
-#upload-image-form {
+.form {
   position: relative;
   color: black;
-  background-color: #f5f5f5;
-  width: 70%;
-  left: 15%;
-  top: 100px;
-  padding: 10px;
+  padding: 5%;
 }
 
 .user-input {
@@ -38,11 +34,10 @@
   background-color: #f5f5f5;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
   grid-gap: 0.5vw;
-  padding: 0.5vw;
+  padding: 5%;
   top: 200px;
-  left: 15%;
-  width: 70%;
   border-style: solid;
   border-color: #f5f5f5;
 }
@@ -53,10 +48,11 @@
 }
 
 .gallery-item {
+  height: 100%;
   border-style: solid;
   background-color: #d3d3d3;
   border-color: #d3d3d3;
-}
+
 
 .gallery-img {
   width: 100%;

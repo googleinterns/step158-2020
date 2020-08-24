@@ -1,16 +1,17 @@
 <!-- Form to save Mask -->
 <form novalidate [formGroup]="uploadMaskForm" (ngSubmit)="onSubmit()"  
       *ngIf="displayMaskForm" method="POST" enctype="multipart/form-data" id="mask-form">
+  <h1>Save Mask As:</h1>
   <mat-form-field appearance="fill">
     <mat-label>Mask Name</mat-label>
     <input required matInput formControlName="maskName" placeholder="Mask Name"/>
   </mat-form-field>
   <mat-form-field appearance="fill">
     <mat-label>Mask Labels</mat-label>
-    <input matInput formControlName="labels" placeholder="Labels (optional)"/>
-    <mat-hint>Enter list seperated by commas: "Label 1, Label 2, Label 3"</mat-hint>
+    <input matInput formControlName="tags" placeholder="Tags (optional)"/>
+    <mat-hint>Enter list seperated by commas: "tag 1, tag 2, tag 3"</mat-hint>
   </mat-form-field>
-  <button [disabled]="disableSubmit" type="submit" mat-button style="background-color:white padding:2%" id="save">Save Mask</button>
+  <button [disabled]="disableSubmit" type="submit" mat-raised-button id="save-button">Save Mask</button>
 </form>
 
 <!-- Editor -->
@@ -18,21 +19,39 @@
   <mat-drawer id="toolbar" mode="side" opened>
     <app-toolbar 
       (clearMaskEvent)="clearMask()"
-      (newToleranceEvent)="updateTolerance($event)"
       (newMaskToolEvent)="updateMaskTool($event)"
-      (invertMaskEvent)="invertMask()">
+      (invertMaskEvent)="invertMask()"
+      (newToleranceEvent)="updateTolerance($event)"
+      (newMaskAlphaEvent)="updateMaskAlpha($event)"
+      (newWidthEvent)="updateBrushWidth($event)">
     </app-toolbar>
   </mat-drawer>
+
   <mat-drawer-content>
+    <div style="text-align:center">
+      <span (click)="newImage(true)" class="material-icons" title="Previous Image">navigate_before</span>
+      <span (click)="newImage(false)" class="material-icons" title="Next Image">navigate_next</span>
+    </div>
       <!-- Retrieves new mask via output event emiter -->
-    <canvas #canvas appMask 
-      [originalImageData]="originalImageData"
-      [scale]="scaleFactor"
-      [tolerance]="tolerance"
-      [disable]="disableFloodFill"
-      (newMaskEvent)="addToMask($event)">
-    </canvas>
-    <canvas #maskCanvas style="display:none">
-    </canvas>
+    <div id="stage" [style.width.px]="stageWidth" [style.height.px]="stageHeight">
+      <canvas #scaledCanvas appMask id="mask-layer"
+        width="100px" height="100px"
+        [originalImageData]="originalImageData"
+        [scale]="scaleFactor"
+        [tolerance]="tolerance"
+        [disableFloodFill]="disableFloodFill"
+        [tool]="maskTool"
+        (newMaskEvent)="floodfillMask($event)"
+        (newPaintEvent)="startDraw($event)"
+        (continuePaintEvent)="drawPixel($event)">
+      </canvas>
+      <canvas #imageCanvas id="image-layer"
+        width="100px" height="100px">
+      </canvas>
+      <canvas #maskCanvas style="display:none">
+      </canvas>
+    </div>
   </mat-drawer-content>
 </mat-drawer-container>
+
+<div class="end-page"></div>
