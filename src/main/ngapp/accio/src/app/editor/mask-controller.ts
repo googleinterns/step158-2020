@@ -19,7 +19,9 @@ export class MaskController {
   private pPresent: number = -1;
   private pSaved: number = -1;
 
-  constructor(private mask: Set<number> = new Set()) { this.savedMask = mask; }
+  constructor(private mask: Set<number> = new Set()) {
+    this.savedMask = mask;
+  }
 
   /**
    * Returns current mask.
@@ -32,7 +34,10 @@ export class MaskController {
    * Returns the save status of the mask.
    */
   public isSaved(): boolean {
-    return (this.pSaved === this.pPresent) && (SetOperator.isEqual(this.savedMask, this.mask));
+    return (
+      this.pSaved === this.pPresent &&
+      SetOperator.isEqual(this.savedMask, this.mask)
+    );
   }
 
   /**

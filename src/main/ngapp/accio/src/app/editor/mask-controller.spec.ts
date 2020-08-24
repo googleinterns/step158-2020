@@ -87,7 +87,7 @@ describe('MaskController', () => {
     maskController.save();
     expect(maskController.isSaved()).toEqual(true);
     expect(maskController.getMask()).toEqual(expectedMask);
-    maskController.undo();   
+    maskController.undo();
     expect(maskController.isSaved()).toEqual(false);
     expect(maskController.getMask()).toEqual(new Set([1, 2, 3, 4]));
   });
@@ -101,7 +101,7 @@ describe('MaskController', () => {
     maskController.save();
     expect(maskController.isSaved()).toEqual(true);
     expect(maskController.getMask()).toEqual(expectedMask);
-    maskController.undo();   
+    maskController.undo();
     expect(maskController.isSaved()).toEqual(false);
     expect(maskController.getMask()).toEqual(new Set([1, 2, 3, 4]));
     maskController.redo();
@@ -118,7 +118,7 @@ describe('MaskController', () => {
     maskController.save();
     expect(maskController.isSaved()).toEqual(true);
     expect(maskController.getMask()).toEqual(expectedMask);
-    maskController.undo();   
+    maskController.undo();
     expect(maskController.isSaved()).toEqual(false);
     expect(maskController.getMask()).toEqual(new Set([1, 2, 3, 4]));
     maskController.do(

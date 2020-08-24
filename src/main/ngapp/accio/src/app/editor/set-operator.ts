@@ -10,7 +10,7 @@ export class SetOperator {
 
     return result;
   }
-  
+
   // Eg. [1, 2, 3] intersect [3, 4, 5] ==> [3]
   static intersection(setA: Set<number>, setB: Set<number>): Set<number> {
     let result: Set<number> = new Set();
@@ -36,7 +36,10 @@ export class SetOperator {
   }
 
   // Eg. [1, 2, 3] symmetricDifference [3, 4, 5] ==> [1, 2, 4, 5]
-  static symmetricDifference(setA: Set<number>, setB: Set<number>): Set<number> {
+  static symmetricDifference(
+    setA: Set<number>,
+    setB: Set<number>
+  ): Set<number> {
     let result = new Set(setA);
 
     for (let elem of setB) {
@@ -51,6 +54,6 @@ export class SetOperator {
   }
 
   static isEqual(setA: Set<number>, setB: Set<number>): boolean {
-      return this.symmetricDifference(setA, setB).size === 0;
+    return this.symmetricDifference(setA, setB).size === 0;
   }
 }
