@@ -134,7 +134,7 @@ export class ImgGalleryComponent implements OnInit {
     dialogRef.afterClosed().subscribe(() => {
       console.log('UpdateImage dialog was closed...');
       console.log('Fetching updated images...');
-      this.getImages();
+      this.loadGalleryImages();
       console.log('Fetched updated images...');
     });
   }
