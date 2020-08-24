@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { MaskController } from './mask-controller';
 import { SetOperator } from './set-operator';
+import * as KdTree from './kdTree.js';
 
 @Injectable({
   providedIn: 'root'
@@ -20,55 +20,6 @@ export class MagicWandService {
         [this.coordToDataArrayIndex(xCoord, yCoord, imgData.width)]);
     return this.doFloodfill(imgData, xCoord, yCoord, tolerance, scribbles);
   }
-
-  /**Judges current pixel's RGB against original pixel's RGB to
-   * see if it can still be part of the mask (using tolerance criteria).
-   */
-  getIsMask(originalPixel: Array<number>, imgData: ImageData,
-      pixelCoord: Array<number>, tolerance: number): boolean {
-    const curX: number = pixelCoord[0];
-    const curY: number = pixelCoord[1];
-
-    // Gets [R, G, B] of current pixel.
-    const curPixel: Array<number> = this.dataArrayToRgb(imgData, curX, curY);
-
-    const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
-    // Work with tolerance logic in squared space for Euclidean distance.
-    const squaredTolerance = tolerance * tolerance;
-
-    if (colorDifference > squaredTolerance) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**@returns {number} the straight line distance between the two colors
-   * @param {Array<number> [R, G, B]} basisColor and 
-   * @param {Array<number> [R, G, B]} secondColor
-   */
-  rgbEuclideanDist(basisColor: Array<number>, secondColor: Array<number>)
-      : number {
-    if (basisColor.length != secondColor.length) {
-      throw new Error(
-          'basisColor and secondColor must be same lengthed arrays...');
-    }
-    if (basisColor.length != 3) {
-      throw new Error(
-          'Arguments must be an array of [R, G, B] (length == 3)...');
-    }
-
-    let distance = 0;
-
-    for (let i = 0; i < basisColor.length; i++) {
-      distance += Math.pow((basisColor[i] - secondColor[i]), 2);
-    }
-
-    // Does not sqrt distance to complete eucidean dist formula b/c sqrt is
-    // an expense operation. Instead, can compare against tolerance in the 
-    // squared space.
-    return distance;
-  } 
 
   // Checks if @pixelCoord is in bounds and makes sure it's not a repeat coord.
   getIsValid(imgWidth: number, imgHeight: number, curX: number, curY: number,
@@ -177,68 +128,27 @@ export class MagicWandService {
       tolerance: number, scribbles: Set<number>): Set<number> {
     return this.doFloodfill(imgData, xCoord, yCoord, tolerance, scribbles);
   }
+  
+  /**@returns {Array<object> [{red, green, blue}]} an array of color objects
+   * with attributes 'red', 'green', and 'blue'. 
+   * @param {Set<number>} scribbles contains pixel indices, which are used 
+   * to produce cooresponding color objects.
+   * @param {Set<number>} imgData is used with the 'scribbles' to extract the 
+   * color values at the pixel indices.*/
+  scribblesToColors(scribbles: Set<number>, imgData: ImageData)
+      : Array<Color> {
+  let colors: Array<Color> = [];
 
-  /**Judges current pixel's RGB against a set of reference pixels' RGBs to
-   * see if it can still be part of the mask (using tolerance criteria).
-   */
-  getIsScribbleMask(scribbles: Set<number>, imgData: ImageData,
-      pixelCoord: Array<number>, tolerance: number): boolean {
-    const curX: number = pixelCoord[0];
-    const curY: number = pixelCoord[1];
-
-    // Gets array of color attributes of current pixel.
-    const curPixel: Array<number> = this.dataArrayToRgb(imgData, curX, curY);
-    // Work with tolerance logic in squared space for Euclidean distance.
-    const squaredTolerance = tolerance * tolerance;
-
-    for (let pixelIndex of scribbles) {
-      const refPixelCoord: Array<number> = 
-          this.pixelIndexToXYCoord(pixelIndex, imgData.width);
-      const x = refPixelCoord[0];
-      const y = refPixelCoord[1];
-      const refPixel = this.dataArrayToRgb(imgData, x, y);
-
-      const colorDifference = this.rgbEuclideanDist(refPixel, curPixel);
-
-      // If the curPixel is tolerable for at least 1 of the reference pixels,
-      // then the curPixel will be part of the mask.
-      if (colorDifference <= squaredTolerance) {
-        return true;
-      }
-    }
-
-    return false;
+  for (let pixelIndex of scribbles) {
+    colors.push({
+      red: imgData.data[pixelIndex],
+      green: imgData.data[pixelIndex + 1],
+      blue: imgData.data[pixelIndex + 2]
+    });
   }
 
-  /**@returns {Set<number>} filtered set of pixels by removing indices 
-   * of pixels whose color are too similar to the original pixel. 
-   * Judgement of 'too similar' is decided by a factor of 
-   * @param {number} tolerance and color value itself is retrieved from
-   * @param {ImageData} imgData
-  */
-  filterScribbles(scribbles: Set<number>, originalPixel: Array<number>, 
-      imgData: ImageData, tolerance: number): Set<number> {
-    let result: Set<number> = new Set();
-
-    // Work with tolerance logic in squared space for Euclidean distance.
-    const squaredTolerance = tolerance * tolerance;
-
-    for (let pixelIndex of scribbles) {
-      const pixelCoord: Array<number> = 
-          this.pixelIndexToXYCoord(pixelIndex, imgData.width);
-      const x = pixelCoord[0];
-      const y = pixelCoord[1];
-      const curPixel = this.dataArrayToRgb(imgData, x, y);
-
-      const colorDifference = this.rgbEuclideanDist(originalPixel, curPixel);
-
-      if (colorDifference !== 0 && colorDifference > squaredTolerance / 2) {
-        result.add(pixelIndex);
-      }
-    }
-
-    return result;
-  }
+  return colors;
+}
 
   /**@returns {Array<number> [x, y]} a 2-D coordinate by converting 
    * @param {number} pixelIndex into the coordsponding [x, y] coordinate.
@@ -255,6 +165,9 @@ export class MagicWandService {
    */
   doFloodfill(imgData: ImageData, xCoord: number, yCoord: number,
       tolerance: number, scribbles: Set<number>): Set<number> {
+    // Creates an array of color objects from the indices in 'scribbles'.
+    // Color object: {red: number, green: number, blue: number}
+    const colors: Array<Color> = this.scribblesToColors(scribbles, imgData);
     // Stores a queue of coords for pixels that we need to visit in "visit".
     const visit: Array<Array<number>> = new Array();
     // Stores already-visited pixels in "visited" as index formatted numbers
@@ -262,9 +175,6 @@ export class MagicWandService {
     const visited: Set<number> = new Set();
     // Uses a set for mask; mainly do iter and set operations on masks...
     const mask: Set<number> = new Set();
-    // Represents [R,G,B] attributes of initial pixel.
-    const originalPixel: Array<number> =
-        this.dataArrayToRgb(imgData, xCoord, yCoord);
 
     visit.push([xCoord, yCoord]);
     // Converts [x,y] format coord to 1-D equivalent of
@@ -272,6 +182,10 @@ export class MagicWandService {
     const indexAsDataArray: number =
         this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
     visited.add(indexAsDataArray);
+
+    const tree = new KdTree.kdTree(
+        colors, this.rgbEuclideanDist, ["red", "green", "blue"]);
+    
 
     // Loops until no more adjacent pixels within tolerance level.
     while (visit.length !== 0) {
@@ -298,7 +212,13 @@ export class MagicWandService {
         }
         // Visits the pixel and check if it should be part of the mask.
         visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
-        if (this.getIsScribbleMask(scribbles, imgData, neighborPixel, tolerance)) {
+        // if (this.getIsScribbleMask(scribbles, imgData, neighborPixel, tolerance)) {
+        //   visit.push(neighborPixel);
+        // }
+        if (tree.nearest(
+            this.scribblesToColors(new Set([
+            this.coordToDataArrayIndex(x, y, imgData.width)]), imgData)[0],
+            1, tolerance * tolerance).length > 0) {
           visit.push(neighborPixel);
         }
       }
@@ -306,4 +226,38 @@ export class MagicWandService {
     
     return mask;
   }
+
+  /**@returns {number} the straight line distance between the two colors
+   * @param {Array<number> [R, G, B]} basisColor and 
+   * @param {Array<number> [R, G, B]} secondColor
+   */
+  rgbEuclideanDist(colorA: Color, colorB: Color): number {
+
+    let distance = 0;
+
+    for (let attribute in colorA) {
+      distance += Math.pow((colorA[attribute] - colorB[attribute]), 2);
+    }
+
+    // Does not sqrt distance to complete eucidean dist formula b/c sqrt is
+    // an expense operation. Instead, can compare against tolerance in the 
+    // squared space.
+    return distance;
+  }
+
+  // Pretty good color distance from
+  // http://www.compuphase.com/cmetric.htm
+  colorDistance(a: Color, b: Color): number {
+    var dr = a.red - b.red;
+    var dg = a.green - b.green;
+    var db = a.blue - b.blue;
+    var redMean = (a.red + b.red)/2;
+    return (2+redMean/256)*dr*dr + 4*dg*dg + (2 + (255 - redMean)/256)*db*db;
+  }
+}
+
+interface Color {
+  red: number,
+  green: number,
+  blue: number
 }
