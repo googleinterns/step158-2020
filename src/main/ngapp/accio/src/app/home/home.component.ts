@@ -20,7 +20,9 @@ export class HomeComponent implements OnInit {
 
   constructor() { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.fetchProjects();
+  }
 
   // Fetches a list of projects based on user's choice of filters.
   // Result is stored in this.projects

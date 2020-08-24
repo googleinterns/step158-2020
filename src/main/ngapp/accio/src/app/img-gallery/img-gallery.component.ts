@@ -1,11 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
+import { FetchImagesService } from '../fetch-images.service';
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
 import { saveAs } from 'file-saver';
 import * as JSZip from 'jszip';
 import * as $ from 'jquery';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-img-gallery',
@@ -35,8 +37,10 @@ export class ImgGalleryComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private postBlobsService: PostBlobsService
-  ) {}
+    private postBlobsService: PostBlobsService,
+    public dialog: MatDialog,
+    private fetchImagesService: FetchImagesService
+  ) { }
 
   ngOnInit(): void {
     this.uploadImageForm = new FormGroup({
@@ -60,22 +64,40 @@ export class ImgGalleryComponent implements OnInit {
       });
     }
 
-    console.log('projID ' + this.projectId);
-    console.log('now fetching...');
-
-    // Get the blobstore url initalized and show the form.
+    //  Get the blobstore url initalized and show the form.
     this.postBlobsService.fetchBlob();
     this.displayUpload = true;
-    this.getImages();
+    this.loadGalleryImages();
   }
 
-  /**
-   *   Builds ImageBlob to be appended to form and posted.
-   *   If a parameter isn't applicaple, it has a default value but must be filled
-   *      if a value later in the constructor is applicable.
-   */
+  /** Calls the fetchImageService to get all images under parameters */
+  loadGalleryImages() {
+    console.log('fetching from projectId: ' + this.projectId);
+    let fetchUrl = '/blobs?' + $.param({
+      'proj-id': this.projectId,
+      'img-name': this.imgName,
+      'mask-name': this.maskName,
+      'with-masks': this.withMasks,
+      'sort-img': this.sortImg,
+      'sort-mask': this.sortMask,
+      'tag': this.tag
+    });
+    
+    this.fetchImagesService.changeImages(fetchUrl).then(() => {
+      this.fetchImagesService.currentImages.subscribe(images => this.imageArray = images);
+      if (this.imageArray.length > 0) {
+        this.displayImages = true;
+      }
+    });
+  }
+
+ /** 
+  *   Builds ImageBlob to be appended to form and posted.
+  *   If a parameter isn't applicaple, it has a default value but must be filled
+  *      if a value later in the constructor is applicable.
+  */
   onSubmit() {
-    // Name is a required input. If it's null, do nothing.
+     // Name is a required input. If it's null, do nothing.
     if (!this.uploadImageForm.get('imgName').value) {
       return;
     }
@@ -97,9 +119,24 @@ export class ImgGalleryComponent implements OnInit {
     );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);
+    window.location.reload();
+  }
 
-    //  Reset form values.
-    this.uploadImageForm.reset;
+  // Opens up the dialog for updating the clicked image.
+  updateButton(imageName: string, parentImageName: string): void {
+    const dialogRef = this.dialog.open(UpdateImageDialog, {
+      width: '600px',
+      data: {projectId: this.projectId,
+          imageName: imageName,
+          parentImageName: parentImageName}
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      console.log('UpdateImage dialog was closed...');
+      console.log('Fetching updated images...');
+      this.loadGalleryImages();
+      console.log('Fetched updated images...');
+    });
   }
 
   /** 
@@ -257,5 +294,70 @@ export class ImgGalleryComponent implements OnInit {
     zip.generateAsync({ type: 'blob' }).then((content) => {
       saveAs(content, this.projectId + '.zip');
     });
+  }
+}
+
+
+/* Flow for dialog popup => UPDATING IMAGES */
+
+export interface UpdateImageData {
+  projectId: string;
+  imageName: string;
+  parentImageName: string;
+}
+
+/**Represents the dialog popup that appears when ImageGalleryComponent's
+ * templateUrl calls the this.updateButton() function. 
+ */
+@Component({
+  selector: 'update-image-dialog',
+  templateUrl: 'update-image-dialog.html'
+})
+export class UpdateImageDialog {
+  updateImageForm: FormGroup;
+  formData: FormData;
+  doDelete:boolean = false;
+
+  constructor(
+      private postBlobsService: PostBlobsService,
+      public dialogRef: MatDialogRef<UpdateImageDialog>,
+      @Inject(MAT_DIALOG_DATA) public data: UpdateImageData) { }
+
+  ngOnInit(): void {
+    this.updateImageForm = new FormGroup({
+      updateImgName: new FormControl(),
+      updateTags: new FormControl(),
+      delete: new FormControl()
+    });
+    this.formData = new FormData();
+  }
+
+  /**Sends the form data to blobstore and then to /blobs servlet,
+   * where the update to the image is saved in the database.
+   */
+  onUpdateImage(): void {
+    let imageBlob = new ImageBlob(
+      this.data.projectId, 
+      /*imageName=*/this.data.imageName,
+      /*mode=*/'update',
+      /*image=*/undefined,
+      /*parentImageName=*/this.data.parentImageName, 
+      /*newImageName=*/this.updateImageForm.get('updateImgName').value,
+      /*tags=*/this.updateImageForm.get('updateTags').value,
+      /*delete=*/this.updateImageForm.get('delete').value
+      );
+
+    console.log(this.updateImageForm.get('delete').value);
+
+    this.postBlobsService.buildForm(this.formData, imageBlob, '');
+
+    //  Reset form values.
+    this.updateImageForm.reset;
+  }
+
+  /**Closes dialog popup without changing or saving any edited values.
+   */
+  onNoClick(): void {
+    this.dialogRef.close();
   }
 }

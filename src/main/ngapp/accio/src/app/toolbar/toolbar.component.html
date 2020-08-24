@@ -3,10 +3,27 @@
   #group="matButtonToggleGroup" 
   vertical style="border:none" 
   [value]="maskTool" (change)="updateTool(group.value)">
-  <mat-button-toggle mat-icon-button value="magic-wand" title="Magic Wand">
+  <mat-button-toggle mat-icon-button value="MAGIC-WAND-ADD" title="Magic Wand - Add">
     <mat-icon>format_color_fill</mat-icon>
   </mat-button-toggle>
-  <mat-button-toggle mat-icon-button value="mask-only" title="Mask Only">
+  <mat-button-toggle mat-icon-button value="MAGIC-WAND-SUB" title="Magic Wand - Subtract">
+    <mat-icon>remove</mat-icon>
+  </mat-button-toggle>
+  <mat-button-toggle mat-icon-button value="PAINT" title="Paint Mask">
+    <mat-icon>brush</mat-icon>
+  </mat-button-toggle>
+  <mat-button-toggle mat-icon-button value="ERASE" title="Erase Mask">
+    <mat-icon>remove_circle_outline</mat-icon>
+  </mat-button-toggle>
+  <div>
+    <p style="color:white">Brush Width</p>
+    <mat-slider 
+      title="Brush Width"  
+      (change)="updateWidth()"
+      vertical min="0" max="80" step="1" [(ngModel)]="brushWidth">
+    </mat-slider>
+  </div>
+  <mat-button-toggle mat-icon-button value="MASK-ONLY" title="Mask Only">
     <mat-icon>image</mat-icon>
   </mat-button-toggle>
 </mat-button-toggle-group>
@@ -16,6 +33,10 @@
 <!-- Single use buttons -->
 <div id="single-click-buttons">
   <mat-icon class="button" title="Invert Mask" (click)="invertMask()">invert_colors</mat-icon>
+    <div class="small-break"></div>
+  <mat-icon class="button" title="Undo">undo</mat-icon>
+  <div class="small-break"></div>
+  <mat-icon class="button" title="Redo">redo</mat-icon>
   <div class="small-break"></div>
   <mat-icon class="button" title="Clear Mask" (click)="clearMask()">clear</mat-icon>
 </div>
@@ -25,14 +46,35 @@
 
 <!-- Sliders -->
 <div>
+  <p style="color:white">Tolerance</p>
   <mat-slider 
     title="Mask Tolerance"  
     (change)="updateTolerance()"
-    vertical min="1" max="127.5" step=".5" [(ngModel)]="value">
+    vertical min="1" max="127.5" step=".5" [(ngModel)]="toleranceValue">
   </mat-slider>
   <br/>
   <mat-form-field class="slider-value">
     <mat-label style="color=white">Tolerance</mat-label>
-    <input matInput type="number" [(ngModel)]="value" style="color=white">
+    <input
+      (change)="updateTolerance()" 
+      matInput type="number" 
+      [(ngModel)]="toleranceValue" 
+      style="color=white">
+  </mat-form-field>
+  <br/>
+  <p style="color:white">Tint</p>
+  <mat-slider 
+    title="Mask Tint"  
+    (change)="updateMaskAlpha()"
+    vertical min=".01" max="1" step=".01" [(ngModel)]="maskAlphaValue">
+  </mat-slider>
+  <br/>
+  <mat-form-field class="slider-value">
+    <mat-label style="color=white">Tint</mat-label>
+    <input 
+      (change)="updateMaskAlpha()" 
+      matInput type="number" 
+      [(ngModel)]="maskAlphaValue" 
+      style="color=white">
   </mat-form-field>
 </div>
