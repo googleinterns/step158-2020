@@ -1,7 +1,6 @@
 import { SetOperator } from './set-operator';
 
 describe('SetOperator', () => {
-  // TODO
   const setA = new Set([1, 2, 3, 4]);
   const setB = new Set([3, 4, 5, 6]);
   const setC = new Set([1, 2, 3, 4]);
