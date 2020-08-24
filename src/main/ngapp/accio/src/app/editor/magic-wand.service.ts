@@ -239,7 +239,7 @@ export class MagicWandService {
       distance += Math.pow((colorA[attribute] - colorB[attribute]), 2);
     }
 
-    // Does not sqrt distance to complete eucidean dist formula b/c sqrt is
+    // Does not sqrt distance to complete Euclidean dist formula b/c sqrt is
     // an expense operation. Instead, can compare against tolerance in the 
     // squared space.
     return distance;
@@ -250,10 +250,10 @@ export class MagicWandService {
    * http://www.compuphase.com/cmetric.htm
    */
   colorDistance(a: Color, b: Color): number {
-    var dr = a.red - b.red;
-    var dg = a.green - b.green;
-    var db = a.blue - b.blue;
-    var redMean = (a.red + b.red)/2;
+    const dr = a.red - b.red;
+    const dg = a.green - b.green;
+    const db = a.blue - b.blue;
+    const redMean = (a.red + b.red)/2;
     return (2+redMean/256)*dr*dr + 4*dg*dg + (2 + (255 - redMean)/256)*db*db;
   }
 }
