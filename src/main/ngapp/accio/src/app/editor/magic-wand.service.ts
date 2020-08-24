@@ -245,8 +245,10 @@ export class MagicWandService {
     return distance;
   }
 
-  // Pretty good color distance from
-  // http://www.compuphase.com/cmetric.htm
+  /**@license MIT License <http://www.opensource.org/licenses/mit-license.php>
+   * Pretty good color distance from
+   * http://www.compuphase.com/cmetric.htm
+   */
   colorDistance(a: Color, b: Color): number {
     var dr = a.red - b.red;
     var dg = a.green - b.green;
