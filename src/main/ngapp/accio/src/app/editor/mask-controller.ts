@@ -1,4 +1,5 @@
 import { MaskAction } from './mask-action';
+import { SetOperator } from './set-operator';
 
 export enum Status {
   STATUS_FAILURE = -1,
@@ -12,16 +13,35 @@ export enum Move {
 
 export class MaskController {
   private history: Array<MaskAction> = [];
-  // pPresent at an invalid index until an action is performed
-  private pPresent: number = -1;
+  private savedMask: Set<number>;
 
-  constructor(private mask: Set<number> = new Set()) {}
+  // pPresent and pSaved at an invalid index until an action is performed
+  private pPresent: number = -1;
+  private pSaved: number = -1;
+
+  constructor(private mask: Set<number> = new Set()) { this.savedMask = mask; }
 
   /**
    * Returns current mask.
    */
   public getMask(): Set<number> {
     return this.mask;
+  }
+
+  /**
+   * Returns the save status of the mask.
+   */
+  public isSaved(): boolean {
+    return (this.pSaved === this.pPresent) && (SetOperator.isEqual(this.savedMask, this.mask));
+  }
+
+  /**
+   * Sets the current position in history as the saved position.
+   * Should be called after updating the mask in the database.
+   */
+  public save(): void {
+    this.pSaved = this.pPresent;
+    this.savedMask = this.mask;
   }
 
   /**

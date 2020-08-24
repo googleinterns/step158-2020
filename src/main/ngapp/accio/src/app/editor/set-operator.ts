@@ -49,4 +49,8 @@ export class SetOperator {
 
     return result;
   }
+
+  static isEqual(setA: Set<number>, setB: Set<number>): boolean {
+      return this.symmetricDifference(setA, setB).size === 0;
+  }
 }
