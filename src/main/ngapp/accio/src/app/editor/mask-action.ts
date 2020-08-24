@@ -1,5 +1,5 @@
 import { SetOperator } from './set-operator';
-import { Move } from './mask-controller';
+import { Move } from './mask-controller.service';
 
 export enum Action {
   ADD = 'add',

@@ -5,6 +5,8 @@ import { FormGroup, FormControl } from '@angular/forms';
 
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
+import { MaskAction, Action, Tool } from './mask-action';
+import { MaskControllerService } from './mask-controller.service';
 
 @Component({
   selector: 'app-editor',
@@ -15,38 +17,39 @@ export class EditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private postBlobsService: PostBlobsService,
+    private maskControllerService: MaskControllerService,
   ) { }
 
-  //  Display variables.
+  // Display variables.
   private image: HTMLImageElement;
   imageUrl: string;
   displayMaskForm: boolean = false;
   disableSubmit: boolean = false;
 
-  //  Mask variables.
+  // Mask variables.
   private maskImageData: ImageData;
   private maskImageUrl: string
   
-  //  Form variables.
+  // Form variables.
   uploadMaskForm: FormGroup;
   formData: FormData;
   projectId: string;
   parentName: string;
   blobMask: Blob; 
 
-  //  scaleFactor is used to trim image scale so image 
-  //    is smaller than width and height of the user's screen.
-  //  The following variables are bound to their 
-  //    respective inputs in MaskDirective and change in mask.directive
-  //    when they change in editor.component
+  // scaleFactor is used to trim image scale so image 
+  //   is smaller than width and height of the user's screen.
+  // The following variables are bound to their 
+  //   respective inputs in MaskDirective and change in mask.directive
+  //   when they change in editor.component
   scaleFactor: number;
   originalImageData: ImageData;
   tolerance: number;
   disableFloodFill: boolean;
-  //  Declares the type of tool the user has selected from the tool bar:
-  //      'magic-wand' = flood fill algorithm enabled.
-  //      'mask-only' = user sees only the mask and cannot use the magic wand tool. 
-  //  TODO(shmcaffrey): make string enum.
+  // Declares the type of tool the user has selected from the tool bar:
+  //     'magic-wand' = flood fill algorithm enabled.
+  //     'mask-only' = user sees only the mask and cannot use the magic wand tool. 
+  // TODO(shmcaffrey): make string enum.
   maskTool: string;
 
   // inject canvas from html.
@@ -54,9 +57,9 @@ export class EditorComponent implements OnInit {
   canvas: ElementRef<HTMLCanvasElement>; 
   private ctx: CanvasRenderingContext2D;
 
-  //  Used to save mask as png so everytime a new mask is added 
-  //    The primary canvas does not have to shrink to image size
-  //    to save the mask as an image.
+  // Used to save mask as png so everytime a new mask is added 
+  //   The primary canvas does not have to shrink to image size
+  //   to save the mask as an image.
   @ViewChild('maskCanvas', { static: true })
   maskCanvas: ElementRef<HTMLCanvasElement>; 
   private maskCtx: CanvasRenderingContext2D;
@@ -75,43 +78,43 @@ export class EditorComponent implements OnInit {
       console.log('proj id for mask: ' + this.projectId);
     });
 
-    //image loads after src is set, ensures canvas is initialized properly.
+    // image loads after src is set, ensures canvas is initialized properly.
     this.image.onload = () => {
       this.initCanvas();
     }
     this.image.src = this.imageUrl;
 
-    //  Initializes mask upolad form.
+    // Initializes mask upolad form.
     this.initMaskForm();
     
-    //  Fetch blob for mask upload and show maskUploadForm.
+    // Fetch blob for mask upload and show maskUploadForm.
     this.postBlobsService.fetchBlob();
     this.displayMaskForm = true;
   }
   
   /**  
-   *  Draws the image user selects from gallery on Canvas
-   *    and creates a hidden canvas to store the original image 
-   *    as a reference when scaling the imageUI.
-   *  Assumes Image has loaded, ie. image src is set before initCanvas
-   *    is called (using onload).
+   * Draws the image user selects from gallery on Canvas
+   *   and creates a hidden canvas to store the original image 
+   *   as a reference when scaling the imageUI.
+   * Assumes Image has loaded, ie. image src is set before initCanvas
+   *   is called (using onload).
    */
   private initCanvas(): void {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
-    //  Initialize transparent black image data to use for mask size of image
+    // Initialize transparent black image data to use for mask size of image
     this.maskImageData = new ImageData(imgWidth,  imgHeight);
 
-    //  Used to scale the image to the window size, 
-    //    scaleFactor = .9 so the scaled image is smaller than the user's window.
+    // Used to scale the image to the window size, 
+    //   scaleFactor = .9 so the scaled image is smaller than the user's window.
     this.scaleFactor = Math.floor(window.innerHeight / imgHeight * this.scaleFactor);
     //  TODO(shmcaffrey): add scaling if image is larger than window
     if (this.scaleFactor <= 0) {
       this.scaleFactor =  1;
     }
 
-    //  Initialize canvas to scaled image width and height and mask to img. 
+    // Initialize canvas to scaled image width and height and mask to img. 
     this.maskCanvas.nativeElement.width = imgWidth;
     this.maskCanvas.nativeElement.height = imgHeight;
     this.maskCtx = this.maskCanvas.nativeElement.getContext('2d');
@@ -120,14 +123,14 @@ export class EditorComponent implements OnInit {
     this.canvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.ctx = this.canvas.nativeElement.getContext('2d');
 
-    //   Draws image non scaled on full canvas
+    // Draws image non scaled on full canvas
     this.ctx.drawImage(this.image, 0, 0);
 
-    //  Sets the ImageData to be inputed by mask.directive
-    //  To change image data, just need to reinitialize page. 
+    // Sets the ImageData to be inputed by mask.directive
+    // To change image data, just need to reinitialize page. 
 
-    //  Only gets the image data from 0,0 to the width and height of image,
-    //    not based on canvas.
+    // Only gets the image data from 0,0 to the width and height of image,
+    //   not based on canvas.
     this.originalImageData = this.ctx.getImageData(0, 0, imgWidth, imgHeight);
     this.clearCanvas();
 
@@ -136,7 +139,7 @@ export class EditorComponent implements OnInit {
   }
   
  /**
-  *   Clears full canvas.
+  * Clears full canvas.
   */
   private clearCanvas() {
     this.ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
@@ -144,8 +147,8 @@ export class EditorComponent implements OnInit {
   }
 
  /**
-  *  Draws user's image scaled to canvas and restores ctx.
-  *  @param image is either the mask image or image user is making a mask of.
+  * Draws user's image scaled to canvas and restores ctx.
+  * @param image is either the mask image or image user is making a mask of.
   */
   private drawScaledImage(image: HTMLImageElement) {
     this.ctx.save();
@@ -155,16 +158,16 @@ export class EditorComponent implements OnInit {
   }
 
  /** 
-  *  Sets new pixels in magenta, clears canvas of previous data 
-  *    and draws image and mask as scaled. Disables submit
-  *    on mask until the url is set. 
-  *  class @param this.disableFloodFill must equal true before called because 
-  *    maskImageData is being updated.
-  *  class @param this.disableSubmit must equal true before called because 
-  *    maskUrl is being updated in drawMask(). 
-  *  class @param maskPixels event Output() from mask.directive
-  *    Gives the new pixels to add to the mask
-  *  Only returned when maskTool is 'magic-wand', no need to check maskTool
+  * Sets new pixels in magenta, clears canvas of previous data 
+  *   and draws image and mask as scaled. Disables submit
+  *   on mask until the url is set. 
+  * class @param this.disableFloodFill must equal true before called because 
+  *   maskImageData is being updated.
+  * class @param this.disableSubmit must equal true before called because 
+  *   maskUrl is being updated in drawMask(). 
+  * class @param maskPixels event Output() from mask.directive
+  *   Gives the new pixels to add to the mask
+  * Only returned when maskTool is 'magic-wand', no need to check maskTool
   */
   addToMask(maskPixels: Set<number>) {
     this.disableSubmit = this.disableFloodFill = true;
@@ -179,11 +182,11 @@ export class EditorComponent implements OnInit {
   }
 
 /**  
-  *  Makes a png of mask so the the background is transparent.
-  *  Clears canvas, draws the original image and draws the mask.
-  *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
-  *  Disables Flood fill before maskUrl is being set so new data isn't added
-  *  class @param this.disableSubmit must equal true before called because maskUrl is being updated.
+  * Makes a png of mask so the the background is transparent.
+  * Clears canvas, draws the original image and draws the mask.
+  * Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
+  * Disables Flood fill before maskUrl is being set so new data isn't added
+  * class @param this.disableSubmit must equal true before called because maskUrl is being updated.
   */  
   private drawMask() {
     let mask = new Image();
@@ -198,9 +201,9 @@ export class EditorComponent implements OnInit {
   }
 
  /** 
-  *  Draws Mask Data onto unscaled canvas to save as image or blob.
-  *  Saves the mask url if user wants to save mask.
-  *  @returns url of newly created mask.
+  * Draws Mask Data onto unscaled canvas to save as image or blob.
+  * Saves the mask url if user wants to save mask.
+  * @returns url of newly created mask.
   */
   updateMaskUrl(): string {
     this.maskCtx.clearRect(0, 0, this.maskCanvas.nativeElement.width, this.maskCanvas.nativeElement.height);
@@ -213,8 +216,8 @@ export class EditorComponent implements OnInit {
   // TODO(shmcaffrey): change Alpha value to incorporate user input.
 
   /** 
-   *  Initializes Form group and data as new
-   *  Initializes @param projectId
+   * Initializes Form group and data as new
+   * Initializes @param projectId
    */
   private initMaskForm() {
     this.uploadMaskForm = new FormGroup({
@@ -226,7 +229,7 @@ export class EditorComponent implements OnInit {
   }
 
   /** 
-   *  Gets current mask's url and sets the mask as a Blob to be uploaded to server.
+   * Gets current mask's url and sets the mask as a Blob to be uploaded to server.
    */
   async getMaskBlob(): Promise<void> {
     this.blobMask = await fetch(this.maskImageUrl).then(response => response.blob());
@@ -234,7 +237,7 @@ export class EditorComponent implements OnInit {
   }
 
  /** 
-  *  Builds ImageBlob to be appended to form and posted.
+  * Builds ImageBlob to be appended to form and posted.
   */
   async onSubmit(): Promise<void> {
     //  Name is a required input. If it's null, do nothing.
@@ -256,18 +259,20 @@ export class EditorComponent implements OnInit {
 
     this.postBlobsService.buildForm(this.formData, imageBlob, this.parentName + 'Mask.png');
 
+    this.maskControllerService.save();
+
     //  Reset form values
     this.initMaskForm();
   }
 
  /**
-  *  Emitted from toolbar. Clears canvas of old mask and draws image anew.
-  *  Clears old image data. Disables submit while mask is updating.
-  *  class @param this.disableSubmit must equal true before called because 
-  *    maskUrl is being updated in getMaskUrl. 
-  *  class @param this.disableFloodFill must equal true before called because 
-  *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
-  *     (flood fill not allowed any other time).
+  * Emitted from toolbar. Clears canvas of old mask and draws image anew.
+  * Clears old image data. Disables submit while mask is updating.
+  * class @param this.disableSubmit must equal true before called because 
+  *   maskUrl is being updated in getMaskUrl. 
+  * class @param this.disableFloodFill must equal true before called because 
+  *    maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
+  *    (flood fill not allowed any other time).
   */
   clearMask() {
     this.disableSubmit = this.disableFloodFill = true;
@@ -277,6 +282,7 @@ export class EditorComponent implements OnInit {
     if (this.maskTool == 'magic-wand') {
       this.disableFloodFill = false
     }
+    this.maskControllerService.do(new MaskAction(Action.CLEAR, Tool.CLEAR, this.maskControllerService.getMask()));
   }
 
   /**  Retrieves new tolerance value from child component toolbar and updates. */
@@ -286,31 +292,32 @@ export class EditorComponent implements OnInit {
   }
   
   /**  
-  *  Sets all pixels to magenta and inverts their alpha to display them or not. 
-  *  Disables flood fill and submit to avoid conflict as mask updates.
-  *  class @param this.disableSubmit must equal true before called because 
-  *    maskUrl is being updated in drawMask(). 
-  *  class @param this.disableFloodFill must equal true before called because 
-  *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
-  *     (flood fill not allowed any other time).
+  * Sets all pixels to magenta and inverts their alpha to display them or not. 
+  * Disables flood fill and submit to avoid conflict as mask updates.
+  * class @param this.disableSubmit must equal true before called because 
+  *   maskUrl is being updated in drawMask(). 
+  * class @param this.disableFloodFill must equal true before called because 
+  *    maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
+  *    (flood fill not allowed any other time).
   */
   invertMask() {
     this.disableSubmit = this.disableFloodFill = true;
     for(let i = 0; i < this.maskImageData.data.length; i+=4) {
       this.maskImageData.data[i] = 255;
       this.maskImageData.data[i + 2] = 255;
-      this.maskImageData.data[i + 3] = 255 - this.maskImageData.data[i+ 3];
+      this.maskImageData.data[i + 3] = 255 - this.maskImageData.data[i + 3];
     }
     this.drawMask();
     this.disableSubmit = false;
     if (this.maskTool == 'magic-wand') {
       this.disableFloodFill = false
     }
+    this.maskControllerService.do(new MaskAction(Action.INVERT, Tool.INVERT, new Set([...Array(this.originalImageData.data.length / 4).keys()])));
   }
 
  /** 
-  *  Updates the value of the Toolbar toggle group.
-  *  All cases beside 'magic-wand' must disableFloodFill.
+  * Updates the value of the Toolbar toggle group.
+  * All cases beside 'magic-wand' must disableFloodFill.
   */
   updateMaskTool(tool: string) {
     // change value selected on form;

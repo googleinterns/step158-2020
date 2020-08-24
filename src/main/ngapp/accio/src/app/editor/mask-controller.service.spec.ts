@@ -1,12 +1,12 @@
-import { MaskController, Status } from './mask-controller';
+import { MaskControllerService, Status } from './mask-controller.service';
 import { MaskAction, Action, Tool } from './mask-action';
 
 describe('MaskController', () => {
-  let maskController: MaskController;
+  let maskController: MaskControllerService;
 
   beforeEach(() => {
     let initialMask: Set<number> = new Set([1, 2, 3, 4]);
-    maskController = new MaskController(initialMask);
+    maskController = new MaskControllerService(initialMask);
   });
 
   it('should add new action', () => {

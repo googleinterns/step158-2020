@@ -1,5 +1,6 @@
 import { MaskAction } from './mask-action';
 import { SetOperator } from './set-operator';
+import { Injectable } from '@angular/core';
 
 export enum Status {
   STATUS_FAILURE = -1,
@@ -11,7 +12,10 @@ export enum Move {
   FORWARD_ONE = 1,
 }
 
-export class MaskController {
+@Injectable({
+  providedIn: 'root',
+})
+export class MaskControllerService {
   private history: Array<MaskAction> = [];
   private savedMask: Set<number>;
 
@@ -19,7 +23,9 @@ export class MaskController {
   private pPresent: number = -1;
   private pSaved: number = -1;
 
-  constructor(private mask: Set<number> = new Set()) {
+  // TODO: need to construct with Set in editor component when mask editing
+  //       feature added
+  constructor(private mask: Set<number> = new Set([])) {
     this.savedMask = mask;
   }
 
