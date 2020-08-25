@@ -12,6 +12,7 @@ export class ToolbarComponent implements OnInit {
   @Output() newToleranceEvent = new EventEmitter<number>();
   @Output() newMaskToolEvent = new EventEmitter<string>();
   @Output() invertMaskEvent = new EventEmitter<void>();
+  @Output() undoRedoEvent = new EventEmitter<string>();
 
   value: number;
   maskTool: string;
@@ -41,5 +42,9 @@ export class ToolbarComponent implements OnInit {
 
   invertMask() {
     this.invertMaskEvent.emit();
+  }
+
+  undoRedo(direction: string) {
+    this.undoRedoEvent.emit(direction);
   }
 }
