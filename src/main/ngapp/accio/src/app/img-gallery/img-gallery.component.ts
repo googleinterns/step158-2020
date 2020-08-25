@@ -9,6 +9,23 @@ import * as JSZip from 'jszip';
 import * as $ from 'jquery';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
+export interface StoredImage {
+  url: string,
+  name: string,
+  type: string,
+  utc: string,
+  tags: string[],
+  masks: StoredMask[],
+}
+
+export interface StoredMask {
+  url: string,
+  name: string,
+  type: string,
+  utc: string,
+  tags: string[],
+}
+
 @Component({
   selector: 'app-img-gallery',
   templateUrl: './img-gallery.component.html',
@@ -142,7 +159,7 @@ export class ImgGalleryComponent implements OnInit {
   /** 
    * Fetch images with parameters specified by class members.
    */
-  async fetchImages(): Promise<object[]> {
+  async fetchImages(): Promise<StoredImage[]> {
     let fetchUrl =
       '/blobs?' +
       $.param({
@@ -179,14 +196,14 @@ export class ImgGalleryComponent implements OnInit {
   /**
    * Download a single image or mask.
    */
-  downloadImage(image: any): void { // TODO(dtjanaka@): stricter type
+  downloadImage(image: StoredImage): void {
     saveAs(image.url, image.name + '.' + image.type);
   }
 
   /** 
    * Get the Base64 representation of image for zipping.
    */
-  getBase64String(img: any): string {
+  getBase64String(img: HTMLImageElement): string {
     let canvas = document.createElement('canvas');
     canvas.width = img.width;
     canvas.height = img.height;
@@ -202,8 +219,7 @@ export class ImgGalleryComponent implements OnInit {
   /**
    * Download a zip including an image and its masks.
    */
-  async downloadImageAndItsMasks(image: any): Promise<void> {
-    console.log(typeof image);
+  async downloadImageAndItsMasks(image: StoredImage): Promise<void> {
     let zip = new JSZip();
 
     let newImageObject = new Image();
@@ -223,7 +239,7 @@ export class ImgGalleryComponent implements OnInit {
     this.sortMask = '';
     this.tag = '';
 
-    let images: any = await this.fetchImages();
+    let images: StoredImage[] = await this.fetchImages();
     
     for (let mask of images[0]['masks']) {
       let newMaskObject = new Image();
@@ -256,7 +272,7 @@ export class ImgGalleryComponent implements OnInit {
     this.sortMask = '';
     this.tag = '';
 
-    let images: any = await this.fetchImages();
+    let images: StoredImage[] = await this.fetchImages();
 
     for (let image of images) {
       let newImageObject = new Image();
@@ -295,7 +311,6 @@ export class ImgGalleryComponent implements OnInit {
     });
   }
 }
-
 
 /* Flow for dialog popup => UPDATING IMAGES */
 
