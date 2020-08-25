@@ -228,21 +228,19 @@ export class MagicWandService {
   }
 
   /**@returns {number} the straight line distance between the two colors
-   * @param {Array<number> [R, G, B]} basisColor and 
-   * @param {Array<number> [R, G, B]} secondColor
-   */
+  * @param {Array<number> [R, G, B]} basisColor and
+  * @param {Array<number> [R, G, B]} secondColor
+  * @IMPORTANT
+  * Does not sqrt distance to complete Euclidean dist formula b/c sqrt is
+  * an expense operation. Instead, can compare against tolerance in the
+  * squared space.
+  */
   rgbEuclideanDist(colorA: Color, colorB: Color): number {
+  const dr = colorA.red - colorB.red;
+  const dg = colorA.green - colorB.green;
+  const db = colorA.blue - colorB.blue;
 
-    let distance = 0;
-
-    for (let attribute in colorA) {
-      distance += Math.pow((colorA[attribute] - colorB[attribute]), 2);
-    }
-
-    // Does not sqrt distance to complete Euclidean dist formula b/c sqrt is
-    // an expense operation. Instead, can compare against tolerance in the 
-    // squared space.
-    return distance;
+  return ((dr * dr) + (dg * dg) + (db * db));
   }
 
   /**@license MIT License <http://www.opensource.org/licenses/mit-license.php>
