@@ -15,12 +15,15 @@
 </form>
 
 <!-- Editor -->
+<app-top-toolbar
+  (clearMaskEvent)="clearMask()"
+  (invertMaskEvent)="invertMask()">
+</app-top-toolbar>
+
 <mat-drawer-container id="img-editor">
   <mat-drawer id="toolbar" mode="side" opened>
     <app-toolbar 
-      (clearMaskEvent)="clearMask()"
       (newMaskToolEvent)="updateMaskTool($event)"
-      (invertMaskEvent)="invertMask()"
       (newToleranceEvent)="updateTolerance($event)"
       (newMaskAlphaEvent)="updateMaskAlpha($event)"
       (newWidthEvent)="updateBrushWidth($event)">

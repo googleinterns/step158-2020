@@ -28,6 +28,7 @@ import { MaskDirective } from './editor/mask.directive';
 import { CreateProjectComponent } from './create-project/create-project.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { LogoutComponent } from './logout/logout.component';
+import { TopToolbarComponent } from './top-toolbar/top-toolbar.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { LogoutComponent } from './logout/logout.component';
     ToolbarComponent,
     ToolbarComponent,
     LogoutComponent,
-    UpdateImageDialog
+    UpdateImageDialog,
+    TopToolbarComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,12 @@
+#single-click-buttons {
+  padding: 10px;
+}
+
+.button {
+  color: white;
+  cursor: pointer;
+  border: none;
+  padding: 10px;
+  width: 75px;
+  height: 45px;
+}

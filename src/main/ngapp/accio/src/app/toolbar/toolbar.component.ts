@@ -8,13 +8,12 @@ import { Output, EventEmitter } from '@angular/core';
 })
 export class ToolbarComponent implements OnInit {
 
-  @Output() clearMaskEvent = new EventEmitter<void>();
   @Output() newMaskToolEvent = new EventEmitter<string>();
-  @Output() invertMaskEvent = new EventEmitter<void>();
   @Output() newToleranceEvent = new EventEmitter<number>();
   @Output() newMaskAlphaEvent = new EventEmitter<number>();
   @Output() newWidthEvent = new EventEmitter<number>();
-  @Output() undoRedoEvent = new EventEmitter<string>();
+
+  // TODO Input what tool user has to deselect some sliders
 
   toleranceValue: number;
   maskAlphaValue: number;
@@ -36,16 +35,6 @@ export class ToolbarComponent implements OnInit {
     this.newMaskToolEvent.emit(tool);
   }
 
-  /** Called when user clicks clear mask button. */
-  clearMask() {
-    this.clearMaskEvent.emit();
-  }
-
-  /** Called when user clicks the invert mask button. */
-  invertMask() {
-    this.invertMaskEvent.emit();
-  }
-
   /** Emits value of user inputed/slider tolerance. */
   updateTolerance() {
     this.newToleranceEvent.emit(this.toleranceValue);
@@ -58,9 +47,5 @@ export class ToolbarComponent implements OnInit {
 
   updateWidth() {
     this.newWidthEvent.emit(this.brushWidth);
-  }
-
-  undoRedo(direction: string) {
-    this.undoRedoEvent.emit(direction);
   }
 }
