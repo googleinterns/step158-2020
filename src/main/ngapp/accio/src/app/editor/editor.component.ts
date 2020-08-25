@@ -42,7 +42,9 @@ export class EditorComponent implements OnInit {
   //  Display variables.
   private image: HTMLImageElement;
   private maskImageData: ImageData;
+  private imageUrl: string;
   index: number;
+  maskIndex: number;
   displayMaskForm: boolean = false;
   disableSubmit: boolean = false;
   stageWidth: number;
@@ -58,6 +60,7 @@ export class EditorComponent implements OnInit {
   formData: FormData;
   projectId: string;
   parentName: string;
+  maskUrl: string;
   blobMask: Blob; 
 
   //  scaleFactor is used to trim image scale so image 
@@ -97,7 +100,6 @@ export class EditorComponent implements OnInit {
 
   ngOnInit() {
     this.image = new Image();
-    let imageUrl: string;
     this.scaleFactor = .9;
     this.tolerance = 30;
     this.maskAlpha = 1;
@@ -106,34 +108,46 @@ export class EditorComponent implements OnInit {
     this.brushWidth = 1;
 
     //  Gets last image array that user sorted on img-gallery page. Saves to session storage to keep through refresh.
-    if (!window.sessionStorage.getItem('imageArray')) {
+    //  If gallery reloaded a new Image array, newArray is set to true to signify the need to re-fetch array.
+    if (!window.sessionStorage.getItem('imageArray') || this.fetchImagesService.newArray) {
       this.fetchImagesService.currentImages.subscribe(newImages => this.imageArray = newImages);
       window.sessionStorage.setItem('imageArray', JSON.stringify(this.imageArray));
+      //  Images have been re-fetched, set new to false. 
+      this.fetchImagesService.newArray = false;
     }
     else {
       this.imageArray = JSON.parse(window.sessionStorage.getItem('imageArray'));
-      console.log('object:');
     }
     
     this.route.paramMap.subscribe(params => {
       this.projectId = params.get('proj-id ');
       this.parentName = params.get('parent-img ');
-      imageUrl = params.get('imgUrl ');
+      this.imageUrl = params.get('img-url ');
+      this.maskUrl = params.get('mask-url ');
+
       try {
-        this.index = Number(params.get('index'));
+        this.index = Number(params.get('index '));
+        if (params.get('mask-index')) {
+          this.maskIndex = Number(params.get('mask-index'));
+        }
       }
       catch {
-        console.log('index: ' + params.get('index') + 'could not be parsed as number.');
+        console.log(`index: ${params.get('index ')} or ${params.get('mask-index')} could not be parsed as number.`);
         this.index = 0;
+        if(params.get('mask-index')) {
+          this.maskIndex = 0;
+        }
+        this.router.navigate([`img-gallery/${this.projectId}`]);
       }
-      console.log('proj id for mask: ' + this.projectId);
     });
+
+    
 
     //image loads after src is set, ensures canvas is initialized properly.
     this.image.onload = () => {
       this.initCanvas();
     }
-    this.image.src = imageUrl;
+    this.image.src = this.imageUrl;
 
     //  Initializes mask upolad form.
     this.initMaskForm();
@@ -166,10 +180,17 @@ export class EditorComponent implements OnInit {
 
     //  Used to scale the image to the window size, 
     //    scaleFactor = .9 so the scaled image is smaller than the user's window.
-    this.scaleFactor = Math.floor(window.innerHeight / imgHeight * this.scaleFactor);
-    //  TODO(shmcaffrey): add scaling if image is larger than window
+    this.scaleFactor = (window.innerHeight / imgHeight * this.scaleFactor);
+    try {
+      this.scaleFactor = Number((this.scaleFactor.toFixed(2)));
+      console.log(this.scaleFactor + ' this.scaleFactor');
+    } catch {
+      this.scaleFactor = 1;
+      console.log(`scale factor: ${this.scaleFactor.toFixed(2)} could not be converted to number`)
+    }
+    // if scale is < .01, just set the scale manually
     if (this.scaleFactor <= 0) {
-      this.scaleFactor =  1;
+      this.scaleFactor =  .01;
     }
 
     //  Canvas to draw mask, hidden.
@@ -200,7 +221,18 @@ export class EditorComponent implements OnInit {
     this.maskCtx.clearRect(0,0,imgWidth, imgHeight);
     
     this.drawScaledImage();
-    console.log('put imagedata');
+
+    // If there is a mask URL passed in then draw mask.
+    if (this.maskUrl != '' && this.maskUrl) {
+      console.log('there\'s a mask url' + this.maskUrl);
+      let maskImage = new Image();
+      maskImage.onload = () => {
+        this.maskCtx.drawImage(maskImage, 0, 0);
+        this.maskImageData = this.maskCtx.getImageData(0, 0, maskImage.width, maskImage.height);
+        this.drawMask();
+      }
+      maskImage.src = this.maskUrl;
+    }
   }
   
  /**
@@ -261,10 +293,8 @@ export class EditorComponent implements OnInit {
     this.scaledCtx.scale(this.scaleFactor, this.scaleFactor);
     createImageBitmap(this.maskImageData).then(renderer => {    
       this.scaledCtx.globalAlpha = this.maskAlpha;
-      console.log('global alpha when drawing mask: ' + this.scaledCtx.globalAlpha);
       this.scaledCtx.drawImage(renderer, 0, 0, this.scaledCanvas.nativeElement.width, this.scaledCanvas.nativeElement.height);
     });
-    console.log('mask drawn');
     this.scaledCtx.restore();
   }
 
@@ -368,7 +398,6 @@ export class EditorComponent implements OnInit {
   /**  Retrieves new tolerance value from child component toolbar and updates. */
   updateTolerance(value: number) {
     this.tolerance = value;
-    console.log('new tolerance: ' + value);
   }
 
  /** 
@@ -444,7 +473,6 @@ export class EditorComponent implements OnInit {
     this.maskCtx.globalCompositeOperation = 
             (this.maskTool == MaskTool.PAINT || this.maskTool == MaskTool.MAGIC_WAND_ADD) 
              ? this.SOURCE_OVER : this.DESTINATION_OUT;
-    console.log(this.brushWidth + ' brush width');
   }
  /** 
   *  Draws or erases line between previous point user moved over and next point moved over.
@@ -470,27 +498,48 @@ export class EditorComponent implements OnInit {
 
  /** 
   *  Returns the RouterLink for the next or previous image in the user's last selection 
-  *    of gallery images.
+  *    of gallery images. If the user clicked on a specific mask, returns the next mask.
   *  @param previous signifies whether the user has selected the previous image button.
   */
   newImage(previous: boolean) {
-    //if nothing in the image gallery or there is only one image then just reload.
-    if (this.imageArray.length <= 1) {
-      this.router.navigateByUrl(this.router.url);
-      return;
+    // If user clicks on an image's mask, then newImage will loop through all the image's masks.
+    if (this.maskIndex == 0 || this.maskIndex) {
+      let maskObject = this.imageArray[this.index]['masks'];
+      if (previous) {
+        (this.maskIndex - 1 < 0) ? this.maskIndex = maskObject.length - 1 : --this.maskIndex;
+      }
+      else {
+        (this.maskIndex + 1 >= maskObject.length) ? this.maskIndex = 0 : ++this.maskIndex;
+      }
+      let nextMask = this.imageArray[this.index]['masks'][this.maskIndex];
+      this.router.navigate(['/editor', this.projectId, this.parentName, this.imageUrl, nextMask['url'], this.index, this.maskIndex]);
     }
-    
-    if (previous) {
-      (this.index - 1 < 0) ? this.index = this.imageArray.length - 1 : --this.index;
-    }
+    //  Otherwise, newImage loops through the images last fetched in the imageArray
     else {
-      (this.index + 1 >= this.imageArray.length) ? this.index = 0 : ++this.index;
+      if (previous) {
+        (this.index - 1 < 0) ? this.index = this.imageArray.length - 1 : --this.index;
+      }
+      else {
+        (this.index + 1 >= this.imageArray.length) ? this.index = 0 : ++this.index;
+      }
+      let nextImage = this.imageArray[this.index];
+      this.router.navigate(['/editor', this.projectId, nextImage['name'], nextImage['url'], this.getFirstMask(nextImage['masks']), this.index]);
     }
-    let nextImage = this.imageArray[this.index];
-
-    console.log('nextImage of index: ' + this.index);
-    console.log(nextImage);
-    this.router.navigate(['/editor', this.projectId, nextImage['name'], nextImage['url'], this.index]);
-    //  Component reloaded when router url changes, If the user refreshes the page, the imageArray is lost.**
   }
+
+  /** Helper function to get the first mask in an image's mask, to be drawn if a selected image has an existing mask. */
+  getFirstMask(mask: Object): string {
+    if (mask[0]) {
+      return (mask[0]['url']);
+    }
+    console.log('no url found');
+    return '';
+  }
+
+ /**
+  *  catches emitted MaskAction from mask.directive and calls the undo/redo 'do' function.
+  newMaskController(maskAction: MaskAction) {
+    this.maskController.do(maskAction);
+  }
+   */
 }

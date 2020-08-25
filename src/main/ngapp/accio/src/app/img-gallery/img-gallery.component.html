@@ -53,21 +53,22 @@
 
   <mat-form-field appearance="fill">
     <mat-label>Show masks for Image: {{ imgName }}</mat-label>
-    <mat-select [(ngModel)]="withMasks">
-      <mat-option value="false">Don't show masks</mat-option>
-      <mat-option value="true">Show masks for: {{ imgName }}</mat-option>
+    <mat-select [(ngModel)]="displayMasks">
+      <mat-option [value]="falseVal">Don't show masks</mat-option>
+      <mat-option [value]="trueVal">Show masks for: {{ imgName }}</mat-option>
     </mat-select>
     <mat-hint align="end">Default: no masks</mat-hint>
   </mat-form-field>
 
-  <button mat-raised-button (click)="getImages()">Update filter(s)</button>
+  <button mat-raised-button (click)="loadGalleryImages()">Update filter(s)</button>
 </div>
 <!--Filter Bar-->
 
 <!--Fetched Images-->
 <div class="gallery" *ngIf="displayImages">
   <div *ngFor="let image of imageArray; index as i" class="gallery-item">
-    <a [routerLink]="['/editor', projectId, image['name'], image['url'], i]">
+    <div title="Existing Mask" id="mask-tab" [hidden]="!hasMask(image)"><p>MASK</p></div> 
+    <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMask(image['masks']), i]">
       <img class="gallery-img" [src]="image['url']">
     </a>
     <div class="tab">
@@ -77,10 +78,10 @@
   </div>
 </div>
 
-<div class="gallery" *ngIf="displayImages">
-  <ng-container *ngFor="let image of imageArray">
-    <div *ngFor="let mask of image['masks']" class="gallery-item">
-      <a [routerLink]="['/editor', projectId, mask['name'], mask['url'], image['name'], image['url']]">
+<div class="gallery" *ngIf="displayMasks">
+  <ng-container *ngFor="let image of imageArray; index as j">
+    <div *ngFor="let mask of image['masks']; index as k" class="gallery-item">
+      <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['url'], j, k]">
         <img class="gallery-img" [src]="mask['url']">
       </a>
       <div class="tab">      
