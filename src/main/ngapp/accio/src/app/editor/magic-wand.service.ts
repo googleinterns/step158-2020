@@ -175,7 +175,8 @@ export class MagicWandService {
              tolerance: number, scribbles: Set<number>): Set<number> {
    // Creates an array of color objects from the indices in 'scribbles'.
    // Color object: {red: number, green: number, blue: number}
-   const colors: Array<Color> = this.scribblesToColors(scribbles, imgData);
+   const thresholdColors: Array<Color> = 
+       this.scribblesToColors(scribbles, imgData);
    // Stores a queue of coords for pixels that we need to visit in "visit".
    const visit: Array<Array<number>> = new Array();
    // Stores already-visited pixels in "visited" as index formatted numbers
@@ -192,7 +193,7 @@ export class MagicWandService {
    visited.add(indexAsDataArray);
 
    const tree = new KdTree.kdTree(
-     colors, this.rgbEuclideanDist, ["red", "green", "blue"]);
+     thresholdColors, this.rgbEuclideanDist, ["red", "green", "blue"]);
 
 
    // Loops until no more adjacent pixels within tolerance level.
