@@ -4,31 +4,31 @@ import { Move } from './mask-controller.service';
 export enum Action {
   ADD = 'add',
   SUBTRACT = 'subtract',
-  INVERT = 'invert', 
-  CLEAR = 'clear,'
+  INVERT = 'invert',
+  CLEAR = 'clear,',
 }
 
 export enum Tool {
-    MAGIC_WAND = 'magic wand', //floodfill
-    SCRIBBLE = 'scribble magic wand', //scribble floodfill
-    PAINTBRUSH = 'paintbrush',
-    ERASER = 'erase',
-    INVERT = 'invert',
-    CLEAR = 'clear',
+  MAGIC_WAND = 'magic wand', //floodfill
+  SCRIBBLE = 'scribble magic wand', //scribble floodfill
+  PAINTBRUSH = 'paintbrush',
+  ERASER = 'erase',
+  INVERT = 'invert',
+  CLEAR = 'clear',
 }
 
 export class MaskAction {
   constructor(
     private actionType: Action,
     private toolName: Tool,
-    
-    /* 
+
+    /*
      * Expected values for changedPixels:
      *   ADD: the added pixels
      *   SUBTRACT: the removed pixels
      *   INVERT: every pixel of the image
      *   CLEAR: the pixels of the current mask
-    */ 
+     */
     private changedPixels: Set<number>
   ) {}
 
@@ -38,6 +38,10 @@ export class MaskAction {
 
   public getToolName(): Tool {
     return this.toolName;
+  }
+
+  public getChangedPixels(): Set<number> {
+    return this.changedPixels;
   }
 
   /**

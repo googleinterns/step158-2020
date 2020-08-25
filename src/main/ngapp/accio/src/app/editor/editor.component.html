@@ -17,7 +17,8 @@
 <!-- Editor -->
 <app-top-toolbar
   (clearMaskEvent)="clearMask()"
-  (invertMaskEvent)="invertMask()">
+  (invertMaskEvent)="invertMask()"
+  (undoRedoEvent)="undoRedo($event)">
 </app-top-toolbar>
 
 <mat-drawer-container id="img-editor">
@@ -46,8 +47,8 @@
         [tool]="maskTool"
         (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
-        (continuePaintEvent)="drawPixel($event)">
-        <!-- (newMaskControllerEvent)="newMaskController($event)" -->
+        (continuePaintEvent)="drawPixel($event)"
+        (newMaskControllerEvent)="newMaskController($event)">
       </canvas>
       <canvas #imageCanvas id="image-layer"
         width="100px" height="100px">
