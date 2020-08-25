@@ -45,38 +45,30 @@ public final class ProjectServletTestUtils {
       gson.toJson(new ArrayList<ProjectInfo>(
           Arrays.asList(MyProject5, MyProject2, MyProject1))) +
       "\n";
-  public static final String expectedPublicOnly = 
-      gson.toJson(new ArrayList<ProjectInfo>(
-          Arrays.asList(MyProject2))) +
-      "\n";
+  public static final String expectedPublicOnly =
+      gson.toJson(new ArrayList<ProjectInfo>(Arrays.asList(MyProject2))) + "\n";
   public static final String expectedPrivateOnly =
-      gson.toJson(new ArrayList<ProjectInfo>(
-          Arrays.asList(MyProject5, MyProject1))) +
+      gson.toJson(
+          new ArrayList<ProjectInfo>(Arrays.asList(MyProject5, MyProject1))) +
       "\n";
   public static final String expectedGlobalOnly =
-      gson.toJson(new ArrayList<ProjectInfo>(
-          Arrays.asList(MyProject3, MyProject2))) +
+      gson.toJson(
+          new ArrayList<ProjectInfo>(Arrays.asList(MyProject3, MyProject2))) +
       "\n";
   public static final String expectedSortAsc =
       gson.toJson(new ArrayList<ProjectInfo>(
           Arrays.asList(MyProject1, MyProject2, MyProject5))) +
       "\n";
   public static final String expectedSpecificProject =
-      gson.toJson(new ArrayList<ProjectInfo>(
-          Arrays.asList(MyProject1))) +
-      "\n";
+      gson.toJson(new ArrayList<ProjectInfo>(Arrays.asList(MyProject1))) + "\n";
   public static final String expectedRoleEditor =
-      gson.toJson(new ArrayList<ProjectInfo>(
-          Arrays.asList(MyProject5))) +
-      "\n";
+      gson.toJson(new ArrayList<ProjectInfo>(Arrays.asList(MyProject5))) + "\n";
   public static final String expectedRoleOwner =
-      gson.toJson(new ArrayList<ProjectInfo>(
-          Arrays.asList(MyProject2, MyProject1))) +
+      gson.toJson(
+          new ArrayList<ProjectInfo>(Arrays.asList(MyProject2, MyProject1))) +
       "\n";
   public static final String expectedSearchTerm =
-      gson.toJson(new ArrayList<ProjectInfo>(
-          Arrays.asList(MyProject1))) +
-      "\n";
+      gson.toJson(new ArrayList<ProjectInfo>(Arrays.asList(MyProject1))) + "\n";
 
   /**
    * Set up database before each test and return one project ID for use in
@@ -100,12 +92,14 @@ public final class ProjectServletTestUtils {
 
     Entity imgEntity = new Entity(DataUtils.IMAGE, 1, projKey);
     imgEntity.setProperty("name", "Image0");
+    imgEntity.setProperty("filetype", "png");
     imgEntity.setProperty("utc", "2020-08-12T05:39:02.383Z");
     imgEntity.setProperty("blobkey", "abc");
     imgEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
 
     Entity imgEntity2 = new Entity(DataUtils.IMAGE, 2, projKey);
     imgEntity2.setProperty("name", "Image1");
+    imgEntity2.setProperty("filetype", "png");
     imgEntity2.setProperty("utc", "2020-08-12T05:39:02.384Z");
     imgEntity2.setProperty("blobkey", "def");
     imgEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));
@@ -114,12 +108,14 @@ public final class ProjectServletTestUtils {
 
     Entity maskEntity = new Entity(DataUtils.MASK, 1, imgEntity.getKey());
     maskEntity.setProperty("name", "Mask0");
+    maskEntity.setProperty("filetype", "png");
     maskEntity.setProperty("utc", "2020-08-12T05:39:02.384Z");
     maskEntity.setProperty("blobkey", "ghi");
     maskEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
 
     Entity maskEntity2 = new Entity(DataUtils.MASK, 2, imgEntity.getKey());
     maskEntity2.setProperty("name", "Mask1");
+    maskEntity2.setProperty("filetype", "png");
     maskEntity2.setProperty("utc", "2020-08-12T05:39:02.383Z");
     maskEntity2.setProperty("blobkey", "jkl");
     maskEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));
