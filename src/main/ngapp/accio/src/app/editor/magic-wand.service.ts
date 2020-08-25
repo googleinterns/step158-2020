@@ -48,13 +48,12 @@ export class MagicWandService {
   }
 
 
-  /**@returns {Array<number> [R, G, B]} color attribute of the pixel at 
+  /**@returns {Color} color attributes of the pixel at 
    * @param {number} xCoord and 
    * @param {number} yCoord based off of the original image supplied by
    * @param {ImageData} imgData
    */
-  dataArrayToRgb(imgData: ImageData, xCoord: number, yCoord: number):
-      Array<number> {
+  dataArrayToRgb(imgData: ImageData, xCoord: number, yCoord: number): Color {
     // Unpacks imgData for readability.
     const data: Uint8ClampedArray = imgData.data;
     const imgWidth: number = imgData.width;
@@ -66,7 +65,7 @@ export class MagicWandService {
     const green: number = data[pixelIndex + 1];
     const blue: number = data[pixelIndex + 2];
     
-    return [red, green, blue];
+    return {red: red, green: green, blue: blue};
   }
 
   // Converts coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
@@ -212,12 +211,10 @@ export class MagicWandService {
         }
         // Visits the pixel and check if it should be part of the mask.
         visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
-        // if (this.getIsScribbleMask(scribbles, imgData, neighborPixel, tolerance)) {
-        //   visit.push(neighborPixel);
-        // }
+
+        /* Ref: kdTree.nearest(point, count, maxDistance) */
         if (tree.nearest(
-            this.scribblesToColors(new Set([
-            this.coordToDataArrayIndex(x, y, imgData.width)]), imgData)[0],
+            this.dataArrayToRgb(imgData, x, y),
             1, tolerance * tolerance).length > 0) {
           visit.push(neighborPixel);
         }
