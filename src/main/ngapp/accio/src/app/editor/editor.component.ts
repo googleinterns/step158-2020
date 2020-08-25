@@ -178,7 +178,6 @@ export class EditorComponent implements OnInit {
    */
   addToMask(maskAction: MaskAction) {
     this.disableSubmit = this.disableFloodFill = true;
-
     for (let pixel of maskAction.getChangedPixels()) {
       this.maskImageData.data[pixel] = 255;
       this.maskImageData.data[pixel + 2] = 255;
@@ -191,7 +190,6 @@ export class EditorComponent implements OnInit {
 
   removeFromMask(maskAction: MaskAction) {
     this.disableSubmit = this.disableFloodFill = true;
-
     for (let pixel of maskAction.getChangedPixels()) {
       this.maskImageData.data[pixel] = 0;
       this.maskImageData.data[pixel + 2] = 0;
