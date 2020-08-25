@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { MagicWandService } from './magic-wand.service';
+import {_coerceVersionNumber} from "@schematics/update/migrate";
 
 
 /* tslint:disable */
@@ -29,7 +30,7 @@ describe('MagicWandService', () => {
    imgData.data[56 + 1] = 111;  // Green
    imgData.data[56 + 2] = 117;  // Blue
    expect(service.dataArrayToRgb(
-       imgData, 3, 1)).toEqual([120, 111, 117]);
+       imgData, 3, 1)).toEqual({red: 120, green: 111, blue: 117});
  });
  it('Test method: isInBounds() >> top left OutOfRange', () => {
    // Should return false if inputted pixel's coord is out of range of the img
@@ -100,7 +101,7 @@ describe('MagicWandService', () => {
    expect(service.invert(originalMask, 4, 3)).toEqual(expected);
  });
 
- it('Test method: rgbEuclideanDist() valid', () => {
+ it('Test method: rgbEuclideanDist()', () => {
    // Should return the straight line distance between two pixels' colors
    const colorA = {red: 2, green: 4, blue: 1};
    const colorB = {red: 7, green: 2, blue: 2};
