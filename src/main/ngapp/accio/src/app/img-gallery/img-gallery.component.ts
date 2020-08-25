@@ -33,7 +33,7 @@ export class ImgGalleryComponent implements OnInit {
   tag: string = '';
 
   // Holds images fetched from datastore.
-  imageArray: Array<any>;
+  imageArray: Array<object>;
 
   constructor(
     private route: ActivatedRoute,
@@ -142,7 +142,7 @@ export class ImgGalleryComponent implements OnInit {
   /** 
    * Fetch images with parameters specified by class members.
    */
-  async fetchImages(): Promise<any> {
+  async fetchImages(): Promise<object[]> {
     let fetchUrl =
       '/blobs?' +
       $.param({
@@ -159,7 +159,6 @@ export class ImgGalleryComponent implements OnInit {
     // 'utc', 'tags[]', 'masks[]'
     const response = await fetch(fetchUrl);
     const imageContent = await response.json();
-    console.log(imageContent);
     return imageContent;
   }
 
@@ -167,7 +166,7 @@ export class ImgGalleryComponent implements OnInit {
    * Fetch images with parameters specified by class members and set
    * imageArray for display.
    */
-  async getImages(): Promise<any> {
+  async getImages(): Promise<void> {
     console.log('fetching from projectId: ' + this.projectId);
 
     this.imageArray = await this.fetchImages();
@@ -203,7 +202,8 @@ export class ImgGalleryComponent implements OnInit {
   /**
    * Download a zip including an image and its masks.
    */
-  async downloadImageAndItsMasks(image: any): Promise<any> {
+  async downloadImageAndItsMasks(image: any): Promise<void> {
+    console.log(typeof image);
     let zip = new JSZip();
 
     let newImageObject = new Image();
@@ -246,7 +246,7 @@ export class ImgGalleryComponent implements OnInit {
   /**
    * Download a zip of all images and masks for the project.
    */
-  async downloadProjectImages(): Promise<any> {
+  async downloadProjectImages(): Promise<void> {
     let zip = new JSZip();
 
     this.imgName = '';
