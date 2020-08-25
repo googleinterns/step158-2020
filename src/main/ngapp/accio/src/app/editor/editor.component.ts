@@ -234,7 +234,7 @@ export class EditorComponent implements OnInit {
 
     this.cursorCtx.beginPath();
     this.cursorCtx.arc(this.cursorX, this.cursorY,
-        this.brushWidth, 0, 2 * Math.PI, true);
+        this.brushWidth * 1.5, 0, 2 * Math.PI, true);
     this.cursorCtx.fillStyle = "rgba(255, 0, 0, .5)";
     this.cursorCtx.fill();
   }
