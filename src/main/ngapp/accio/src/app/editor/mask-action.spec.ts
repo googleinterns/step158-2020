@@ -1,4 +1,4 @@
-import { Move } from './mask-controller';
+import { Move } from './mask-controller.service';
 import { MaskAction, Action, Tool } from './mask-action';
 
 describe('MaskAction', () => {
@@ -61,11 +61,11 @@ describe('MaskAction', () => {
     expect(maskAction.apply(Move.BACK_ONE, initialMask)).toEqual(expectedMask);
   });
   it('should do invert', () => {
-    let expectedMask = new Set([5, 6]);
+    let expectedMask = new Set([0, 5, 6]);
     let maskAction = new MaskAction(
       Action.INVERT,
       Tool.MAGIC_WAND,
-      new Set([1, 2, 3, 4, 5, 6])
+      new Set([...Array(7).keys()])
     );
     expect(maskAction.apply(Move.FORWARD_ONE, initialMask)).toEqual(
       expectedMask

@@ -1,4 +1,4 @@
-import { MaskControllerService, Status } from './mask-controller.service';
+import { MaskControllerService } from './mask-controller.service';
 import { MaskAction, Action, Tool } from './mask-action';
 
 describe('MaskController', () => {
@@ -41,12 +41,12 @@ describe('MaskController', () => {
   });
   it('should not undo if no prior history', () => {
     const expectedMask = new Set([1, 2, 3, 4]);
-    expect(maskController.undo()).toEqual(Status.STATUS_FAILURE);
+    expect(maskController.undo()).toEqual(null);
     expect(maskController.getMask()).toEqual(expectedMask);
   });
   it('should not redo if no prior history', () => {
     const expectedMask = new Set([1, 2, 3, 4]);
-    expect(maskController.redo()).toEqual(Status.STATUS_FAILURE);
+    expect(maskController.redo()).toEqual(null);
     expect(maskController.getMask()).toEqual(expectedMask);
   });
   it('should not redo if a new action follows undo', () => {
@@ -58,7 +58,7 @@ describe('MaskController', () => {
     maskController.do(
       new MaskAction(Action.SUBTRACT, Tool.MAGIC_WAND, new Set([1, 2]))
     );
-    expect(maskController.redo()).toEqual(Status.STATUS_FAILURE);
+    expect(maskController.redo()).toEqual(null);
     expect(maskController.getMask()).toEqual(expectedMask);
   });
   it('should be initially saved', () => {

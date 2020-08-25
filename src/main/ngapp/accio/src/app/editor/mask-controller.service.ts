@@ -2,11 +2,6 @@ import { MaskAction } from './mask-action';
 import { SetOperator } from './set-operator';
 import { Injectable } from '@angular/core';
 
-export enum Status {
-  STATUS_FAILURE = -1,
-  STATUS_SUCCESS = 0,
-}
-
 export enum Move {
   BACK_ONE = -1,
   FORWARD_ONE = 1,
@@ -60,25 +55,26 @@ export class MaskControllerService {
    * @param     {Move}          direction
    * @return    {Status}
    */
-  private move(direction: Move): Status {
+  private move(direction: Move): MaskAction {
     if (direction !== Move.BACK_ONE && direction !== Move.FORWARD_ONE) {
       console.log(
         'Error: Must move through edit history one action at a time.'
       );
-      return Status.STATUS_FAILURE;
+      return null;
     }
     let newIndex: number = this.pPresent + direction;
     if (newIndex < -1 || newIndex > this.history.length - 1) {
-      return Status.STATUS_FAILURE;
+      return null;
     }
     this.pPresent = newIndex;
 
     if (direction === Move.FORWARD_ONE) {
       this.mask = this.history[this.pPresent].apply(direction, this.mask);
+      return this.history[this.pPresent];
     } else {
       this.mask = this.history[this.pPresent + 1].apply(direction, this.mask);
+      return this.history[this.pPresent + 1];
     }
-    return Status.STATUS_SUCCESS;
   }
 
   /**
@@ -86,7 +82,7 @@ export class MaskControllerService {
    * @param     {MaskAction}    action
    * @return    {Status}
    */
-  public do(action: MaskAction): Status {
+  public do(action: MaskAction): MaskAction {
     if (this.pPresent < this.history.length - 1) {
       this.history.splice(this.pPresent + 1);
     }
@@ -94,11 +90,11 @@ export class MaskControllerService {
     return this.move(Move.FORWARD_ONE);
   }
 
-  public undo(): Status {
+  public undo(): MaskAction {
     return this.move(Move.BACK_ONE);
   }
 
-  public redo(): Status {
+  public redo(): MaskAction {
     return this.move(Move.FORWARD_ONE);
   }
 }
