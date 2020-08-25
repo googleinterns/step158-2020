@@ -207,7 +207,11 @@ export class EditorComponent implements OnInit {
     this.cursorTarget = document.querySelector('#cursor-layer');
     this.cursorCtx = this.cursorTarget.getContext('2d');
     this.maskTarget.addEventListener('mousemove', (e) => {
-        this.setCursorPosition(e);}, false);
+      this.setCursorPosition(e);
+    }, false);
+    this.maskTarget.addEventListener('mouseout', () => {
+      this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
+    }, false);
     this.updateCursor();
 
     // Draws image non scaled on full canvas
