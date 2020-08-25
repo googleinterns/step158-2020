@@ -4,7 +4,6 @@ import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
 import { Coordinate } from './Coordinate';
 //import { MaskAction, Action, Tool } from './mask-action';
-//import { MaskController } from './mask-controller';
 
 @Directive({
   selector: '[appMask]',
@@ -20,6 +19,7 @@ export class MaskDirective {
   @Output() newMaskEvent = new EventEmitter<Set<number>>();
   @Output() newPaintEvent = new EventEmitter<Coordinate>();
   @Output() continuePaintEvent = new EventEmitter<Coordinate>();
+  //  @Output() newMaskControllerEvent = new EventEmmitter<MaskAction>();
 
   //  Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
@@ -95,7 +95,6 @@ export class MaskDirective {
     }
   }
 
-     //TODO: IF USER MOVES OFF CANVAS TREAT IT AS USER RELEASED CLICK
   /** If user's cursor leaves canvas, drawing is done. */
   @HostListener('mouseout', ['$event']) 
   onMouseLeave(e: MouseEvent) {
@@ -119,13 +118,12 @@ export class MaskDirective {
     //  If user has paint selected, call paint to add pixels painted to master.
     if (this.tool == MaskTool.PAINT) {
       this.scribbleFill = false;
-
-      //this.maskController.do(new MaskAction(Action.ADD, Tool.PAINTBRUSH, this.paintPixels));
+      //this.newMaskControllerEvent.emit(new MaskAction(Action.ADD, Tool.PAINTBRUSH, this.paintPixels));
     }
     else if (this.tool == MaskTool.ERASE) {
       this.scribbleFill = false;
 
-      //this.maskController.do(new MaskAction(Action.SUBTRACT, Tool.ERASER, this.paintPixels));
+      //this.newMaskControllerEvent.emit(new MaskAction(Action.SUBTRACT, Tool.ERASER, this.paintPixels));
     }
     //  If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
     else if ((this.tool == MaskTool.MAGIC_WAND_ADD
@@ -138,7 +136,7 @@ export class MaskDirective {
         this.originalImageData, this.coord[0], this.coord[1], 
         this.tolerance, this.paintPixels);
 
-    /*this.maskController.do(new MaskAction(
+    /*this.newMaskControllerEvent.emit(new MaskAction(
         (this.tool == MaskTool.MAGIC_WAND_ADD) ? Action.ADD : Action.SUBTRACT, 
         Tool.SCRIBBLE, this.paintPixels)
     );*/
@@ -155,7 +153,7 @@ export class MaskDirective {
           this.originalImageData, this.coord[0], 
           this.coord[1], this.tolerance);
 
-    /*this.maskController.do(new MaskAction(
+    /*this.newMaskControllerEvent.emit(new MaskAction(
         (this.tool == MaskTool.MAGIC_WAND_ADD) ? Action.ADD : Action.SUBTRACT, 
         Tool.MAGIC_WAND, maskPixels)
     );*/
