@@ -179,7 +179,7 @@ export class ImgGalleryComponent implements OnInit {
   /**
    * Download a single image or mask.
    */
-  downloadImage(image: any): void {
+  downloadImage(image: any): void { // TODO(dtjanaka@): stricter type
     saveAs(image.url, image.name + '.' + image.type);
   }
 
