@@ -35,6 +35,11 @@ canvas {
   background-color:white;
 }
 
+#cursor-layer {
+  z-index: 3;
+  pointer-events: none;
+}
+
 #toolbar {
   padding-top: 100px;
   text-align: center;

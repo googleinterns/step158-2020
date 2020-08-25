@@ -39,6 +39,11 @@ export class EditorComponent implements OnInit {
     });
   }
 
+  // Cursor varaibles.
+  cursorTargetPos: CursorPos;
+  cursorX = 0;
+  cursorY = 0;
+
   //  Display variables.
   private image: HTMLImageElement;
   private maskImageData: ImageData;
@@ -83,6 +88,13 @@ export class EditorComponent implements OnInit {
   @ViewChild('scaledCanvas', { static: true })
   scaledCanvas: ElementRef<HTMLCanvasElement>; 
   private scaledCtx: CanvasRenderingContext2D;
+
+  // Overlays custom "cursor" that changes based on brush size.
+  @ViewChild('cursorCanvas', { static: true })
+  cursorCanvas: ElementRef<HTMLCanvasElement>;
+  private cursorCtx: CanvasRenderingContext2D;
+  cursorTarget;
+  maskTarget;
 
   //  Holds static user image for background.
   @ViewChild('imageCanvas', { static: true })
@@ -166,37 +178,81 @@ export class EditorComponent implements OnInit {
       this.scaleFactor =  1;
     }
 
-    //  Canvas to draw mask, hidden.
+    // Canvas to draw mask, hidden.
     this.maskCanvas.nativeElement.width = imgWidth;
     this.maskCanvas.nativeElement.height = imgHeight;
     this.maskCtx = this.maskCanvas.nativeElement.getContext('2d');
     this.maskCtx.lineCap = this.maskCtx.lineJoin = 'round';
     this.maskCtx.strokeStyle = this.MAGENTA;
 
-    //  Canvas to show mask scaled.
+    // Canvas to show mask scaled.
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.scaledCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.scaledCtx = this.scaledCanvas.nativeElement.getContext('2d');
 
-    //  Canvas to show Image (never changes unless user only wants to see Mask)
+    // Canvas to show Image (never changes unless user only wants to see Mask)
     this.imageCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.imageCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.imageCtx = this.imageCanvas.nativeElement.getContext('2d');
-    
+
     this.stageWidth = imgWidth * this.scaleFactor;
     this.stageHeight = imgHeight * this.scaleFactor;
 
-    //   Draws image non scaled on full canvas
+    // Canvas to paint cursor-overlay of brush size.
+    this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
+    this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
+    // this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
+    // Updates the drawn 'cursor' when the user's mouse moves.
+    this.maskTarget = document.querySelector('#mask-layer');
+    this.cursorTarget = document.querySelector('#cursor-layer');
+    this.cursorCtx = this.cursorTarget.getContext('2d');
+    this.maskTarget.addEventListener('mousemove', (e) => {
+        this.setCursorPosition(e);}, false);
+    this.updateCursor();
+
+    // Draws image non scaled on full canvas
     this.imageCtx.drawImage(this.image, 0, 0);
 
-    //  Only gets the image data from (0,0) to (width,height) of image.
+    // Only gets the image data from (0,0) to (width,height) of image.
     this.originalImageData = this.imageCtx.getImageData(0, 0, imgWidth, imgHeight);
 
     this.drawScaledImage();
     console.log('put imagedata');
   }
+
+
+  /* Handles cursor tracking and resizing. */
   
- /**
+  // The following two functions: 
+  // Draws/Redraws 'cursor' at the current position of user's mouse.
+  setCursorPosition(e) {
+    // These are the coordinates used to paint.
+    this.cursorX = e.offsetX;
+    this.cursorY = e.offsetY;
+
+    this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
+
+    this.cursorCtx.beginPath();
+    this.cursorCtx.arc(this.cursorX, this.cursorY,
+        this.brushWidth, 0, 2 * Math.PI, true);
+    this.cursorCtx.fillStyle = "rgba(255, 0, 0, .5)";
+    this.cursorCtx.fill();
+  }
+
+  updateCursor() {
+    this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
+  
+    this.cursorCtx.beginPath();
+    this.cursorCtx.arc(this.cursorX, this.cursorY,
+        this.brushWidth, 0, 2 * Math.PI, true);
+    // this.cursorCtx.stroke();
+    this.cursorCtx.fillStyle = "rgba(255, 0, 0, .5)";
+    this.cursorCtx.fill();
+    // This callback matches the frame rate of the browser.
+    requestAnimationFrame(() => {this.updateCursor;});
+  }
+
+  /**
   *   Clears full canvas.
   */
   private clearScaledCanvas() {
@@ -484,4 +540,11 @@ export class EditorComponent implements OnInit {
     this.router.navigate(['/editor', this.projectId, nextImage['name'], nextImage['url'], this.index]);
     //  Component reloaded when router url changes, If the user refreshes the page, the imageArray is lost.**
   }
+}
+
+// Required for typescript compiler; used for typing with cursorCanvas.
+// Represents a cursor position (coordinate w/ x, y properties).
+interface CursorPos {
+  x: number,
+  y: number
 }
