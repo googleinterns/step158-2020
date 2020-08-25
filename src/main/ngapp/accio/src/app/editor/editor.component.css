@@ -9,13 +9,13 @@ mat-drawer-content{
 }
 
 #stage {
-  margin-top: 10%;
+  margin-top: 5%;
   position: relative;
   border: 2px solid black;
   margin-left: auto;
   margin-right: auto;
   overflow: visible;
-  margin-bottom: 10%
+  margin-bottom: 5%
 }
 
 canvas {
