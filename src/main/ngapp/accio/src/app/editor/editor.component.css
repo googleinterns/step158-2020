@@ -2,8 +2,6 @@
   position: relative;
   background-color: #28292b;
   border: 10px solid #5e6469;
-  height: 100vh;
-  width: 100%;
 }
 
 mat-drawer-content{
@@ -11,11 +9,13 @@ mat-drawer-content{
 }
 
 #stage {
-  top: 10%;
+  margin-top: 10%;
   position: relative;
   border: 2px solid black;
   margin-left: auto;
-  margin-right:auto;
+  margin-right: auto;
+  overflow: visible;
+  margin-bottom: 10%
 }
 
 canvas {
@@ -36,7 +36,6 @@ canvas {
 }
 
 #toolbar {
-  padding-top: 100px;
   text-align: center;
   background-color: #3f4143;
   border-right: 10px solid #5e6469;

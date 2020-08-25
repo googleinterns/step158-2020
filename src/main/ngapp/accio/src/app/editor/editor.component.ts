@@ -257,19 +257,6 @@ export class EditorComponent implements OnInit {
     this.imageCtx.restore();
   }
 
-/////// TODO I don't think this is needed
-  // removeFromMask(maskAction: MaskAction) {
-  //   this.disableSubmit = this.disableFloodFill = true;
-  //   for (let pixel of maskAction.getChangedPixels()) {
-  //     this.maskImageData.data[pixel] = 0;
-  //     this.maskImageData.data[pixel + 2] = 0;
-  //     this.maskImageData.data[pixel + 3] = 0;
-  //   }
-  //   this.maskControllerService.do(maskAction);
-  //   this.drawMask();
-  //   this.disableSubmit = this.disableFloodFill = false;
-  // }
-
 /**  
   *  Makes a png of mask so the the background is transparent.
   *  Clears canvas, draws the original image and draws the mask.
@@ -356,7 +343,7 @@ export class EditorComponent implements OnInit {
   *    of gallery images. If the user clicked on a specific mask, returns the next mask.
   *  @param previous signifies whether the user has selected the previous image button.
   */
-  newImage(previous: boolean) {
+  switchImage(previous: boolean) {
     // If user clicks on an image's mask, then newImage will loop through all the image's masks.
     if (this.maskIndex == 0 || this.maskIndex) {
       let maskObject = this.imageArray[this.index]['masks'];
@@ -420,7 +407,7 @@ export class EditorComponent implements OnInit {
       new MaskAction(
         Action.INVERT,
         Tool.INVERT,
-        new Set([...Array(this.originalImageData.data.length /*/ 4*/).keys()])
+        new Set([...Array(this.originalImageData.data.length).keys()])
       )
     );
     this.setMaskTo(this.maskControllerService.getMask());
@@ -474,7 +461,6 @@ export class EditorComponent implements OnInit {
       this.maskImageData.data[pixel + 1] = 0;
       this.maskImageData.data[pixel + 2] = 255;
       this.maskImageData.data[pixel + 3] = 255;
-      //TODO SHOULD THIS BE ALPHA
     }
   }
 
