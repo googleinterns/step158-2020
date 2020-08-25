@@ -60,6 +60,7 @@ export class ImgGalleryComponent implements OnInit {
     private route: ActivatedRoute,
     private postBlobsService: PostBlobsService,
     public dialog: MatDialog,
+    public deleteDialog: MatDialog,
     private fetchImagesService: FetchImagesService
   ) { }
 
@@ -175,6 +176,19 @@ export class ImgGalleryComponent implements OnInit {
       console.log('Fetching updated images...');
       this.loadGalleryImages();
       console.log('Fetched updated images...');
+    });
+  }
+
+  deleteButton(imageName: string, parentImageName: string): void {
+    const dialogRef = this.deleteDialog.open(DeleteImageDialog, {
+      width: '600px',
+      data: {projectId: this.projectId,
+          imageName: imageName,
+          parentImageName: parentImageName}
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadGalleryImages();
     });
   }
 
@@ -352,7 +366,6 @@ export interface UpdateImageData {
 export class UpdateImageDialog {
   updateImageForm: FormGroup;
   formData: FormData;
-  doDelete:boolean = false;
 
   constructor(
       private postBlobsService: PostBlobsService,
@@ -362,8 +375,7 @@ export class UpdateImageDialog {
   ngOnInit(): void {
     this.updateImageForm = new FormGroup({
       updateImgName: new FormControl(),
-      updateTags: new FormControl(),
-      delete: new FormControl()
+      updateTags: new FormControl()
     });
     this.formData = new FormData();
   }
@@ -380,7 +392,7 @@ export class UpdateImageDialog {
       /*parentImageName=*/this.data.parentImageName, 
       /*newImageName=*/this.updateImageForm.get('updateImgName').value,
       /*tags=*/this.updateImageForm.get('updateTags').value,
-      /*delete=*/this.updateImageForm.get('delete').value
+      /*delete=*/false
       );
 
     console.log(this.updateImageForm.get('delete').value);
@@ -389,6 +401,51 @@ export class UpdateImageDialog {
 
     //  Reset form values.
     this.updateImageForm.reset;
+  }
+
+  /**Closes dialog popup without changing or saving any edited values.
+   */
+  onNoClick(): void {
+    this.dialogRef.close();
+  }
+}
+
+/**Represents the dialog popup that appears when ImageGalleryComponent's
+ * templateUrl calls the this.updateButton() function. 
+ */
+@Component({
+  selector: 'delete-image-dialog',
+  templateUrl: 'delete-image-dialog.html'
+})
+export class DeleteImageDialog {
+  formData: FormData;
+
+  constructor(
+      private postBlobsService: PostBlobsService,
+      public dialogRef: MatDialogRef<DeleteImageDialog>,
+      @Inject(MAT_DIALOG_DATA) public data: UpdateImageData) { }
+
+  ngOnInit(): void {
+    this.formData = new FormData();
+  }
+
+  /**Sends the form data to blobstore and then to /blobs servlet,
+   * where the image/mask(s) are deleted.
+   */
+  onDeleteImage(): void {
+    let imageBlob = new ImageBlob(
+      this.data.projectId, 
+      /*imageName=*/this.data.imageName,
+      /*mode=*/'update',
+      /*image=*/undefined,
+      /*parentImageName=*/'', 
+      /*newImageName=*/'',
+      /*tags=*/'',
+      /*delete=*/true
+      );
+
+    this.postBlobsService.buildForm(this.formData, imageBlob, '');
+    this.onNoClick();
   }
 
   /**Closes dialog popup without changing or saving any edited values.
