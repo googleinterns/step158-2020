@@ -4,19 +4,38 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { FetchImagesService } from '../fetch-images.service';
 import { PostBlobsService } from '../post-blobs.service';
 import { ImageBlob } from '../ImageBlob';
+import { saveAs } from 'file-saver';
+import * as JSZip from 'jszip';
 import * as $ from 'jquery';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+
+export interface StoredImage {
+  url: string,
+  name: string,
+  type: string,
+  utc: string,
+  tags: string[],
+  masks: StoredMask[],
+}
+
+export interface StoredMask {
+  url: string,
+  name: string,
+  type: string,
+  utc: string,
+  tags: string[],
+}
 
 @Component({
   selector: 'app-img-gallery',
   templateUrl: './img-gallery.component.html',
-  styleUrls: ['./img-gallery.component.css']
+  styleUrls: ['./img-gallery.component.css'],
 })
 export class ImgGalleryComponent implements OnInit {
   uploadImageForm: FormGroup;
   formData: FormData;
 
-  //  ProjectId is binded with the upload form input.
+  // ProjectId is binded with the upload form input.
   projectId: string;
 
   displayUpload: boolean;
@@ -34,8 +53,8 @@ export class ImgGalleryComponent implements OnInit {
   sortMask: string = '';
   tag: string = '';
 
-  //  Holds images fetched from datastore.
-  imageArray: Array<any>;
+  // Holds images fetched from datastore.
+  imageArray: Array<object>;
 
   constructor(
     private route: ActivatedRoute,
@@ -52,20 +71,20 @@ export class ImgGalleryComponent implements OnInit {
     this.uploadImageForm = new FormGroup({
       imgName: new FormControl(),
       image: new FormControl(),
-      tags: new FormControl()
+      tags: new FormControl(),
     });
 
-    //  Creates the form data of parameters to be sent to servlet.
+    // Creates the form data of parameters to be sent to servlet.
     this.formData = new FormData();
 
-    //  Set the project id, first try if the 
-    //     project is a new project and there are query keys.
-    this.route.queryParams.subscribe(params => {
+    // Set the project id, first try if the
+    // project is a new project and there are query keys.
+    this.route.queryParams.subscribe((params) => {
       this.projectId = params['proj-id'];
     });
-    //  If there are no keys then just get the url params.
+    // If there are no keys then just get the url params.
     if (!this.projectId) {
-      this.route.paramMap.subscribe(params => {
+      this.route.paramMap.subscribe((params) => {
         this.projectId = params.get('proj-id');
       });
     }
@@ -121,7 +140,7 @@ export class ImgGalleryComponent implements OnInit {
     if (!this.uploadImageForm.get('imgName').value) {
       return;
     }
-    
+
     //  uploadImageForm 'image' contains a file, so the value is a file array.
     //  To serve the blob we have to access the first file in the array.
     const fileArray = this.uploadImageForm.get('image').value;
@@ -129,14 +148,14 @@ export class ImgGalleryComponent implements OnInit {
     console.log(imageFile);
 
     let imageBlob = new ImageBlob(
-      this.projectId, 
-      /*imageName=*/this.uploadImageForm.get('imgName').value,
-      /*mode=*/'create',
-      /*image=*/imageFile,
-      /*parentImageName=*/'', 
-      /*newImageName=*/'',
-      /*tags=*/this.uploadImageForm.get('tags').value,
-      );
+      this.projectId,
+      /*imageName=*/ this.uploadImageForm.get('imgName').value,
+      /*mode=*/ 'create',
+      /*image=*/ imageFile,
+      /*parentImageName=*/ '',
+      /*newImageName=*/ '',
+      /*tags=*/ this.uploadImageForm.get('tags').value
+    );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);
     window.location.reload();
@@ -156,6 +175,161 @@ export class ImgGalleryComponent implements OnInit {
       console.log('Fetching updated images...');
       this.loadGalleryImages();
       console.log('Fetched updated images...');
+    });
+  }
+
+  /** 
+   * Fetch images with parameters specified by class members.
+   */
+  async fetchImages(): Promise<StoredImage[]> {
+    let fetchUrl =
+      '/blobs?' +
+      $.param({
+        'proj-id': this.projectId,
+        'img-name': this.imgName,
+        'mask-name': this.maskName,
+        'with-masks': this.withMasks,
+        'sort-img': this.sortImg,
+        'sort-mask': this.sortMask,
+        tag: this.tag,
+      });
+
+    // fetchUrl returns a list of image objects: 'url', 'name', 'type',
+    // 'utc', 'tags[]', 'masks[]'
+    const response = await fetch(fetchUrl);
+    const imageContent = await response.json();
+    return imageContent;
+  }
+
+  /** 
+   * Fetch images with parameters specified by class members and set
+   * imageArray for display.
+   */
+  async getImages(): Promise<void> {
+    console.log('fetching from projectId: ' + this.projectId);
+
+    this.imageArray = await this.fetchImages();
+
+    if (this.imageArray.length > 0) {
+      this.displayImages = true;
+    }
+  }
+
+  /**
+   * Download a single image or mask.
+   */
+  downloadImage(image: StoredImage): void {
+    saveAs(image.url, image.name + '.' + image.type);
+  }
+
+  /** 
+   * Get the Base64 representation of image for zipping.
+   */
+  getBase64String(img: HTMLImageElement): string {
+    let canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    let dataURL = canvas.toDataURL('image');
+    return dataURL.replace(
+      /^data:image\/(png|jpg|gif|pjpeg|bmp|x-icon|svg+xml|webp);base64,/,
+      ''
+    );
+  }
+
+  /**
+   * Download a zip including an image and its masks.
+   */
+  async downloadImageAndItsMasks(image: StoredImage): Promise<void> {
+    let zip = new JSZip();
+
+    let newImageObject = new Image();
+    newImageObject.crossOrigin = 'Anonymous';
+    newImageObject.src = image.url;
+    let loadImageString: Promise<string> = new Promise((resolve, reject) => {
+      newImageObject.onload = () => resolve(this.getBase64String(newImageObject));
+    });
+    zip.file(image.name + '.' + image.type, await loadImageString, {
+      base64: true,
+    });
+
+    this.imgName = image.name;
+    this.maskName = '';
+    this.withMasks = true;
+    this.sortImg = '';
+    this.sortMask = '';
+    this.tag = '';
+
+    let images: StoredImage[] = await this.fetchImages();
+    
+    for (let mask of images[0]['masks']) {
+      let newMaskObject = new Image();
+      newMaskObject.crossOrigin = 'Anonymous';
+      newMaskObject.src = mask.url;
+      let loadMaskString: Promise<string> = new Promise((resolve, reject) => {
+        newMaskObject.onload = () => resolve(this.getBase64String(newMaskObject));
+      });
+
+      zip.file('masks/' + mask.name + '.' + mask.type, await loadMaskString, {
+        base64: true,
+      });
+    }
+
+    zip.generateAsync({ type: 'blob' }).then(function (content) {
+      saveAs(content, image.name + '.zip');
+    });
+  }
+
+  /**
+   * Download a zip of all images and masks for the project.
+   */
+  async downloadProjectImages(): Promise<void> {
+    let zip = new JSZip();
+
+    this.imgName = '';
+    this.maskName = '';
+    this.withMasks = true;
+    this.sortImg = '';
+    this.sortMask = '';
+    this.tag = '';
+
+    let images: StoredImage[] = await this.fetchImages();
+
+    for (let image of images) {
+      let newImageObject = new Image();
+      newImageObject.crossOrigin = 'Anonymous';
+      newImageObject.src = image.url;
+      let loadImageString: Promise<string> = new Promise((resolve, reject) => {
+        newImageObject.onload = () => resolve(this.getBase64String(newImageObject));
+      });
+      zip.file(
+        image.name + '/' + image.name + '.' + image.type,
+        await loadImageString,
+        {
+          base64: true,
+        }
+      );
+      for (let mask of image['masks']) {
+        let newMaskObject = new Image();
+        newMaskObject.crossOrigin = 'Anonymous';
+        newMaskObject.src = mask.url;
+        let loadMaskString: Promise<string> = new Promise((resolve, reject) => {
+          newMaskObject.onload = () => resolve(this.getBase64String(newMaskObject));
+        });
+
+        zip.file(
+          image.name + '/masks/' + mask.name + '.' + mask.type,
+          await loadMaskString,
+          {
+            base64: true,
+          }
+        );
+      }
+    }
+
+    zip.generateAsync({ type: 'blob' }).then((content) => {
+      saveAs(content, this.projectId + '.zip');
     });
   }
 }
