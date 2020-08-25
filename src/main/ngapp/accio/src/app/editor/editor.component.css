@@ -27,7 +27,7 @@ canvas {
 }
 
 #mask-layer:hover {
-  cursor: pointer;
+  cursor: none;
 }
 
 #image-layer {

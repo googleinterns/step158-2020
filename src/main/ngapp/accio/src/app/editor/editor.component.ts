@@ -115,7 +115,7 @@ export class EditorComponent implements OnInit {
     this.maskAlpha = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
-    this.brushWidth = 1;
+    this.brushWidth = 5;
 
     //  Gets last image array that user sorted on img-gallery page. 
     this.fetchImagesService.currentImages.subscribe(newImages => this.imageArray = newImages);
