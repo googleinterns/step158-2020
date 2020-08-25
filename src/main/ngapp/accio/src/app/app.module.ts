@@ -63,7 +63,7 @@ import { LogoutComponent } from './logout/logout.component';
     MatCheckboxModule,
     AppRoutingModule,
   ],
-  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
+  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}, Set],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

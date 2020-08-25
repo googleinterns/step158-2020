@@ -14,6 +14,7 @@ export class ToolbarComponent implements OnInit {
   @Output() newToleranceEvent = new EventEmitter<number>();
   @Output() newMaskAlphaEvent = new EventEmitter<number>();
   @Output() newWidthEvent = new EventEmitter<number>();
+  @Output() undoRedoEvent = new EventEmitter<string>();
 
   toleranceValue: number;
   maskAlphaValue: number;
@@ -57,5 +58,9 @@ export class ToolbarComponent implements OnInit {
 
   updateWidth() {
     this.newWidthEvent.emit(this.brushWidth);
+  }
+
+  undoRedo(direction: string) {
+    this.undoRedoEvent.emit(direction);
   }
 }
