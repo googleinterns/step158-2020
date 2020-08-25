@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
 import { MagicWandService } from './magic-wand.service';
-import {_coerceVersionNumber} from "@schematics/update/migrate";
 
 
 /* tslint:disable */
