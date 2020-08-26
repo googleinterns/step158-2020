@@ -777,6 +777,7 @@ export class EditorComponent implements OnInit {
    *  Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes.
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    */
+
   maskControllerPaint() {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
@@ -786,12 +787,16 @@ export class EditorComponent implements OnInit {
         paintedMask.add(i);
       }
     }
-    this.maskControllerService.do(
-      new MaskAction(
+    let maskAction = new MaskAction(
         ((this.maskTool == MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
         ((this.maskTool == MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
-        paintedMask
-      ));
+        paintedMask)
+
+    if (maskAction.getActionType() == Action.SUBTRACT) {
+      this.maskControllerService.do(maskAction, this.allPixels);
+    } else {
+      this.maskControllerService.do(maskAction);
+    }
   }
 }
 
