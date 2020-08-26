@@ -9,11 +9,9 @@ import { Output, EventEmitter } from '@angular/core';
 export class ToolbarComponent implements OnInit {
 
   @Output() newMaskToolEvent = new EventEmitter<string>();
-  //@Output() newToleranceEvent = new EventEmitter<number>();
   @Output() newMaskAlphaEvent = new EventEmitter<number>();
   @Output() newWidthEvent = new EventEmitter<number>();
 
-  //toleranceValue: number;
   maskAlphaValue: number;
   maskTool: string;
   brushWidth: number;
@@ -21,7 +19,6 @@ export class ToolbarComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    //this.toleranceValue = 30;
     this.maskAlphaValue = 1;
     this.maskTool = "MAGIC-WAND-ADD";
     this.brushWidth = 1;
