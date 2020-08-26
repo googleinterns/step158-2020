@@ -40,7 +40,6 @@ export class EditorComponent implements OnInit {
   }
 
   // Cursor varaibles.
-  cursorTargetPos: CursorPos;
   cursorX = 0;
   cursorY = 0;
 
@@ -93,8 +92,6 @@ export class EditorComponent implements OnInit {
   @ViewChild('cursorCanvas', { static: true })
   cursorCanvas: ElementRef<HTMLCanvasElement>;
   private cursorCtx: CanvasRenderingContext2D;
-  cursorTarget;
-  maskTarget;
 
   //  Holds static user image for background.
   @ViewChild('imageCanvas', { static: true })
@@ -201,17 +198,7 @@ export class EditorComponent implements OnInit {
     // Canvas to paint cursor-overlay of brush size.
     this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
-
-    // Updates the drawn 'cursor' when the user's mouse moves.
-    this.maskTarget = document.querySelector('#mask-layer');
-    this.cursorTarget = document.querySelector('#cursor-layer');
-    this.cursorCtx = this.cursorTarget.getContext('2d');
-    this.maskTarget.addEventListener('mousemove', (e) => {
-      this.setCursorPosition(e);
-    }, false);
-    this.maskTarget.addEventListener('mouseout', () => {
-      this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
-    }, false);
+    this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
 
     // Draws image non scaled on full canvas
     this.imageCtx.drawImage(this.image, 0, 0);
@@ -224,10 +211,10 @@ export class EditorComponent implements OnInit {
   }
 
 
-  /* Handles cursor tracking and resizing. */
+  /* The following 2 functions: Handles cursor tracking and resizing. */
   
   // Draws/Redraws 'cursor' at the current position of user's mouse.
-  setCursorPosition(e) {
+  setCursorPosition(e: MouseEvent): void {
     // These are the coordinates used to paint.
     this.cursorX = e.offsetX;
     this.cursorY = e.offsetY;
@@ -241,6 +228,11 @@ export class EditorComponent implements OnInit {
     this.cursorCtx.strokeStyle = 'black';
     this.cursorCtx.stroke();
     this.cursorCtx.fill();
+  }
+
+  // Clears the 'cursor' when the mouse leaves the editing area.
+  setCursorOut(): void {
+    this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
   }
 
   /**

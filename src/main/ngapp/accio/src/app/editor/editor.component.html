@@ -43,7 +43,9 @@
         [tool]="maskTool"
         (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
-        (continuePaintEvent)="drawPixel($event)">
+        (continuePaintEvent)="drawPixel($event)"
+        (newMouseMoveEvent)="setCursorPosition($event)"
+        (newMouseOutEvent)="setCursorOut()">
       </canvas>
 
       <canvas #cursorCanvas id="cursor-layer"
