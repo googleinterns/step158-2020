@@ -1,0 +1,29 @@
+.material-icons { 
+  font-size: 48px; 
+}
+
+#single-click-buttons {
+  padding: 10px;
+}
+
+.button {
+  color: white;
+  cursor: pointer;
+  border: none;
+  height: 100%;
+  width: 50px;
+  padding: 10px;
+  left: 5%;
+}
+
+.button:hover {
+  background-color: #28292b;
+  color: #cdd1d3;
+}
+
+#single-click-buttons {
+  position: relative;
+  background-color: #3f4143;
+  border: 10px solid #5e6469;
+  border-bottom: none;
+}

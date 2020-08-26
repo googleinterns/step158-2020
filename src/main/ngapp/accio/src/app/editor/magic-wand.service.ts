@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { MaskController } from './mask-controller';
 import { SetOperator } from './set-operator';
 
 @Injectable({
@@ -128,7 +127,6 @@ export class MagicWandService {
     return (x + (y * width)) * 4;
   }
 
-
   /* -----Additional Tools----- */
 
   /**@returns {Set<number>} mask that excludes the
@@ -140,7 +138,7 @@ export class MagicWandService {
   }
 
   /**@returns {Set<number>} mask that excludes the current 
-   * @param {Set<number>} originalMask .
+   * @param {Set<number>} originalMask
    * Relative container that encompasses @originalMask is based on
    * @param {number} height and 
    * @param {number} width 

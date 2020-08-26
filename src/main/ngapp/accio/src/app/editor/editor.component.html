@@ -15,23 +15,24 @@
 </form>
 
 <!-- Editor -->
+<app-top-toolbar
+  (clearMaskEvent)="clearMask()"
+  (invertMaskEvent)="invertMask()"
+  (undoRedoEvent)="undoRedo($event)"
+  (switchImageEvent)="switchImage($event)"
+  (newToleranceEvent)="updateTolerance($event)">
+</app-top-toolbar>
+
 <mat-drawer-container id="img-editor">
   <mat-drawer id="toolbar" mode="side" opened>
     <app-toolbar 
-      (clearMaskEvent)="clearMask()"
       (newMaskToolEvent)="updateMaskTool($event)"
-      (invertMaskEvent)="invertMask()"
-      (newToleranceEvent)="updateTolerance($event)"
       (newMaskAlphaEvent)="updateMaskAlpha($event)"
       (newWidthEvent)="updateBrushWidth($event)">
     </app-toolbar>
   </mat-drawer>
 
   <mat-drawer-content>
-    <div style="text-align:center">
-      <span (click)="newImage(true)" class="material-icons" title="Previous Image">navigate_before</span>
-      <span (click)="newImage(false)" class="material-icons" title="Next Image">navigate_next</span>
-    </div>
       <!-- Retrieves new mask via output event emiter -->
     <div id="stage" [style.width.px]="stageWidth" [style.height.px]="stageHeight">
       <canvas #scaledCanvas appMask id="mask-layer"
@@ -45,7 +46,8 @@
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"
         (newMouseMoveEvent)="setCursorPosition($event)"
-        (newMouseOutEvent)="setCursorOut()">
+        (newMouseOutEvent)="setCursorOut()"
+        (newMaskControllerEvent)="newMaskController($event)">
       </canvas>
 
       <canvas #cursorCanvas id="cursor-layer"

@@ -16,30 +16,30 @@ public final class BlobServletTestUtils {
 
   // Image objects
   private static final MaskInfo Mask0 = new MaskInfo(
-      "/blob-host?blobkey=ghi", "Mask0", "2020-08-12T05:39:02.384Z",
+      "/blob-host?blobkey=ghi", "Mask0", "png", "2020-08-12T05:39:02.384Z",
       new ArrayList<String>(Arrays.asList("0", "zero")));
   private static final MaskInfo Mask1 = new MaskInfo(
-      "/blob-host?blobkey=jkl", "Mask1", "2020-08-12T05:39:02.383Z",
+      "/blob-host?blobkey=jkl", "Mask1", "png", "2020-08-12T05:39:02.383Z",
       new ArrayList<String>(Arrays.asList("1", "one")));
 
   private static final ImageInfo Image0 = new ImageInfo(
-      "/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z",
+      "/blob-host?blobkey=abc", "Image0", "png", "2020-08-12T05:39:02.383Z",
       new ArrayList<String>(Arrays.asList("0", "zero")),
       new ArrayList<MaskInfo>());
   private static final ImageInfo Image1 = new ImageInfo(
-      "/blob-host?blobkey=def", "Image1", "2020-08-12T05:39:02.384Z",
+      "/blob-host?blobkey=def", "Image1", "png", "2020-08-12T05:39:02.384Z",
       new ArrayList<String>(Arrays.asList("1", "one")),
       new ArrayList<MaskInfo>());
   private static final ImageInfo Image0WithMasks = new ImageInfo(
-      "/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z",
+      "/blob-host?blobkey=abc", "Image0", "png", "2020-08-12T05:39:02.383Z",
       new ArrayList<String>(Arrays.asList("0", "zero")),
       new ArrayList<MaskInfo>(Arrays.asList(Mask0, Mask1)));
   private static final ImageInfo Image0WithMasksSortAsc = new ImageInfo(
-      "/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z",
+      "/blob-host?blobkey=abc", "Image0", "png", "2020-08-12T05:39:02.383Z",
       new ArrayList<String>(Arrays.asList("0", "zero")),
       new ArrayList<MaskInfo>(Arrays.asList(Mask1, Mask0)));
   private static final ImageInfo Image0MaskName = new ImageInfo(
-      "/blob-host?blobkey=abc", "Image0", "2020-08-12T05:39:02.383Z",
+      "/blob-host?blobkey=abc", "Image0", "png", "2020-08-12T05:39:02.383Z",
       new ArrayList<String>(Arrays.asList("0", "zero")),
       new ArrayList<MaskInfo>(Arrays.asList(Mask0)));
 
@@ -89,12 +89,14 @@ public final class BlobServletTestUtils {
 
     Entity imgEntity = new Entity(DataUtils.IMAGE, 456, projKey);
     imgEntity.setProperty("name", "Image0");
+    imgEntity.setProperty("filetype", "png");
     imgEntity.setProperty("utc", "2020-08-12T05:39:02.383Z");
     imgEntity.setProperty("blobkey", "abc");
     imgEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
 
     Entity imgEntity2 = new Entity(DataUtils.IMAGE, 789, projKey);
     imgEntity2.setProperty("name", "Image1");
+    imgEntity2.setProperty("filetype", "png");
     imgEntity2.setProperty("utc", "2020-08-12T05:39:02.384Z");
     imgEntity2.setProperty("blobkey", "def");
     imgEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));
@@ -103,12 +105,14 @@ public final class BlobServletTestUtils {
 
     Entity maskEntity = new Entity(DataUtils.MASK, 135, imgEntity.getKey());
     maskEntity.setProperty("name", "Mask0");
+    maskEntity.setProperty("filetype", "png");
     maskEntity.setProperty("utc", "2020-08-12T05:39:02.384Z");
     maskEntity.setProperty("blobkey", "ghi");
     maskEntity.setIndexedProperty("tags", Arrays.asList("0", "zero"));
 
     Entity maskEntity2 = new Entity(DataUtils.MASK, 246, imgEntity.getKey());
     maskEntity2.setProperty("name", "Mask1");
+    maskEntity2.setProperty("filetype", "png");
     maskEntity2.setProperty("utc", "2020-08-12T05:39:02.383Z");
     maskEntity2.setProperty("blobkey", "jkl");
     maskEntity2.setIndexedProperty("tags", Arrays.asList("1", "one"));

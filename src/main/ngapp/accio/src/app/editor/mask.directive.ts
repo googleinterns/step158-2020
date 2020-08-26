@@ -3,6 +3,7 @@ import { MagicWandService } from './magic-wand.service';
 import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
 import { Coordinate } from './Coordinate';
+import * as Mask from './mask-action';
 
 @Directive({
   selector: '[appMask]',
@@ -15,11 +16,12 @@ export class MaskDirective {
   @Input() disableFloodFill: boolean;
   @Input() tool: MaskTool;
 
-  @Output() newMaskEvent = new EventEmitter<Set<number>>();
+  @Output() newMaskEvent = new EventEmitter<Mask.MaskAction>();
   @Output() newPaintEvent = new EventEmitter<Coordinate>();
   @Output() continuePaintEvent = new EventEmitter<Coordinate>();
   @Output() newMouseMoveEvent = new EventEmitter<MouseEvent>();
-  @Output() newMouseOutEvent = new EventEmitter<void>()
+  @Output() newMouseOutEvent = new EventEmitter<void>();
+  @Output() newMaskControllerEvent = new EventEmitter<Mask.MaskAction>();
 
   //  Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
@@ -94,7 +96,6 @@ export class MaskDirective {
     this.newMouseMoveEvent.emit(e);
   }
 
-     //TODO: IF USER MOVES OFF CANVAS TREAT IT AS USER RELEASED CLICK
   /** If user's cursor leaves canvas, drawing is done. */
   @HostListener('mouseout', ['$event']) 
   onMouseLeave(e: MouseEvent) {
@@ -117,10 +118,14 @@ export class MaskDirective {
   onMouseUp(e: MouseEvent) {
       this.mouseDown = false;
     //  If user has paint selected, call paint to add pixels painted to master.
-    if (this.tool == MaskTool.PAINT || this.tool == MaskTool.ERASE) {
+    if (this.tool == MaskTool.PAINT) {
       this.scribbleFill = false;
-      //  TODO: call to save pixels painted in mask once function implemented
+      this.newMaskControllerEvent.emit(new Mask.MaskAction(Mask.Action.ADD, Mask.Tool.PAINTBRUSH, this.paintPixels));
+    }
+    else if (this.tool == MaskTool.ERASE) {
+      this.scribbleFill = false;
 
+      this.newMaskControllerEvent.emit(new Mask.MaskAction(Mask.Action.SUBTRACT, Mask.Tool.ERASER, this.paintPixels));
     }
     //  If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
     else if ((this.tool == MaskTool.MAGIC_WAND_ADD
@@ -136,7 +141,11 @@ export class MaskDirective {
         this.tolerance, 
         this.paintPixels);
 
-      this.newMaskEvent.emit(maskPixels);
+      this.newMaskEvent.emit(
+        new Mask.MaskAction(
+          ((this.tool == MaskTool.MAGIC_WAND_ADD) ? Mask.Action.ADD : Mask.Action.SUBTRACT), 
+          Mask.Tool.SCRIBBLE, maskPixels)
+      );
     }
 
     else if ((this.tool == MaskTool.MAGIC_WAND_ADD
@@ -148,7 +157,11 @@ export class MaskDirective {
           this.originalImageData, this.coord[0], 
           this.coord[1], this.tolerance);
 
-      this.newMaskEvent.emit(maskPixels);
+      this.newMaskEvent.emit(
+        new Mask.MaskAction(
+          ((this.tool == MaskTool.MAGIC_WAND_ADD) ? Mask.Action.ADD : Mask.Action.SUBTRACT), 
+          Mask.Tool.MAGIC_WAND, maskPixels)
+      );
     }
   }
 
