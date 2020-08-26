@@ -2,10 +2,6 @@
   font-size: 48px; 
 }
 
-#single-click-buttons {
-  padding: 10px;
-}
-
 .button {
   color: white;
   cursor: pointer;
@@ -22,7 +18,8 @@
 }
 
 #single-click-buttons {
-  position: relative;
+  position: sticky;
+  padding: 10px;
   background-color: #3f4143;
   border: 10px solid #5e6469;
   border-bottom: none;

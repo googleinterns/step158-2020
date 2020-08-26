@@ -33,6 +33,7 @@ export interface StoredMask {
 })
 export class ImgGalleryComponent implements OnInit {
   uploadImageForm: FormGroup;
+  filterForm: FormGroup;
   formData: FormData;
 
   // ProjectId is binded with the upload form input.
@@ -41,9 +42,6 @@ export class ImgGalleryComponent implements OnInit {
   displayUpload: boolean;
   displayImages: boolean;
   displayMasks: boolean;
-  // Needed to switch whether masks are shown or not.
-  falseVal: boolean = false;
-  trueVal: boolean = true;
   
   // Filters for fetching images
   imgName: string = '';
@@ -74,7 +72,9 @@ export class ImgGalleryComponent implements OnInit {
       image: new FormControl(),
       tags: new FormControl(),
     });
-
+    this.filterForm = new FormGroup({
+      
+    })
     // Creates the form data of parameters to be sent to servlet.
     this.formData = new FormData();
 
