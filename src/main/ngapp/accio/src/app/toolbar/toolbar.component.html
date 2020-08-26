@@ -5,15 +5,19 @@
   [value]="maskTool" (change)="updateTool(group.value)">
   <mat-button-toggle mat-icon-button value="MAGIC-WAND-ADD" title="Add Mask with floodfill">
     <mat-icon>format_color_fill</mat-icon>
+    <p>Floodfill</p>
   </mat-button-toggle>
   <mat-button-toggle mat-icon-button value="MAGIC-WAND-SUB" title="Erase Mask with floodfill">
     <mat-icon>remove</mat-icon>
+    <p>Fill-erase</p>
   </mat-button-toggle>
   <mat-button-toggle mat-icon-button value="PAINT" title="Paint Bush">
     <mat-icon>brush</mat-icon>
+    <p>Brush</p>
   </mat-button-toggle>
   <mat-button-toggle mat-icon-button value="ERASE" title="Eraser">
     <mat-icon>remove_circle_outline</mat-icon>
+    <p>Eraser</p>
   </mat-button-toggle>
   <div>
     <p style="color:white">Brush Width</p>
@@ -25,6 +29,7 @@
   </div>
   <mat-button-toggle mat-icon-button value="MASK-ONLY" title="Mask Only">
     <mat-icon>image</mat-icon>
+    <p>See Mask</p>
   </mat-button-toggle>
 </mat-button-toggle-group>
 
