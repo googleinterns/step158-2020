@@ -38,13 +38,17 @@ export class ImgGalleryComponent implements OnInit {
   // ProjectId is binded with the upload form input.
   projectId: string;
 
-  displayUpload: boolean = false;
-  displayImages: boolean = false;
-
+  displayUpload: boolean;
+  displayImages: boolean;
+  displayMasks: boolean;
+  // Needed to switch whether masks are shown or not.
+  falseVal: boolean = false;
+  trueVal: boolean = true;
+  
   // Filters for fetching images
   imgName: string = '';
   maskName: string = '';
-  withMasks: boolean = false;
+  withMasks: boolean = true;
   sortImg: string = '';
   sortMask: string = '';
   tag: string = '';
@@ -60,6 +64,10 @@ export class ImgGalleryComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.displayUpload = false;
+    this.displayImages = false;
+    this.displayMasks = false;
+
     this.uploadImageForm = new FormGroup({
       imgName: new FormControl(),
       image: new FormControl(),
@@ -87,6 +95,18 @@ export class ImgGalleryComponent implements OnInit {
     this.loadGalleryImages();
   }
 
+  /** @returns true if the image's mask's array has masks. */
+  hasMask(image: Object): boolean {
+    return (image['masks'].length > 0) ? true : false;
+  }
+
+  getFirstMask(mask: Object):string {
+    if (mask[0]) {
+      return (mask[0]['url']);
+    }
+    return '';
+  }
+
   /** Calls the fetchImageService to get all images under parameters */
   loadGalleryImages() {
     console.log('fetching from projectId: ' + this.projectId);
@@ -102,6 +122,8 @@ export class ImgGalleryComponent implements OnInit {
     
     this.fetchImagesService.changeImages(fetchUrl).then(() => {
       this.fetchImagesService.currentImages.subscribe(images => this.imageArray = images);
+      //  Signifies to editor whether it needs to reload it's image array from 
+      console.log(this.imageArray);
       if (this.imageArray.length > 0) {
         this.displayImages = true;
       }

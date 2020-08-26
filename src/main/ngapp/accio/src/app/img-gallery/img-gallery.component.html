@@ -7,9 +7,9 @@
   method="POST"
   enctype="multipart/form-data"
 >
-  <div style="width: 10%;">Upload an Image</div>
 
   <mat-form-field appearance="fill" class="user-input">
+    <h1 style="width: 10%;">Upload an Image</h1>
     <mat-label>Image Name</mat-label>
     <input required matInput formControlName="imgName" placeholder="Untitled" />
   </mat-form-field>
@@ -59,119 +59,107 @@
 
   <mat-form-field appearance="fill">
     <mat-label>Show masks for Image: {{ imgName }}</mat-label>
-    <mat-select [(ngModel)]="withMasks">
-      <mat-option value="false">Don't show masks</mat-option>
-      <mat-option value="true">Show masks for: {{ imgName }}</mat-option>
+    <mat-select [(ngModel)]="displayMasks">
+      <mat-option [value]="falseVal">Don't show masks</mat-option>
+      <mat-option [value]="trueVal">Show masks for: {{ imgName }}</mat-option>
     </mat-select>
     <mat-hint align="end">Default: no masks</mat-hint>
   </mat-form-field>
 
   <button mat-raised-button (click)="loadGalleryImages()">Update filter(s)</button>
-</div>
-<!--Filter Bar-->
 
-<!--Project Download Bar-->
-<div id="project-download-bar">
-  <div id="project-download">
-    <button
-      mat-icon-button
-      [matMenuTriggerFor]="menu1"
-      aria-label="Project download menu"
-    >
-      <mat-icon>more_vert</mat-icon>
-    </button>
-    <mat-menu #menu1="matMenu">
-      <button mat-menu-item (click)="downloadProjectImages()">
-        <mat-icon>folder</mat-icon>
-        <span>Download project files</span>
-      </button>
-    </mat-menu>
-  </div>
-</div>
-<!--Project Download Bar-->
 
-<!--Fetched Images-->
-<div class="gallery">
-  <div *ngFor="let image of imageArray" class="gallery-item">
-    <div>
-      <a [routerLink]="['/editor', projectId, image['name'], image['url']]">
-        <img class="gallery-img" [src]="image['url']" />
-      </a>
-    </div>
-    <div class="gallery-item-name">
-      <a [routerLink]="['/editor', projectId, image['name'], image['url']]">
-        <p>{{ image["name"] }}</p>
-      </a>
-    </div>
-    <div class="download">
+  <!--Project Download Bar-->
+  <div id="project-download-bar">
+    <div id="project-download">
       <button
         mat-icon-button
-        [matMenuTriggerFor]="menu2"
-        aria-label="Image download menu"
+        [matMenuTriggerFor]="menu1"
+        aria-label="Project download menu"
       >
         <mat-icon>more_vert</mat-icon>
       </button>
-      <mat-menu #menu2="matMenu">
-        <button mat-menu-item (click)="downloadImage(image)">
-          <mat-icon>image</mat-icon>
-          <span>Download image</span>
-        </button>
-        <button mat-menu-item (click)="downloadImageAndItsMasks(image)">
-          <mat-icon>photo_library</mat-icon>
-          <span>Download image and masks</span>
+      <mat-menu #menu1="matMenu">
+        <button mat-menu-item (click)="downloadProjectImages()">
+          <mat-icon>folder</mat-icon>
+          <span>Download project files</span>
         </button>
       </mat-menu>
+    </div>
+  </div>
+  <!--Project Download Bar-->
+</div>
+<!--Filter Bar-->
+
+
+<!--Fetched Images-->
+<div class="gallery" *ngIf="displayImages">
+  <div *ngFor="let image of imageArray; index as i" class="gallery-item">
+    <div>
+      <div title="Existing Mask" id="mask-tab" [hidden]="!hasMask(image)"><p>MASK</p></div> 
+      <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMask(image['masks']), i]">
+        <img class="gallery-img" [src]="image['url']" />
+      </a>
+    </div>
+    <div class="tab">
+      <div class="gallery-item-name">
+        <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMask(image['masks']), i]">
+          <p>{{ image["name"] }}</p>
+        </a>
+      </div>
+      <div class="download">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="menu2"
+          aria-label="Image download menu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu2="matMenu">
+          <button mat-menu-item (click)="downloadImage(image)">
+            <mat-icon>image</mat-icon>
+            <span>Download image</span>
+          </button>
+          <button mat-menu-item (click)="downloadImageAndItsMasks(image)">
+            <mat-icon>photo_library</mat-icon>
+            <span>Download image and masks</span>
+          </button>
+        </mat-menu>
+      </div>
     </div>
   </div>
 </div>
 <!--Fetched Images-->
 
 <!--Fetched Masks-->
-<div class="gallery">
-  <ng-container *ngFor="let image of imageArray">
-    <div *ngFor="let mask of image['masks']" class="gallery-item">
+<div class="gallery" *ngIf="displayMasks">
+  <ng-container *ngFor="let image of imageArray; index as j">
+    <div *ngFor="let mask of image['masks']; index as k"  class="gallery-item">
       <div>
-        <a
-          [routerLink]="[
-            '/editor',
-            projectId,
-            mask['name'],
-            mask['url'],
-            image['name'],
-            image['url']
-          ]"
-        >
+        <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['url'], j, k]">
           <img class="gallery-img" [src]="mask['url']" />
         </a>
       </div>
-      <div class="gallery-item-name">
-        <a
-          [routerLink]="[
-            '/editor',
-            projectId,
-            mask['name'],
-            mask['url'],
-            image['name'],
-            image['url']
-          ]"
-        >
-          <p>{{ mask["name"] }}</p>
-        </a>
-      </div>
-      <div class="download">
-        <button
-          mat-icon-button
-          [matMenuTriggerFor]="menu3"
-          aria-label="Mask download menu"
-        >
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #menu3="matMenu">
-          <button mat-menu-item (click)="downloadImage(mask)">
-            <mat-icon>image</mat-icon>
-            <span>Download mask</span>
+      <div class="tab">
+        <div class="gallery-item-name">
+          <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['url'], j, k]">
+            <p>{{ mask["name"] }}</p>
+          </a>
+        </div>
+        <div class="download">
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="menu3"
+            aria-label="Mask download menu"
+          >
+            <mat-icon>more_vert</mat-icon>
           </button>
-        </mat-menu>
+          <mat-menu #menu3="matMenu">
+            <button mat-menu-item (click)="downloadImage(mask)">
+              <mat-icon>image</mat-icon>
+              <span>Download mask</span>
+            </button>
+          </mat-menu>
+        </div>
       </div>
     </div>
   </ng-container>

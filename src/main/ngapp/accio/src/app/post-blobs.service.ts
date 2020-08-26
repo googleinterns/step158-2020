@@ -28,13 +28,20 @@ export class PostBlobsService {
    * Fetches the blobUploadURL to post image data to datastore
    */
   private onUpload(formData: FormData) {
-
     this.http.post<any>(this.actionUrl, formData).subscribe(
       (res) => console.log('SUCCESS: Image uploaded to server. ' + res),
       (err) => console.log('err ' + err)
     );
     console.log('SUCCESS: Image uploaded to server.');
-    window.alert('Image was saved!');
+    if (formData.get('delete') == 'true') {
+      window.alert('Image was deleted!');
+    }
+    else if (formData.get('mode') == 'update') {
+      window.alert('Image was updated!');
+    }
+    else {
+      window.alert('Image was saved!');
+    }
   }
 
   /** 
