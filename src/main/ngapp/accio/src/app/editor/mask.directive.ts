@@ -128,7 +128,6 @@ export class MaskDirective {
         && this.scribbleFill) {
 
       this.scribbleFill = false;
-      //  TODO: uncomment once scribble flood fill implemented
       const maskPixels = this.magicWandService.scribbleFloodfill(
         this.originalImageData,
         this.coord[0], 

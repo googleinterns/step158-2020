@@ -456,7 +456,7 @@ export class EditorComponent implements OnInit {
   }
 
   /**
-   *  Gets current mask's url and sets the mask as a Blob to be uploaded to server. TODO HERE UPDATE URL
+   *  Gets current mask's url and sets the mask as a Blob to be uploaded to server.
    */
   async getMaskBlob(): Promise<void> {
     this.blobMask = await fetch(this.getMaskUrl()).then((response) =>
@@ -780,12 +780,10 @@ export class EditorComponent implements OnInit {
   maskControllerPaint() {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
-    console.log('painted image data length: ' + paintedImageData.length)
     for (let i = 0; i < paintedImageData.length; i += 4) {
       // If the alpha value has value
       if (paintedImageData[i + 3] == 255) {
         paintedMask.add(i);
-        console.log(i)
       }
     }
     this.maskControllerService.do(
