@@ -45,11 +45,19 @@
         (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"
+        (newMouseMoveEvent)="setCursorPosition($event)"
+        (newMouseOutEvent)="setCursorOut()"
         (newMaskControllerEvent)="newMaskController($event)">
       </canvas>
+
+      <canvas #cursorCanvas id="cursor-layer"
+        width="100px" height="100px">
+      </canvas>
+
       <canvas #imageCanvas id="image-layer"
         width="100px" height="100px">
       </canvas>
+      
       <canvas #maskCanvas style="display:none">
       </canvas>
     </div>

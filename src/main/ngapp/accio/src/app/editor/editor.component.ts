@@ -42,6 +42,10 @@ export class EditorComponent implements OnInit {
     });
   }
 
+  // Cursor varaibles.
+  cursorX = 0;
+  cursorY = 0;
+
   // Display variables.
   private image: HTMLImageElement;
   private maskImageData: ImageData;
@@ -94,6 +98,11 @@ export class EditorComponent implements OnInit {
   scaledCanvas: ElementRef<HTMLCanvasElement>; 
   private scaledCtx: CanvasRenderingContext2D;
 
+  // Overlays custom "cursor" that changes based on brush size.
+  @ViewChild('cursorCanvas', { static: true })
+  cursorCanvas: ElementRef<HTMLCanvasElement>;
+  private cursorCtx: CanvasRenderingContext2D;
+
   //  Holds static user image for background.
   @ViewChild('imageCanvas', { static: true })
   imageCanvas: ElementRef<HTMLCanvasElement>; 
@@ -112,7 +121,7 @@ export class EditorComponent implements OnInit {
     this.maskAlpha = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
-    this.brushWidth = 1;
+    this.brushWidth = 5;
 
     //  Gets last image array that user sorted on img-gallery page. Saves to session storage to keep through refresh.
     //  If gallery reloaded a new Image array, newArray is set to true to signify the need to re-fetch array.
@@ -198,23 +207,28 @@ export class EditorComponent implements OnInit {
       this.scaleFactor =  .01;
     }
 
-    //  Canvas to draw mask, hidden.
+    // Canvas to draw mask, hidden.
     this.maskCanvas.nativeElement.width = imgWidth;
     this.maskCanvas.nativeElement.height = imgHeight;
     this.maskCtx = this.maskCanvas.nativeElement.getContext('2d');
     this.maskCtx.lineCap = this.maskCtx.lineJoin = 'round';
     this.maskCtx.strokeStyle = this.MAGENTA;
 
-    //  Canvas to show mask scaled.
+    // Canvas to show mask scaled.
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.scaledCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.scaledCtx = this.scaledCanvas.nativeElement.getContext('2d');
 
-    //  Canvas to show Image (never changes unless user only wants to see Mask)
+    // Canvas to show Image (never changes unless user only wants to see Mask)
     this.imageCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.imageCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.imageCtx = this.imageCanvas.nativeElement.getContext('2d');
-    
+
+    // Canvas to paint cursor-overlay of brush size.
+    this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
+    this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
+    this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
+
     this.stageWidth = imgWidth * this.scaleFactor;
     this.stageHeight = imgHeight * this.scaleFactor;
 
@@ -239,7 +253,32 @@ export class EditorComponent implements OnInit {
       maskImage.src = this.maskUrl;
     }
   }
+
+
+  /* The following 2 functions: Handles cursor tracking and resizing. */
   
+  // Draws/Redraws 'cursor' at the current position of user's mouse.
+  setCursorPosition(e: MouseEvent): void {
+    // These are the coordinates used to paint.
+    this.cursorX = e.offsetX;
+    this.cursorY = e.offsetY;
+
+    this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
+
+    this.cursorCtx.beginPath();
+    this.cursorCtx.arc(this.cursorX, this.cursorY,
+        this.brushWidth * this.scaleFactor * .5, 0, 2 * Math.PI, true);
+    this.cursorCtx.fillStyle = 'rgba(255, 0, 0, .5)';
+    this.cursorCtx.strokeStyle = 'black';
+    this.cursorCtx.stroke();
+    this.cursorCtx.fill();
+  }
+
+  // Clears the 'cursor' when the mouse leaves the editing area.
+  setCursorOut(): void {
+    this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
+  }
+
  /**
   * Clears full canvas.
   */
@@ -591,4 +630,11 @@ export class EditorComponent implements OnInit {
   newMaskController(maskAction: MaskAction) {
     this.maskControllerService.do(maskAction);
   }
+}
+
+// Required for typescript compiler; used for typing with cursorCanvas.
+// Represents a cursor position (coordinate w/ x, y properties).
+interface CursorPos {
+  x: number,
+  y: number
 }

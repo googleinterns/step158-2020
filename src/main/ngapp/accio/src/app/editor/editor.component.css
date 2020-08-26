@@ -27,12 +27,17 @@ canvas {
 }
 
 #mask-layer:hover {
-  cursor: pointer;
+  cursor: none;
 }
 
 #image-layer {
   z-index: 1;
   background-color:white;
+}
+
+#cursor-layer {
+  z-index: 3;
+  pointer-events: none;
 }
 
 #toolbar {
