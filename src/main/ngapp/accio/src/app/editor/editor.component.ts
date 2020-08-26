@@ -192,13 +192,13 @@ export class EditorComponent implements OnInit {
     this.imageCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.imageCtx = this.imageCanvas.nativeElement.getContext('2d');
 
-    this.stageWidth = imgWidth * this.scaleFactor;
-    this.stageHeight = imgHeight * this.scaleFactor;
-
     // Canvas to paint cursor-overlay of brush size.
     this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
+
+    this.stageWidth = imgWidth * this.scaleFactor;
+    this.stageHeight = imgHeight * this.scaleFactor;
 
     // Draws image non scaled on full canvas
     this.imageCtx.drawImage(this.image, 0, 0);
