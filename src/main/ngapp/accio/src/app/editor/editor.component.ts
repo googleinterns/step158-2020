@@ -56,8 +56,6 @@ export class EditorComponent implements OnInit {
   displayMaskForm: boolean = false;
   disableSubmit: boolean = false;
 
-  private allPixels: Set<number>;
-
   stageWidth: number;
   stageHeight: number;
   brushWidth: number;
@@ -258,14 +256,6 @@ export class EditorComponent implements OnInit {
     );
     this.maskCtx.clearRect(0, 0, imgWidth, imgHeight);
 
-    this.allPixels = new Set([
-      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
-        function (x) {
-          return x * 4;
-        }
-      ),
-    ]);
-
     // Canvas to paint cursor-overlay of brush size.
     this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
@@ -346,6 +336,16 @@ export class EditorComponent implements OnInit {
     requestAnimationFrame(() => {
       this.updateCursor;
     });
+  }
+
+  private allPixels(): Set<number> {
+    return new Set([
+      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
+        function (x) {
+          return x * 4;
+        }
+      ),
+    ]);
   }
 
   /**
@@ -547,7 +547,7 @@ export class EditorComponent implements OnInit {
   invertMask() {
     this.disableSubmit = this.disableFloodFill = true;
     this.maskControllerService.do(
-      new MaskAction(Action.INVERT, Tool.INVERT, this.allPixels)
+      new MaskAction(Action.INVERT, Tool.INVERT, this.allPixels())
     );
     this.setMaskTo(this.maskControllerService.getMask());
     this.drawMask();
@@ -697,7 +697,7 @@ export class EditorComponent implements OnInit {
       this.maskImageData.data[pixel + 3] = alphaValue;
     }
     if (maskAction.getActionType() == Action.SUBTRACT) {
-      this.maskControllerService.do(maskAction, this.allPixels);
+      this.maskControllerService.do(maskAction, this.allPixels());
     } else {
       this.maskControllerService.do(maskAction);
     }
@@ -756,7 +756,7 @@ export class EditorComponent implements OnInit {
    */
   newMaskController(maskAction: MaskAction) {
     if (maskAction.getActionType() == Action.SUBTRACT) {
-      this.maskControllerService.do(maskAction, this.allPixels);
+      this.maskControllerService.do(maskAction, this.allPixels());
     } else {
       this.maskControllerService.do(maskAction);
     }
