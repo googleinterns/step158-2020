@@ -201,7 +201,7 @@ export class EditorComponent implements OnInit {
     // Canvas to paint cursor-overlay of brush size.
     this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
-    // this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
+
     // Updates the drawn 'cursor' when the user's mouse moves.
     this.maskTarget = document.querySelector('#mask-layer');
     this.cursorTarget = document.querySelector('#cursor-layer');
@@ -212,7 +212,6 @@ export class EditorComponent implements OnInit {
     this.maskTarget.addEventListener('mouseout', () => {
       this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
     }, false);
-    this.updateCursor();
 
     // Draws image non scaled on full canvas
     this.imageCtx.drawImage(this.image, 0, 0);
@@ -227,7 +226,6 @@ export class EditorComponent implements OnInit {
 
   /* Handles cursor tracking and resizing. */
   
-  // The following two functions: 
   // Draws/Redraws 'cursor' at the current position of user's mouse.
   setCursorPosition(e) {
     // These are the coordinates used to paint.
@@ -238,22 +236,11 @@ export class EditorComponent implements OnInit {
 
     this.cursorCtx.beginPath();
     this.cursorCtx.arc(this.cursorX, this.cursorY,
-        this.brushWidth * 1.5, 0, 2 * Math.PI, true);
-    this.cursorCtx.fillStyle = "rgba(255, 0, 0, .5)";
+        this.brushWidth * this.scaleFactor * .5, 0, 2 * Math.PI, true);
+    this.cursorCtx.fillStyle = 'rgba(255, 0, 0, .5)';
+    this.cursorCtx.strokeStyle = 'black';
+    this.cursorCtx.stroke();
     this.cursorCtx.fill();
-  }
-
-  updateCursor() {
-    this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
-  
-    this.cursorCtx.beginPath();
-    this.cursorCtx.arc(this.cursorX, this.cursorY,
-        this.brushWidth, 0, 2 * Math.PI, true);
-    // this.cursorCtx.stroke();
-    this.cursorCtx.fillStyle = "rgba(255, 0, 0, .5)";
-    this.cursorCtx.fill();
-    // This callback matches the frame rate of the browser.
-    requestAnimationFrame(() => {this.updateCursor;});
   }
 
   /**
