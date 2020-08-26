@@ -95,6 +95,8 @@ export class MaskControllerService {
         );
         break;
       case Action.SUBTRACT:
+        console.log(allPixels.size);
+        console.log(action.getChangedPixels().size)
         action = new MaskAction(
           Action.SUBTRACT,
           action.getToolName(),

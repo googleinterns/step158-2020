@@ -720,7 +720,11 @@ export class EditorComponent implements OnInit {
    *  catches emitted MaskAction from mask.directive and calls the undo/redo 'do' function.
    */
   newMaskController(maskAction: MaskAction) {
-    this.maskControllerService.do(maskAction);
+    if (maskAction.getActionType() == Action.SUBTRACT) {
+      this.maskControllerService.do(maskAction, this.allPixels);
+    } else {
+      this.maskControllerService.do(maskAction);
+    }
   }
 }
 
