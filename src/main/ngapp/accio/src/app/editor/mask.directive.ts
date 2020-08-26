@@ -15,6 +15,7 @@ export class MaskDirective {
   @Input() tolerance: number;
   @Input() disableFloodFill: boolean;
   @Input() tool: MaskTool;
+  @Input()
 
   @Output() newMaskEvent = new EventEmitter<Mask.MaskAction>();
   @Output() newPaintEvent = new EventEmitter<Coordinate>();
@@ -61,7 +62,12 @@ export class MaskDirective {
 
       console.log('drawing pixel mousedown');
       // Fire event to draw pixel
-      this.newPaintEvent.emit(pixel); 
+      this.newPaintEvent.emit(pixel);
+      //Draw single pixel on mouse down
+      if (this.tool == MaskTool.PAINT
+        || this.tool == MaskTool.ERASE) {
+        this.continuePaintEvent.emit(pixel);
+      }
     }
   }
 
@@ -89,8 +95,6 @@ export class MaskDirective {
       this.paintPixels.add(this.magicWandService.coordToDataArrayIndex(
           coord[0], coord[1], this.originalImageData.width));
       //  Fire event to draw pixel
-      console.log("adding" + this.magicWandService.coordToDataArrayIndex(
-          coord[0], coord[1], this.originalImageData.width));
       this.continuePaintEvent.emit(pixel);
     }
   }
