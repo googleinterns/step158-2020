@@ -22,6 +22,9 @@ export class MaskDirective {
   @Output() continuePaintEvent = new EventEmitter<Coordinate>();
   @Output() newPaintMaskEvent = new EventEmitter<void>();
 
+  @Output() newMouseMoveEvent = new EventEmitter<MouseEvent>();
+  @Output() newMouseOutEvent = new EventEmitter<void>()
+
   //  Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
   mouseDown: boolean = false;
@@ -97,6 +100,7 @@ export class MaskDirective {
       //  Fire event to draw pixel
       this.continuePaintEvent.emit(pixel);
     }
+    this.newMouseMoveEvent.emit(e);
   }
 
   /** If user's cursor leaves canvas, drawing is done. */
@@ -105,6 +109,7 @@ export class MaskDirective {
     if (this.mouseDown) {
       this.onMouseUp(e);
     }
+    this.newMouseOutEvent.emit();
   }
 
  /** 
