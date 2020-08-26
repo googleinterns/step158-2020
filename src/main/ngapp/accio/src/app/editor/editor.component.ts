@@ -119,6 +119,10 @@ export class EditorComponent implements OnInit {
   maskCanvas: ElementRef<HTMLCanvasElement>;
   private maskCtx: CanvasRenderingContext2D;
 
+  @ViewChild('paintCanvas', { static: true })
+  paintCanvas: ElementRef<HTMLCanvasElement>;
+  private paintCtx: CanvasRenderingContext2D;
+
   ngOnInit() {
     this.image = new Image();
     this.scaleFactor = 0.9;
@@ -232,6 +236,12 @@ export class EditorComponent implements OnInit {
     this.maskCtx = this.maskCanvas.nativeElement.getContext('2d');
     this.maskCtx.lineCap = this.maskCtx.lineJoin = 'round';
     this.maskCtx.strokeStyle = this.MAGENTA;
+
+    this.paintCanvas.nativeElement.width = imgWidth;
+    this.paintCanvas.nativeElement.height = imgHeight;
+    this.paintCtx = this.paintCanvas.nativeElement.getContext('2d');
+    this.paintCtx.lineCap = this.paintCtx.lineJoin = 'round';
+    this.paintCtx.strokeStyle = this.MAGENTA;
 
     // Canvas to show mask scaled.
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
@@ -709,17 +719,22 @@ export class EditorComponent implements OnInit {
    *  Sets the start pixel where the users initially clicks the canvas to draw.
    *  @param pixel is the (x,y) coordinate the user first clicks on.
    *  The global composition changes depending on whether the user is painting or erasing.
-   *  DESTINATION_OUT for erase, SOURCE_OVER for draw
+   *  DESTINATION_OUT for erase, SOURCE_OVER for draw.
+   *  Also initializes the paint canvas to paint ONLY the new mask being added for maskController.
+   *  We need to capture the pixels erased or painted, paint ctx paints in color, 
+   *      MaskAction will determine if they're painted or erased with TOOL parameter.
    */
   startDraw(pixel: Coordinate) {
     this.startPixel = pixel;
     this.maskCtx.clearRect(0, 0, this.image.width, this.image.height);
+    this.paintCtx.clearRect(0, 0, this.image.width, this.image.height);
     this.maskCtx.putImageData(this.maskImageData, 0, 0);
     this.maskCtx.globalCompositeOperation =
       this.maskTool == MaskTool.PAINT ||
       this.maskTool == MaskTool.MAGIC_WAND_ADD
         ? this.SOURCE_OVER
         : this.DESTINATION_OUT;
+    this.paintCtx.globalCompositeOperation = this.SOURCE_OVER;
   }
 
   /**
@@ -730,8 +745,9 @@ export class EditorComponent implements OnInit {
    */
   drawPixel(pixel: Coordinate) {
     this.maskCtx.beginPath();
+    this.paintCtx.beginPath();
 
-    this.maskCtx.lineWidth =
+    this.maskCtx.lineWidth = this.paintCtx.lineWidth =
       this.maskTool == MaskTool.MAGIC_WAND_ADD ||
       this.maskTool == MaskTool.MAGIC_WAND_SUB
         ? 1
@@ -740,6 +756,10 @@ export class EditorComponent implements OnInit {
     this.maskCtx.moveTo(this.startPixel.x, this.startPixel.y);
     this.maskCtx.lineTo(pixel.x, pixel.y);
     this.maskCtx.stroke();
+
+    this.paintCtx.moveTo(this.startPixel.x, this.startPixel.y);
+    this.paintCtx.lineTo(pixel.x, pixel.y);
+    this.paintCtx.stroke();
 
     this.startPixel = pixel;
     this.maskImageData = this.maskCtx.getImageData(
@@ -752,10 +772,28 @@ export class EditorComponent implements OnInit {
   }
 
   /**
-   *  catches emitted MaskAction from mask.directive and calls the undo/redo 'do' function.
+   *  Catches emitted event from mask.directive once users mouse lifts up.
+   *  Finds all pixels painted on paint canvas and adds to set to pass into maskCOntroller.
+   *  Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes.
+   *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    */
-  newMaskController(maskAction: MaskAction) {
-    this.maskControllerService.do(maskAction);
+  maskControllerPaint() {
+    let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
+    let paintedMask = new Set<number>();
+    console.log('painted image data length: ' + paintedImageData.length)
+    for (let i = 0; i < paintedImageData.length; i += 4) {
+      // If the alpha value has value
+      if (paintedImageData[i + 3] == 255) {
+        paintedMask.add(i);
+        console.log(i)
+      }
+    }
+    this.maskControllerService.do(
+      new MaskAction(
+        ((this.maskTool == MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
+        ((this.maskTool == MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
+        paintedMask
+      ));
   }
 }
 
