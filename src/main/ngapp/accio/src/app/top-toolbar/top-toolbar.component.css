@@ -26,4 +26,7 @@
   background-color: #3f4143;
   border: 10px solid #5e6469;
   border-bottom: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

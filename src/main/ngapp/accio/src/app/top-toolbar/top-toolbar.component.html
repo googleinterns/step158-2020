@@ -1,7 +1,13 @@
 <!-- Single use buttons -->
 <div id="single-click-buttons">
-  <mat-icon class="button" title="Previous Image" (click)="switchImage(true)">navigate_before</mat-icon>
-  <mat-icon class="button" title="Next Image" (click)="switchImage(false)">navigate_next</mat-icon>
+  <div>
+    <mat-icon class="button" title="Previous Image" (click)="switchImage(true)">navigate_before</mat-icon>
+    <p>Previous Image</p>
+  </div>
+  <div>
+    <mat-icon class="button" title="Next Image" (click)="switchImage(false)">navigate_next</mat-icon>
+    <p>Next Image</p>
+  </div>
   <mat-icon class="button" title="Invert Mask" (click)="invertMask()">invert_colors</mat-icon>
   <mat-icon class="button" title="Undo" (click)="undoRedo('undo')">undo</mat-icon>
   <mat-icon class="button" title="Redo" (click)="undoRedo('redo')">redo</mat-icon>
