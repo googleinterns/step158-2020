@@ -37,7 +37,11 @@ export class TopToolbarComponent implements OnInit {
   }
 
   switchImage(previous: boolean) {
-    this.switchImageEvent.emit(previous);
+    const confirmSave = confirm(
+        'Are you sure you want to switch images? Make sure to save your current mask!');
+    if (confirmSave) {
+      this.switchImageEvent.emit(previous);
+    }
   }
 
   /** Emits value of user inputed/slider tolerance. */
