@@ -1,4 +1,4 @@
-import { MaskAction } from './mask-action';
+import { MaskAction, Action } from './mask-action';
 import { SetOperator } from './set-operator';
 import { Injectable } from '@angular/core';
 
@@ -82,9 +82,27 @@ export class MaskControllerService {
    * @param     {MaskAction}    action
    * @return    {Status}
    */
-  public do(action: MaskAction): MaskAction {
+  public do(action: MaskAction, allPixels?: Set<number>): MaskAction {
     if (this.pPresent < this.history.length - 1) {
       this.history.splice(this.pPresent + 1);
+    }
+    switch (action.getActionType()) {
+      case Action.ADD:
+        action = new MaskAction(
+          Action.ADD,
+          action.getToolName(),
+          SetOperator.difference(action.getChangedPixels(), this.mask)
+        );
+        break;
+      case Action.SUBTRACT:
+        action = new MaskAction(
+          Action.SUBTRACT,
+          action.getToolName(),
+          SetOperator.difference(
+            action.getChangedPixels(),
+            SetOperator.symmetricDifference(this.mask, allPixels)
+          )
+        );
     }
     this.history.push(action);
     return this.move(Move.FORWARD_ONE);
