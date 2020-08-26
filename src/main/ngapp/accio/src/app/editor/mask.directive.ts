@@ -15,7 +15,6 @@ export class MaskDirective {
   @Input() tolerance: number;
   @Input() disableFloodFill: boolean;
   @Input() tool: MaskTool;
-  @Input()
 
   @Output() newMaskEvent = new EventEmitter<Mask.MaskAction>();
   @Output() newPaintEvent = new EventEmitter<Coordinate>();

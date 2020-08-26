@@ -395,8 +395,6 @@ export class UpdateImageDialog {
       /*delete=*/false
       );
 
-    console.log(this.updateImageForm.get('delete').value);
-
     this.postBlobsService.buildForm(this.formData, imageBlob, '');
 
     //  Reset form values.
