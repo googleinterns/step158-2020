@@ -82,7 +82,6 @@ export class EditorComponent implements OnInit {
   originalImageData: ImageData;
   tolerance: number;
   maskAlpha: number;
-  oldMaskAlpha: number;
   disableFloodFill: boolean;
   // Hold user's click position
   private startPixel: Coordinate;
@@ -121,7 +120,7 @@ export class EditorComponent implements OnInit {
     this.image = new Image();
     this.scaleFactor = 0.9;
     this.tolerance = 30;
-    this.oldMaskAlpha = this.maskAlpha = 1;
+    this.maskAlpha = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
     this.brushWidth = 5;
@@ -573,17 +572,6 @@ export class EditorComponent implements OnInit {
           break;
       }
     } else {
-      switch ($event.keyCode) {
-        case 84:
-          console.log('T');
-          if (this.maskAlpha > 0) {
-            this.oldMaskAlpha = this.maskAlpha;
-            this.updateMaskAlpha(0);
-          } else {
-            this.updateMaskAlpha(this.oldMaskAlpha);
-          }
-          break;
-      }
     }
   }
 

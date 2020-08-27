@@ -40,14 +40,14 @@
   <p style="color:white">Tint</p>
   <mat-slider 
     title="Mask Tint"  
-    (change)="updateMaskAlpha()"
-    vertical min=".01" max="1" step=".01" [(ngModel)]="maskAlphaValue">
+    (change)="updateMaskAlpha(maskAlphaValue)"
+    vertical min="0" max="1" step=".01" [(ngModel)]="maskAlphaValue">
   </mat-slider>
   <br/>
   <mat-form-field class="slider-value">
     <mat-label style="color=white">Tint</mat-label>
     <input 
-      (change)="updateMaskAlpha()" 
+      (change)="updateMaskAlpha(maskAlphaValue)" 
       matInput type="number" 
       [(ngModel)]="maskAlphaValue" 
       style="color=white">
