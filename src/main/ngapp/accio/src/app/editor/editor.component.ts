@@ -128,6 +128,7 @@ export class EditorComponent implements OnInit {
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
     this.brushWidth = 5;
+    document.body.classList.remove('busy-cursor');
 
     //  Gets last image array that user sorted on img-gallery page. Saves to session storage to keep through refresh.
     //  If gallery reloaded a new Image array, newArray is set to true to signify the need to re-fetch array.
