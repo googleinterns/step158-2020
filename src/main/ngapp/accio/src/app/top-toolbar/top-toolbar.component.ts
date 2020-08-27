@@ -40,12 +40,12 @@ export class TopToolbarComponent implements OnInit {
           break;
         case 49:
           console.log('1');
-          this.toleranceValue = Math.max(this.toleranceValue - 0.5, 0.0);
+          this.toleranceValue = Math.max(this.toleranceValue - 1, 0.0);
           this.updateTolerance();
           break;
         case 50:
           console.log('2');
-          this.toleranceValue = Math.min(this.toleranceValue + 0.5, 127.5);
+          this.toleranceValue = Math.min(this.toleranceValue + 1, 127.5);
           this.updateTolerance();
           break;
       }
