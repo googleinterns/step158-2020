@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { HostListener, Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
@@ -82,6 +82,7 @@ export class EditorComponent implements OnInit {
   originalImageData: ImageData;
   tolerance: number;
   maskAlpha: number;
+  oldMaskAlpha: number;
   disableFloodFill: boolean;
   // Hold user's click position
   private startPixel: Coordinate;
@@ -120,7 +121,7 @@ export class EditorComponent implements OnInit {
     this.image = new Image();
     this.scaleFactor = 0.9;
     this.tolerance = 30;
-    this.maskAlpha = 1;
+    this.oldMaskAlpha = this.maskAlpha = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
     this.brushWidth = 5;
@@ -558,7 +559,38 @@ export class EditorComponent implements OnInit {
     }
   }
 
-  /** Undoes or redoes what the user had previously marked. Event emitted by top-toolbar */
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown($event: KeyboardEvent) {
+    if ($event.ctrlKey || $event.metaKey) {
+      switch ($event.keyCode) {
+        case 89:
+          console.log('CTRL + Y');
+          this.undoRedo('redo');
+          break;
+        case 90:
+          console.log('CTRL + Z');
+          this.undoRedo('undo');
+          break;
+      }
+    } else {
+      switch ($event.keyCode) {
+        case 84:
+          console.log('T');
+          if (this.maskAlpha > 0) {
+            this.oldMaskAlpha = this.maskAlpha;
+            this.updateMaskAlpha(0);
+          } else {
+            this.updateMaskAlpha(this.oldMaskAlpha);
+          }
+          break;
+      }
+    }
+  }
+
+  /**
+   * Undoes or redoes what the user had previously marked. Event emitted by top-toolbar or
+   * called based on key presses.
+   */
   undoRedo(direction: string): void {
     this.disableSubmit = this.disableFloodFill = true;
     direction == 'undo'
