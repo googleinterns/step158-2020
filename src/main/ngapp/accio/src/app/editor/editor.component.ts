@@ -1,4 +1,4 @@
-import { HostListener, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
@@ -555,23 +555,6 @@ export class EditorComponent implements OnInit {
       this.maskTool == MaskTool.MAGIC_WAND_SUB
     ) {
       this.disableFloodFill = false;
-    }
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  handleKeyDown($event: KeyboardEvent) {
-    if ($event.ctrlKey || $event.metaKey) {
-      switch ($event.keyCode) {
-        case 89:
-          console.log('CTRL + Y');
-          this.undoRedo('redo');
-          break;
-        case 90:
-          console.log('CTRL + Z');
-          this.undoRedo('undo');
-          break;
-      }
-    } else {
     }
   }
 

@@ -1,13 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { HostListener, Component, OnInit } from '@angular/core';
 import { Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-top-toolbar',
   templateUrl: './top-toolbar.component.html',
-  styleUrls: ['./top-toolbar.component.css']
+  styleUrls: ['./top-toolbar.component.css'],
 })
 export class TopToolbarComponent implements OnInit {
-
   @Output() clearMaskEvent = new EventEmitter<void>();
   @Output() invertMaskEvent = new EventEmitter<void>();
   @Output() undoRedoEvent = new EventEmitter<string>();
@@ -16,11 +15,48 @@ export class TopToolbarComponent implements OnInit {
 
   toleranceValue: number;
 
-  constructor() { }
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown($event: KeyboardEvent) {
+    if ($event.ctrlKey || $event.metaKey) {
+      switch ($event.keyCode) {
+        case 89:
+          console.log('CTRL + Y');
+          this.undoRedo('redo');
+          break;
+        case 90:
+          console.log('CTRL + Z');
+          this.undoRedo('undo');
+          break;
+      }
+    } else {
+      switch ($event.keyCode) {
+        case 37:
+          console.log('left-arrow');
+          this.switchImage(true);
+          break;
+        case 39:
+          console.log('right-arrow');
+          this.switchImage(false);
+          break;
+        case 49:
+          console.log('1');
+          this.toleranceValue = Math.max(this.toleranceValue - 0.5, 0.0);
+          this.updateTolerance();
+          break;
+        case 50:
+          console.log('2');
+          this.toleranceValue = Math.min(this.toleranceValue + 0.5, 127.5);
+          this.updateTolerance();
+          break;
+      }
+    }
+  }
+
+  constructor() {}
 
   ngOnInit(): void {
     this.toleranceValue = 30;
-   }
+  }
 
   /** Called when user clicks clear mask button. */
   clearMask() {
@@ -38,7 +74,8 @@ export class TopToolbarComponent implements OnInit {
 
   switchImage(previous: boolean) {
     const confirmSave = confirm(
-        'Are you sure you want to switch images? Make sure to save your current mask!');
+      'Are you sure you want to switch images? Make sure to save your current mask!'
+    );
     if (confirmSave) {
       this.switchImageEvent.emit(previous);
     }
