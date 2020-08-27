@@ -15,6 +15,16 @@ export class ToolbarComponent implements OnInit {
   @HostListener('window:keydown', ['$event'])
   handleKeyDown($event: KeyboardEvent) {
     switch ($event.keyCode) {
+      case 51:
+        console.log('3');
+        this.brushWidth = Math.max(this.brushWidth - 1, 0.0);
+        this.updateWidth();
+        break;
+      case 52:
+        console.log('4');
+        this.brushWidth = Math.min(this.brushWidth + 1, 80);
+        this.updateWidth();
+        break;
       case 66:
         console.log('B');
         this.updateTool('PAINT');
@@ -22,6 +32,10 @@ export class ToolbarComponent implements OnInit {
       case 69:
         console.log('E');
         this.updateTool('ERASE');
+        break;
+      case 77:
+        console.log('M');
+        this.updateTool('MASK-ONLY');
         break;
       case 81:
         console.log('Q');
