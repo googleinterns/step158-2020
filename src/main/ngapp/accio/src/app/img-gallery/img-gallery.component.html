@@ -1,24 +1,30 @@
-<form  novalidate [formGroup]="uploadImageForm" (ngSubmit)="onSubmit()" 
-      *ngIf="displayUpload" class="form" method="POST" 
-      enctype="multipart/form-data">
+<form
+  novalidate
+  [formGroup]="uploadImageForm"
+  (ngSubmit)="onSubmit()"
+  *ngIf="displayUpload"
+  id="upload-image-form"
+  method="POST"
+  enctype="multipart/form-data"
+>
 
-  <h1>Upload an Image:</h1>
-  
   <mat-form-field appearance="fill" class="user-input">
+    <h1 style="width: 10%;">Upload an Image</h1>
     <mat-label>Image Name</mat-label>
-    <input required matInput formControlName="imgName" placeholder="Untitled"/>
+    <input required matInput formControlName="imgName" placeholder="Untitled" />
   </mat-form-field>
-  
+
   <mat-form-field class="user-input" appearance="fill">
-    <ngx-mat-file-input required formControlName="image">
-    </ngx-mat-file-input>
+
+    <ngx-mat-file-input formControlName="image"> </ngx-mat-file-input>
+
     <mat-hint>Select an Image</mat-hint>
   </mat-form-field>
- 
+
   <mat-form-field appearance="fill" class="user-input">
     <mat-label>Tags (Optional)</mat-label>
-    <input matInput formControlName="tags"/>
-    <mat-hint>Enter list seperated by commas: "tag 1, tag 2, tag 3"</mat-hint>
+    <input matInput formControlName="tags" />
+    <mat-hint>Enter list separated by commas: "tag1, tag2, tag3"</mat-hint>
   </mat-form-field>
 
   <button type="submit" mat-raised-button id="upload-button">Upload Image</button>
@@ -29,17 +35,17 @@
   <h1>Search by:</h1>
   <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
     <mat-label>Image Name</mat-label>
-    <input matInput [(ngModel)]="imgName" placeholder="Ex. MyImage">
+    <input matInput [(ngModel)]="imgName" placeholder="Ex. MyImage" />
   </mat-form-field>
 
   <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
     <mat-label>Mask Name</mat-label>
-    <input matInput [(ngModel)]="maskName" placeholder="Ex. MyMask">
+    <input matInput [(ngModel)]="maskName" placeholder="Ex. MyMask" />
   </mat-form-field>
 
   <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
     <mat-label>Filter Tag</mat-label>
-    <input matInput [(ngModel)]="tag" placeholder="Ex. river">
+    <input matInput [(ngModel)]="tag" placeholder="Ex. river" />
   </mat-form-field>
 
   <mat-form-field appearance="fill">
@@ -53,39 +59,111 @@
 
   <mat-form-field appearance="fill">
     <mat-label>Show masks for Image: {{ imgName }}</mat-label>
-    <mat-select [(ngModel)]="withMasks">
-      <mat-option value="false">Don't show masks</mat-option>
-      <mat-option value="true">Show masks for: {{ imgName }}</mat-option>
+    <mat-select [(ngModel)]="displayMasks">
+      <mat-option [value]="falseVal">Don't show masks</mat-option>
+      <mat-option [value]="trueVal">Show masks for: {{ imgName }}</mat-option>
     </mat-select>
     <mat-hint align="end">Default: no masks</mat-hint>
   </mat-form-field>
 
-  <button mat-raised-button (click)="getImages()">Update filter(s)</button>
+  <button mat-raised-button (click)="loadGalleryImages()">Update filter(s)</button>
+
+
+  <!--Project Download Bar-->
+  <div id="project-download-bar">
+    <div id="project-download">
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="menu1"
+        aria-label="Project download menu"
+      >
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #menu1="matMenu">
+        <button mat-menu-item (click)="downloadProjectImages()">
+          <mat-icon>folder</mat-icon>
+          <span>Download project files</span>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+  <!--Project Download Bar-->
 </div>
 <!--Filter Bar-->
+
 
 <!--Fetched Images-->
 <div class="gallery" *ngIf="displayImages">
   <div *ngFor="let image of imageArray; index as i" class="gallery-item">
-    <a [routerLink]="['/editor', projectId, image['name'], image['url'], i]">
-      <img class="gallery-img" [src]="image['url']">
-      <p>{{ image['name'] }}</p>
-    </a>
-    <button mat-raised-button (click)="updateButton(image['name'], '')">Update Image</button>
+    <div>
+      <div title="Existing Mask" id="mask-tab" [hidden]="!hasMask(image)"><p>MASK</p></div> 
+      <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMask(image['masks']), i]">
+        <img class="gallery-img" [src]="image['url']" />
+      </a>
+    </div>
+    <div class="tab">
+      <div class="gallery-item-name">
+        <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMask(image['masks']), i]">
+          <p>{{ image["name"] }}</p>
+        </a>
+      </div>
+      <div class="download">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="menu2"
+          aria-label="Image download menu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu2="matMenu">
+          <button mat-menu-item (click)="downloadImage(image)">
+            <mat-icon>image</mat-icon>
+            <span>Download image</span>
+          </button>
+          <button mat-menu-item (click)="downloadImageAndItsMasks(image)">
+            <mat-icon>photo_library</mat-icon>
+            <span>Download image and masks</span>
+          </button>
+        </mat-menu>
+      </div>
+    </div>
   </div>
 </div>
+<!--Fetched Images-->
 
-<div class="gallery" *ngIf="displayImages">
-  <ng-container *ngFor="let image of imageArray">
-    <div *ngFor="let mask of image['masks']" class="gallery-item">
-      <a [routerLink]="['/editor', projectId, mask['name'], mask['url'], image['name'], image['url']]">
-        <img class="gallery-img" [src]="mask['url']">
-        <p>{{ mask['name'] }}</p>
-      </a>
-      <button mat-raised-button (click)="updateButton(mask['name'], image['name'])">Update Image</button>
+<!--Fetched Masks-->
+<div class="gallery" *ngIf="displayMasks">
+  <ng-container *ngFor="let image of imageArray; index as j">
+    <div *ngFor="let mask of image['masks']; index as k"  class="gallery-item">
+      <div>
+        <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['url'], j, k]">
+          <img class="gallery-img" [src]="mask['url']" />
+        </a>
+      </div>
+      <div class="tab">
+        <div class="gallery-item-name">
+          <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['url'], j, k]">
+            <p>{{ mask["name"] }}</p>
+          </a>
+        </div>
+        <div class="download">
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="menu3"
+            aria-label="Mask download menu"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu3="matMenu">
+            <button mat-menu-item (click)="downloadImage(mask)">
+              <mat-icon>image</mat-icon>
+              <span>Download mask</span>
+            </button>
+          </mat-menu>
+        </div>
+      </div>
     </div>
   </ng-container>
 </div>
+<!--Fetched Masks-->
 
 <div class="end-page"></div>
-<!--Fetched Images-->

@@ -78,7 +78,6 @@ export class MagicWandService {
     return (x + (y * width)) * 4;
   }
 
-
   /* -----Additional Tools----- */
 
   /**@returns {Set<number>} mask that excludes the
@@ -89,12 +88,12 @@ export class MagicWandService {
     return SetOperator.difference(mask, mistake);
   }
 
-  /**@returns {Set<number>} mask that excludes the current
-  * @param {Set<number>} originalMask .
-  * Relative container that encompasses @originalMask is based on
-  * @param {number} height and
-  * @param {number} width
-  */
+  /**@returns {Set<number>} mask that excludes the current 
+   * @param {Set<number>} originalMask
+   * Relative container that encompasses @originalMask is based on
+   * @param {number} height and 
+   * @param {number} width 
+   */
   invert(originalMask: Set<number>, width: number, height: number)
     : Set<number> {
     let invertedMask: Set<number> = new Set();
