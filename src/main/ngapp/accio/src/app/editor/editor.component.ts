@@ -43,7 +43,6 @@ export class EditorComponent implements OnInit {
   }
 
   // Cursor varaibles.
-  cursorTargetPos: CursorPos;
   cursorX = 0;
   cursorY = 0;
 
@@ -56,7 +55,7 @@ export class EditorComponent implements OnInit {
   displayMaskForm: boolean = false;
   disableSubmit: boolean = false;
 
-  private allPixels: Set<number>;
+  allPixels: Set<number>;
 
   stageWidth: number;
   stageHeight: number;
@@ -105,8 +104,6 @@ export class EditorComponent implements OnInit {
   @ViewChild('cursorCanvas', { static: true })
   cursorCanvas: ElementRef<HTMLCanvasElement>;
   private cursorCtx: CanvasRenderingContext2D;
-  cursorTarget;
-  maskTarget;
 
   //  Holds static user image for background.
   @ViewChild('imageCanvas', { static: true })
@@ -258,30 +255,10 @@ export class EditorComponent implements OnInit {
     );
     this.maskCtx.clearRect(0, 0, imgWidth, imgHeight);
 
-    this.allPixels = new Set([
-      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
-        function (x) {
-          return x * 4;
-        }
-      ),
-    ]);
-
     // Canvas to paint cursor-overlay of brush size.
     this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
-    // this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
-    // Updates the drawn 'cursor' when the user's mouse moves.
-    this.maskTarget = document.querySelector('#mask-layer');
-    this.cursorTarget = document.querySelector('#cursor-layer');
-    this.cursorCtx = this.cursorTarget.getContext('2d');
-    this.maskTarget.addEventListener(
-      'mousemove',
-      (e) => {
-        this.setCursorPosition(e);
-      },
-      false
-    );
-    this.updateCursor();
+    this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
 
     this.drawScaledImage();
 
@@ -301,13 +278,20 @@ export class EditorComponent implements OnInit {
       };
       maskImage.src = this.maskUrl;
     }
+
+    this.allPixels = new Set([
+      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
+        function (x) {
+          return x * 4;
+        }
+      ),
+    ]);
   }
 
   /* Handles cursor tracking and resizing. */
 
-  // The following two functions:
   // Draws/Redraws 'cursor' at the current position of user's mouse.
-  setCursorPosition(e) {
+  setCursorPosition(e: MouseEvent): void {
     // These are the coordinates used to paint.
     this.cursorX = e.offsetX;
     this.cursorY = e.offsetY;
@@ -318,34 +302,20 @@ export class EditorComponent implements OnInit {
     this.cursorCtx.arc(
       this.cursorX,
       this.cursorY,
-      this.brushWidth * 1.5,
+      this.brushWidth * this.scaleFactor * 0.5,
       0,
       2 * Math.PI,
       true
     );
     this.cursorCtx.fillStyle = 'rgba(255, 0, 0, .5)';
+    this.cursorCtx.strokeStyle = 'black';
+    this.cursorCtx.stroke();
     this.cursorCtx.fill();
   }
 
-  updateCursor() {
+  // Clears the 'cursor' when the mouse leaves the editing area.
+  setCursorOut(): void {
     this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
-
-    this.cursorCtx.beginPath();
-    this.cursorCtx.arc(
-      this.cursorX,
-      this.cursorY,
-      this.brushWidth,
-      0,
-      2 * Math.PI,
-      true
-    );
-    // this.cursorCtx.stroke();
-    this.cursorCtx.fillStyle = 'rgba(255, 0, 0, .5)';
-    this.cursorCtx.fill();
-    // This callback matches the frame rate of the browser.
-    requestAnimationFrame(() => {
-      this.updateCursor;
-    });
   }
 
   /**
@@ -588,7 +558,10 @@ export class EditorComponent implements OnInit {
     }
   }
 
-  /** Undoes or redoes what the user had previously marked. Event emitted by top-toolbar */
+  /**
+   * Undoes or redoes what the user had previously marked. Event emitted by top-toolbar or
+   * called based on key presses.
+   */
   undoRedo(direction: string): void {
     this.disableSubmit = this.disableFloodFill = true;
     direction == 'undo'
@@ -755,7 +728,11 @@ export class EditorComponent implements OnInit {
    *  catches emitted MaskAction from mask.directive and calls the undo/redo 'do' function.
    */
   newMaskController(maskAction: MaskAction) {
-    this.maskControllerService.do(maskAction);
+    if (maskAction.getActionType() == Action.SUBTRACT) {
+      this.maskControllerService.do(maskAction, this.allPixels);
+    } else {
+      this.maskControllerService.do(maskAction);
+    }
   }
 }
 

@@ -4,7 +4,7 @@
   padding: 5%;
 }
 
-upload-image-form{
+upload-image-form {
   position: relative;
   padding: 5%;
 }
@@ -15,7 +15,7 @@ upload-image-form{
 }
 
 #upload-button {
-  background-color: #91bfff;
+  background-color: #2196f3;
   color: white;
 }
 
