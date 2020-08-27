@@ -15,6 +15,18 @@ export class ToolbarComponent implements OnInit {
   @HostListener('window:keydown', ['$event'])
   handleKeyDown($event: KeyboardEvent) {
     switch ($event.keyCode) {
+      case 66:
+        console.log('B');
+        this.updateTool('PAINT');
+        break;
+      case 69:
+        console.log('E');
+        this.updateTool('ERASE');
+        break;
+      case 81:
+        console.log('Q');
+        this.updateTool('MAGIC-WAND-SUB');
+        break;
       case 84:
         console.log('T');
         if (this.maskAlphaValue > 0) {
@@ -25,6 +37,10 @@ export class ToolbarComponent implements OnInit {
           this.maskAlphaValue = this.oldMaskAlphaValue;
           this.updateMaskAlpha(this.oldMaskAlphaValue);
         }
+        break;
+      case 87:
+        console.log('W');
+        this.updateTool('MAGIC-WAND-ADD');
         break;
     }
   }
