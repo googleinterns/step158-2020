@@ -1,31 +1,29 @@
 <!-- Single use buttons -->
-<div id="single-click-buttons">
+<mat-toolbar id="single-click-buttons">
   <div>
     <mat-icon class="button" title="Previous Image" (click)="switchImage(true)">navigate_before</mat-icon>
-    <p>Previous Image</p>
+    <span>Previous Image</span>
   </div>
   <div>
     <mat-icon class="button" title="Next Image" (click)="switchImage(false)">navigate_next</mat-icon>
-    <p>Next Image</p>
+    <span>Next Image</span>
   </div>
   <mat-icon class="button" title="Invert Mask" (click)="invertMask()">invert_colors</mat-icon>
   <mat-icon class="button" title="Undo" (click)="undoRedo('undo')">undo</mat-icon>
   <mat-icon class="button" title="Redo" (click)="undoRedo('redo')">redo</mat-icon>
   <mat-icon class="button" title="Clear Mask" (click)="clearMask()">clear</mat-icon>
   <span style="display: inline; width:100%; height:100%; color:white left:5%"> 
-    Tolerance
     <mat-slider 
       title="Mask Tolerance"  
       (change)="updateTolerance()"
       min="1" max="127.5" step=".5" [(ngModel)]="toleranceValue">
     </mat-slider>
     <mat-form-field class="slider-value">
-      <mat-label style="color=white">Tolerance</mat-label>
+      <mat-label style="color:white">Tolerance</mat-label>
       <input
         (change)="updateTolerance()" 
         matInput type="number" 
-        [(ngModel)]="toleranceValue" 
-        style="color=white">
+        [(ngModel)]="toleranceValue">
     </mat-form-field>
   </span>
-</div>
+</mat-toolbar>
