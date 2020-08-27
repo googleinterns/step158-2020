@@ -47,7 +47,6 @@ export class MagicWandService {
     return !visited.has(index);
   }
 
-
   /**@returns {Color} color attributes of the pixel at
   * @param {number} xCoord and
   * @param {number} yCoord based off of the original image supplied by
@@ -123,7 +122,7 @@ export class MagicWandService {
   * percolates from the first-selected pixel.
   */
   scribbleFloodfill(imgData: ImageData, xCoord: number, yCoord: number,
-                    tolerance: number, scribbles: Set<number>): Set<number> {
+      tolerance: number, scribbles: Set<number>): Set<number> {
     return this.doFloodfill(imgData, xCoord, yCoord, tolerance, scribbles);
   }
 
@@ -261,10 +260,158 @@ export class MagicWandService {
     const redMean = (a.red + b.red)/2;
     return (2+redMean/256)*dr*dr + 4*dg*dg + (2 + (255 - redMean)/256)*db*db;
   }
+
+
+  /* Code for 'preview' algorithm */
+
+  /**@Returns {Array<Set<number>>} an array containing all the possible masks.
+  * @param {number} toleranceLimit allows the caller to decide how far(color-wise)
+  * they want to search for 'mask-plausible' pixels.
+  **/
+  getAllFloodfills(imgData: ImageData, xCoord: number, yCoord: number,
+              toleranceLimit: number): MasterMask {
+    // Stores a queue of coords for pixels that we need to visit in "visit".
+    const visit: Array<Array<number>> = new Array();
+    // Stores already-visited pixels in "visited" as index formatted numbers
+    // (as opposed to coord format; for Set funcs).
+    const visited: Set<number> = new Set();
+
+    visit.push([xCoord, yCoord]);
+    // Converts [x,y] format coord to 1-D equivalent of
+    // imgData.data (DataArray).
+    const indexAsDataArray: number =
+      this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
+    visited.add(indexAsDataArray);
+
+    const masterMask: MasterMask = new MasterMask(toleranceLimit);
+
+    // Adds vanilla pixel to the masterMask.
+    const vanillaPixelColor: Color = this.dataArrayToRgb(imgData, xCoord, yCoord);
+    let maskByToleranceN: Set<number> = new Set<number>();
+    // Tolerance values translate to indices in masterMask.masksByTolerance.
+    const initIndex =Math.ceil(Math.sqrt(this.rgbEuclideanDist(
+        this.dataArrayToRgb(imgData, xCoord, yCoord),
+        vanillaPixelColor)));
+    
+    masterMask.masksByTolerance.splice(initIndex, 1, maskByToleranceN);
+    let initMask = masterMask.masksByTolerance[initIndex];
+    initMask.add(this.coordToDataArrayIndex(xCoord, yCoord, imgData.width));
+
+    // From hereon, works with tolerance limit in the squared space.
+    toleranceLimit *= toleranceLimit;
+
+    // Loops over all plausible 'mask-pixels'.
+    // A pixel is plausibly a 'mask-pixel' if the color of the root pixel
+    // that we percolated from is closer in color to the vanilla
+    // pixel than the pixel being evaluated.
+    while (visit.length !== 0) {
+      const coord: Array<number> = visit.pop();
+      // Unpacks coord.
+      const x: number = coord[0];
+      const y: number = coord[1];
+
+      const curPixelColor: Color = this.dataArrayToRgb(imgData, x, y);
+      const curColorDist: number = 
+          this.rgbEuclideanDist(curPixelColor, vanillaPixelColor);
+
+      // Gets coords of adjacent pixels.
+      const neighbors: Array<Array<number>> =
+        [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
+      // Adds coords of adjacent pixels to the heap.
+      for (const neighborPixel of neighbors) {
+        const neighborX: number = neighborPixel[0];
+        const neighborY: number = neighborPixel[1];
+        // Checks if coord is in bounds and has not been visited first.
+        if (!this.getIsValid(
+            imgData.width, imgData.height, neighborX, neighborY, visited)) {
+          continue;
+        }
+
+        const neighborPixelColor: Color = 
+            this.dataArrayToRgb(imgData, neighborX, neighborY);
+        const neighborColorDist: number = 
+            this.rgbEuclideanDist(neighborPixelColor, vanillaPixelColor);
+
+        // Sets a limit to how far (color-wise) we search the image
+        // for 'mask-pixels'.
+        if (neighborColorDist > toleranceLimit) {
+          continue;
+        }
+
+        // If current pixel's color is farther away from the vanilla pixel than
+        // neighbor's color is from the vanilla pixel, then
+        // don't add it to the masterMask.
+        if (curColorDist <= neighborColorDist) {
+          // Adds neighbor pixel to masterMask.
+          const toleranceIndex: number = 
+              Math.ceil(Math.sqrt(neighborColorDist));
+
+          if (masterMask.masksByTolerance[toleranceIndex] === undefined) {
+            // Assigns a new set at this index.
+            maskByToleranceN = new Set<number>();
+            masterMask.masksByTolerance[toleranceIndex] = maskByToleranceN;
+          } else {
+            maskByToleranceN = masterMask.masksByTolerance[toleranceIndex];
+          }
+
+          // Adds neighbor pixel index to the set at this index.
+          maskByToleranceN.add(
+            this.coordToDataArrayIndex(neighborX, neighborY, imgData.width));
+
+          // Continues lifespan of the loop.
+          visit.push(neighborPixel);
+          // A pixel is only considered 'visited'
+          // if it has been added to the masterMask.
+          visited.add(this.coordToDataArrayIndex(x, y, imgData.width));
+        }
+      }
+    }  // End of while loop.
+
+    return masterMask;
+  }
+  }
+
+  interface Color {
+  red: number,
+  green: number,
+  blue: number
+  }
+
+  /**Tracks all versions of masks for 'preview' of floodfill.
+  * Versions are based on different tolerance levels.
+  **/
+  export class MasterMask {
+  masksByTolerance: Array<Set<number>> = [];
+  toleranceIndex = -1;
+  presentMask: Set<number> = new Set<number>();
+
+  constructor(toleranceLimit: number) {
+    this.masksByTolerance.fill(undefined, 0, toleranceLimit + 2);
+  }
+
+  public maskAtTolerance(tolerance: number): Set<number> {
+    let action: Set<number>;
+    while (this.toleranceIndex > tolerance) {
+      action = this.masksByTolerance[this.toleranceIndex--];
+
+      if (action === undefined) {
+        continue;
+      }
+      this.presentMask =
+          SetOperator.difference(this.presentMask, action);
+    }
+
+    while (this.toleranceIndex < tolerance) {
+      action = this.masksByTolerance[++this.toleranceIndex];
+
+      if (action === undefined) {
+        continue;
+      }
+      this.presentMask =
+          SetOperator.union(this.presentMask, action);
+    }
+
+    return this.presentMask;
+  }
 }
 
-interface Color {
- red: number,
- green: number,
- blue: number
-}
