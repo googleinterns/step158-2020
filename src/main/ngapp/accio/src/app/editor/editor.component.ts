@@ -55,6 +55,8 @@ export class EditorComponent implements OnInit {
   displayMaskForm: boolean = false;
   disableSubmit: boolean = false;
 
+  allPixels: Set<number>;
+
   stageWidth: number;
   stageHeight: number;
   brushWidth: number;
@@ -287,8 +289,15 @@ export class EditorComponent implements OnInit {
       };
       maskImage.src = this.maskUrl;
     }
-  }
 
+    this.allPixels = new Set([
+      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
+        function (x) {
+          return x * 4;
+        }
+      ),
+    ]);
+  }
 
   /* Handles cursor tracking and resizing. */
 
@@ -301,8 +310,14 @@ export class EditorComponent implements OnInit {
     this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
 
     this.cursorCtx.beginPath();
-    this.cursorCtx.arc(this.cursorX, this.cursorY,
-        this.brushWidth * this.scaleFactor * .5, 0, 2 * Math.PI, true);
+    this.cursorCtx.arc(
+      this.cursorX,
+      this.cursorY,
+      this.brushWidth * this.scaleFactor * 0.5,
+      0,
+      2 * Math.PI,
+      true
+    );
     this.cursorCtx.fillStyle = 'rgba(255, 0, 0, .5)';
     this.cursorCtx.strokeStyle = 'black';
     this.cursorCtx.stroke();
@@ -312,16 +327,6 @@ export class EditorComponent implements OnInit {
   // Clears the 'cursor' when the mouse leaves the editing area.
   setCursorOut(): void {
     this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
-  }
-
-  private allPixels(): Set<number> {
-    return new Set([
-      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
-        function (x) {
-          return x * 4;
-        }
-      ),
-    ]);
   }
 
   /**
@@ -523,7 +528,7 @@ export class EditorComponent implements OnInit {
   invertMask() {
     this.disableSubmit = this.disableFloodFill = true;
     this.maskControllerService.do(
-      new MaskAction(Action.INVERT, Tool.INVERT, this.allPixels())
+      new MaskAction(Action.INVERT, Tool.INVERT, this.allPixels)
     );
     this.setMaskTo(this.maskControllerService.getMask());
     this.drawMask();
@@ -564,7 +569,10 @@ export class EditorComponent implements OnInit {
     }
   }
 
-  /** Undoes or redoes what the user had previously marked. Event emitted by top-toolbar */
+  /**
+   * Undoes or redoes what the user had previously marked. Event emitted by top-toolbar or
+   * called based on key presses.
+   */
   undoRedo(direction: string): void {
     this.disableSubmit = this.disableFloodFill = true;
     direction == 'undo'
@@ -673,7 +681,7 @@ export class EditorComponent implements OnInit {
       this.maskImageData.data[pixel + 3] = alphaValue;
     }
     if (maskAction.getActionType() == Action.SUBTRACT) {
-      this.maskControllerService.do(maskAction, this.allPixels());
+      this.maskControllerService.do(maskAction, this.allPixels);
     } else {
       this.maskControllerService.do(maskAction);
     }
@@ -759,7 +767,7 @@ export class EditorComponent implements OnInit {
         paintedMask)
 
     if (maskAction.getActionType() == Action.SUBTRACT) {
-      this.maskControllerService.do(maskAction, this.allPixels());
+      this.maskControllerService.do(maskAction, this.allPixels);
     } else {
       this.maskControllerService.do(maskAction);
     }

@@ -17,6 +17,13 @@
   color: #cdd1d3;
 }
 
+.icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 #single-click-buttons {
   position: sticky;
   top: 0;

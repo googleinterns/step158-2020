@@ -1,4 +1,10 @@
-import { Directive, HostListener, ElementRef, Input, SimpleChanges } from '@angular/core';
+import {
+  Directive,
+  HostListener,
+  ElementRef,
+  Input,
+  SimpleChanges,
+} from '@angular/core';
 import { MagicWandService } from './magic-wand.service';
 import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
@@ -22,34 +28,35 @@ export class MaskDirective {
   @Output() newPaintMaskEvent = new EventEmitter<void>();
 
   @Output() newMouseMoveEvent = new EventEmitter<MouseEvent>();
-  @Output() newMouseOutEvent = new EventEmitter<void>()
+  @Output() newMouseOutEvent = new EventEmitter<void>();
 
-  //  Set containing pixels converted to their red index in ImageData. Used for paint and scribble
+  // Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
   mouseDown: boolean = false;
-  //  Determines if the user moved after they clicked, and does scribble fill instead of flood. 
+  // Determines if the user moved after they clicked, and does scribble fill instead of flood.
   scribbleFill: boolean = false;
 
-  //  Initial x&y coords.
+  // Initial x&y coords.
   private coord: Array<number>;
 
-  //  Create direct reference of canvas on editor.html
+  // Create direct reference of canvas on editor.html
   constructor(
-    private canvas: ElementRef<HTMLCanvasElement>, 
-    private magicWandService: MagicWandService,
-  ) { }
+    private canvas: ElementRef<HTMLCanvasElement>,
+    private magicWandService: MagicWandService
+  ) {}
 
-/**
- *  Listens for user mousedown on 'appMask'. When user mouse goes down.
- *  Initializes the 'paintPixels' set and emits starting pixel when the user presses the mouse.
- */
+  /**
+   * Listens for user mousedown on 'appMask'. When user mouse goes down.
+   * Initializes the 'paintPixels' set and emits starting pixel when the user presses the mouse.
+   */
   @HostListener('mousedown', ['$event'])
   onMouseDown(e: MouseEvent) {
-    if (this.tool == MaskTool.PAINT
-        || this.tool == MaskTool.ERASE
-        || this.tool == MaskTool.MAGIC_WAND_ADD
-        || this.tool == MaskTool.MAGIC_WAND_SUB)  {
-
+    if (
+      this.tool == MaskTool.PAINT ||
+      this.tool == MaskTool.ERASE ||
+      this.tool == MaskTool.MAGIC_WAND_ADD ||
+      this.tool == MaskTool.MAGIC_WAND_SUB
+    ) {
       this.coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
 
       this.mouseDown = true;
@@ -58,9 +65,14 @@ export class MaskDirective {
       //  Get pixel of original image that user clicked on.
       let pixel = new Coordinate(this.coord[0], this.coord[1]);
 
-      // //  Add pixel to set for scribble fill or for master pixel list.       
-      this.paintPixels.add(this.magicWandService.coordToDataArrayIndex(
-          this.coord[0], this.coord[1], this.originalImageData.width));
+      // //  Add pixel to set for scribble fill or for master pixel list.
+      this.paintPixels.add(
+        this.magicWandService.coordToDataArrayIndex(
+          this.coord[0],
+          this.coord[1],
+          this.originalImageData.width
+        )
+      );
 
       console.log('drawing pixel mousedown');
       // Fire event to draw pixel
@@ -73,37 +85,43 @@ export class MaskDirective {
     }
   }
 
-  /** 
-   *  Listens for mouse movement over appMask, executes if user's mouse is clicked.
-   *  For each movement, the pixel is added to the paintPixels set and then painted 
-   *    on the canvas.
+  /**
+   * Listens for mouse movement over appMask, executes if user's mouse is clicked.
+   * For each movement, the pixel is added to the paintPixels set and then painted
+   *   on the canvas.
    */
-  @HostListener('mousemove', ['$event'])  
+  @HostListener('mousemove', ['$event'])
   onMouseMove(e: MouseEvent) {
-    if ((this.tool == MaskTool.PAINT 
-        || this.tool == MaskTool.ERASE 
-        || this.tool == MaskTool.MAGIC_WAND_ADD 
-        || this.tool == MaskTool.MAGIC_WAND_SUB) 
-        && this.mouseDown) {
-
+    if (
+      (this.tool == MaskTool.PAINT ||
+        this.tool == MaskTool.ERASE ||
+        this.tool == MaskTool.MAGIC_WAND_ADD ||
+        this.tool == MaskTool.MAGIC_WAND_SUB) &&
+      this.mouseDown
+    ) {
       const coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
 
-      //  User moved mouse, use scribble fill. 
+      // User moved mouse, use scribble fill.
       this.scribbleFill = true;
 
-      //  Get pixel of user moved over.
+      // Get pixel of user moved over.
       let pixel = new Coordinate(coord[0], coord[1]);
 
-      this.paintPixels.add(this.magicWandService.coordToDataArrayIndex(
-          coord[0], coord[1], this.originalImageData.width));
-      //  Fire event to draw pixel
+      this.paintPixels.add(
+        this.magicWandService.coordToDataArrayIndex(
+          coord[0],
+          coord[1],
+          this.originalImageData.width
+        )
+      );
+      // Fire event to draw pixel
       this.continuePaintEvent.emit(pixel);
     }
     this.newMouseMoveEvent.emit(e);
   }
 
   /** If user's cursor leaves canvas, drawing is done. */
-  @HostListener('mouseout', ['$event']) 
+  @HostListener('mouseout', ['$event'])
   onMouseLeave(e: MouseEvent) {
     if (this.mouseDown) {
       this.onMouseUp(e);
@@ -111,16 +129,16 @@ export class MaskDirective {
     this.newMouseOutEvent.emit();
   }
 
- /** 
-  *  Executes once user releases mouse 
-  *  Calls magic-wand.service paint/scribbleFloodFill/floodFill function
-  *    depending on what tool is selected and if the user moved the mouse or not. 
-  *  If normal floodFill, then records the x and y offset, retrieves the tolerance and calls the 
-  *    floodfill algorithm. 
-  *  If the user moved the mouse before picking up their mouse, then floodFill does not execute.
-  *    scribble is called instead with @param paintPixels.
-  */ 
-  @HostListener('mouseup', ['$event']) 
+  /**
+   * Executes once user releases mouse
+   * Calls magic-wand.service paint/scribbleFloodFill/floodFill function
+   *   depending on what tool is selected and if the user moved the mouse or not.
+   * If normal floodFill, then records the x and y offset, retrieves the tolerance and calls the
+   *   floodfill algorithm.
+   * If the user moved the mouse before picking up their mouse, then floodFill does not execute.
+   *   scribble is called instead with @param paintPixels.
+   */
+  @HostListener('mouseup', ['$event'])
   onMouseUp(e: MouseEvent) {
       this.mouseDown = false;
     //  If user has paint selected, call paint to add pixels painted to master.
@@ -138,36 +156,50 @@ export class MaskDirective {
       this.scribbleFill = false;
       const maskPixels = this.magicWandService.scribbleFloodfill(
         this.originalImageData,
-        this.coord[0], 
-        this.coord[1], 
-        this.tolerance, 
-        this.paintPixels);
-
-      this.newMaskEvent.emit(
-        new Mask.MaskAction(
-          ((this.tool == MaskTool.MAGIC_WAND_ADD) ? Mask.Action.ADD : Mask.Action.SUBTRACT), 
-          Mask.Tool.SCRIBBLE, maskPixels)
+        this.coord[0],
+        this.coord[1],
+        this.tolerance,
+        this.paintPixels
       );
-    }
-
-    else if ((this.tool == MaskTool.MAGIC_WAND_ADD
-        || this.tool == MaskTool.MAGIC_WAND_SUB) 
-        && !this.scribbleFill) {
-      
-      //  Returns an array indices of each pixel in the mask.
-      const maskPixels = this.magicWandService.floodfill(
-          this.originalImageData, this.coord[0], 
-          this.coord[1], this.tolerance);
 
       this.newMaskEvent.emit(
         new Mask.MaskAction(
-          ((this.tool == MaskTool.MAGIC_WAND_ADD) ? Mask.Action.ADD : Mask.Action.SUBTRACT), 
-          Mask.Tool.MAGIC_WAND, maskPixels)
+          this.tool == MaskTool.MAGIC_WAND_ADD
+            ? Mask.Action.ADD
+            : Mask.Action.SUBTRACT,
+          Mask.Tool.SCRIBBLE,
+          maskPixels
+        )
+      );
+    } else if (
+      (this.tool == MaskTool.MAGIC_WAND_ADD ||
+        this.tool == MaskTool.MAGIC_WAND_SUB) &&
+      !this.scribbleFill
+    ) {
+      // Returns an array indices of each pixel in the mask.
+      const maskPixels = this.magicWandService.floodfill(
+        this.originalImageData,
+        this.coord[0],
+        this.coord[1],
+        this.tolerance
+      );
+
+      this.newMaskEvent.emit(
+        new Mask.MaskAction(
+          this.tool == MaskTool.MAGIC_WAND_ADD
+            ? Mask.Action.ADD
+            : Mask.Action.SUBTRACT,
+          Mask.Tool.MAGIC_WAND,
+          maskPixels
+        )
       );
     }
   }
 
   convertToUnscaledCoord(xIn: number, yIn: number): Array<number> {
-    return new Array<number>(Math.floor(xIn / this.scale), Math.floor(yIn / this.scale));
+    return new Array<number>(
+      Math.floor(xIn / this.scale),
+      Math.floor(yIn / this.scale)
+    );
   }
 }
