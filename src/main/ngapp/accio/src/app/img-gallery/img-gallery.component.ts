@@ -63,6 +63,7 @@ export class ImgGalleryComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    document.body.classList.remove('busy-cursor');
     this.displayUpload = false;
     this.displayImages = false;
     this.displayMasks = false;
@@ -137,6 +138,7 @@ export class ImgGalleryComponent implements OnInit {
   *      if a value later in the constructor is applicable.
   */
   onSubmit() {
+    document.body.classList.add('busy-cursor');
      // Name is a required input. If it's null, do nothing.
     if (!this.uploadImageForm.get('imgName').value) {
       return;
@@ -159,7 +161,6 @@ export class ImgGalleryComponent implements OnInit {
     );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);
-    window.location.reload();
   }
 
   // Opens up the dialog for updating the clicked image.

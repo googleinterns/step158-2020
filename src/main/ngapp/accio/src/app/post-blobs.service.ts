@@ -28,20 +28,28 @@ export class PostBlobsService {
    * Fetches the blobUploadURL to post image data to datastore
    */
   private onUpload(formData: FormData) {
+    console.log('here 1');
     this.http.post<any>(this.actionUrl, formData).subscribe(
-      (res) => console.log('SUCCESS: Image uploaded to server. ' + res),
-      (err) => console.log('err ' + err)
+      (res) => {
+        console.log('SUCCESS: Image uploaded to server.');
+        if (formData.get('delete') == 'true') {
+          window.alert('Image was deleted!');
+        }
+        else if (formData.get('mode') == 'update') {
+          window.alert('Image was updated!');
+        }
+        else {
+          window.alert('Image was saved!');
+        }
+        window.location.reload();
+      },
+      (err) => {
+        console.log('err ' + err);
+        window.alert(err);
+        window.location.reload();
+      }
     );
-    console.log('SUCCESS: Image uploaded to server.');
-    if (formData.get('delete') == 'true') {
-      window.alert('Image was deleted!');
-    }
-    else if (formData.get('mode') == 'update') {
-      window.alert('Image was updated!');
-    }
-    else {
-      window.alert('Image was saved!');
-    }
+      console.log('here 2');
   }
 
   /** 
@@ -53,7 +61,7 @@ export class PostBlobsService {
     try {
       deleteString = imageBlob.delete.toString()
     }
-    catch (error){
+    catch (error) {
       console.log(imageBlob.delete + ' could not be converted into a string, returning \'false\'');
       deleteString = 'false';
     }
@@ -65,7 +73,10 @@ export class PostBlobsService {
     formData.append('mode', imageBlob.mode);
     if (imageBlob.image) {
       formData.append('image', imageBlob.image, fileName);
+      console.log('image appended');
     }
+    console.log(imageBlob.image);
+
     formData.append('parent-img', imageBlob.parentImageName);
     formData.append('new-name', imageBlob.newImageName);
     formData.append('tags', tags);
