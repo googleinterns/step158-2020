@@ -8,9 +8,9 @@ import { PriorityQueue } from './priority-queue';
 })
 export class MagicWandService {
   /**4-Way floodfill (left, right, up, down):
-  * @returns {Set<number>} set of coordinates(formatted as a 1-D array).
-  * Coordinates correspond to pixels considered part of the mask.
-  */
+   * @returns {Set<number>} set of coordinates(formatted as a 1-D array).
+   * Coordinates correspond to pixels considered part of the mask.
+   */
   /* tslint:disable */
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
             tolerance: number): Set<number> {
@@ -49,10 +49,10 @@ export class MagicWandService {
   }
 
   /**@returns {Color} color attributes of the pixel at
-  * @param {number} xCoord and
-  * @param {number} yCoord based off of the original image supplied by
-  * @param {ImageData} imgData
-  */
+   * @param {number} xCoord and
+   * @param {number} yCoord based off of the original image supplied by
+   * @param {ImageData} imgData
+   */
   dataArrayToRgb(imgData: ImageData, xCoord: number, yCoord: number): Color {
     // Unpacks imgData for readability.
     const data: Uint8ClampedArray = imgData.data;
@@ -70,10 +70,10 @@ export class MagicWandService {
 
   // Converts coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
   /**@returns {number} index of the start of the pixel at
-  * @param {number} x and
-  * @param {number} y
-  * (which represents the red attribute of that pixel)
-  */
+   * @param {number} x and
+   * @param {number} y
+   * (which represents the red attribute of that pixel)
+   */
   coordToDataArrayIndex(x: number, y: number, width: number): number {
     return (x + (y * width)) * 4;
   }
@@ -81,19 +81,19 @@ export class MagicWandService {
   /* -----Additional Tools----- */
 
   /**@returns {Set<number>} mask that excludes the
-  * @param {Set<number>} mistake from original
-  * @param {Set<number>} mask
-  */
+   * @param {Set<number>} mistake from original
+   * @param {Set<number>} mask
+   */
   erase(mask: Set<number>, mistake: Set<number>): Set<number> {
     return SetOperator.difference(mask, mistake);
   }
 
   /**@returns {Set<number>} mask that excludes the current
-  * @param {Set<number>} originalMask
-  * Relative container that encompasses @originalMask is based on
-  * @param {number} height and
-  * @param {number} width
-  */
+   * @param {Set<number>} originalMask
+   * Relative container that encompasses @originalMask is based on
+   * @param {number} height and
+   * @param {number} width
+   */
   invert(originalMask: Set<number>, width: number, height: number)
     : Set<number> {
     let invertedMask: Set<number> = new Set();
@@ -114,25 +114,26 @@ export class MagicWandService {
 
 
   /**Smarter flood fill tool:
-  *
-  * Compares the tolerance against a set of
-  * reference pixels' colors as opposed to just an initial pixel's color.
-  * The user supplies a
-  * @param {Set<number>} scribbles set of pixels that is used to essentailly
-  * expand the range of the tolerance threshold as the floodfill
-  * percolates from the first-selected pixel.
-  */
+   *
+   * Compares the tolerance against a set of
+   * reference pixels' colors as opposed to just an initial pixel's color.
+   * The user supplies a
+   * @param {Set<number>} scribbles set of pixels that is used to essentailly
+   * expand the range of the tolerance threshold as the floodfill
+   * percolates from the first-selected pixel.
+   */
   scribbleFloodfill(imgData: ImageData, xCoord: number, yCoord: number,
                     tolerance: number, scribbles: Set<number>): Set<number> {
     return this.doFloodfill(imgData, xCoord, yCoord, tolerance, scribbles);
   }
 
   /**@returns {Array<object> [{red, green, blue}]} an array of color objects
-  * with attributes 'red', 'green', and 'blue'.
-  * @param {Set<number>} scribbles contains pixel indices, which are used
-  * to produce cooresponding color objects.
-  * @param {Set<number>} imgData is used with the 'scribbles' to extract the
-  * color values at the pixel indices.*/
+   * with attributes 'red', 'green', and 'blue'.
+   * @param {Set<number>} scribbles contains pixel indices, which are used
+   * to produce cooresponding color objects.
+   * @param {Set<number>} imgData is used with the 'scribbles' to extract the
+   * color values at the pixel indices.
+   */
   scribblesToColors(scribbles: Set<number>, imgData: ImageData)
     : Array<Color> {
     let colors: Array<Color> = [];
@@ -158,10 +159,10 @@ export class MagicWandService {
   }
 
   /**@returns {Array<number> [x, y]} a 2-D coordinate by converting
-  * @param {number} pixelIndex into the coordsponding [x, y] coordinate.
-  * @param {number} width should be the pixel width of the image that the
-  * pixelIndex belongs to.
-  */
+   * @param {number} pixelIndex into the coordsponding [x, y] coordinate.
+   * @param {number} width should be the pixel width of the image that the
+   * pixelIndex belongs to.
+   */
   pixelIndexToXYCoord(pixelIndex: number, width: number): Array<number> {
     return [((pixelIndex / 4) % width), (Math.floor((pixelIndex / 4) / width))];
   }
@@ -235,13 +236,13 @@ export class MagicWandService {
   }
 
   /**@returns {number} the straight line distance between the two colors
-  * @param {Array<number> [R, G, B]} basisColor and
-  * @param {Array<number> [R, G, B]} secondColor
-  * @IMPORTANT
-  * Does not sqrt distance to complete Euclidean dist formula b/c sqrt is
-  * an expense operation. Instead, can compare against tolerance in the
-  * squared space.
-  */
+   * @param {Array<number> [R, G, B]} basisColor and
+   * @param {Array<number> [R, G, B]} secondColor
+   * @IMPORTANT
+   * Does not sqrt distance to complete Euclidean dist formula b/c sqrt is
+   * an expense operation. Instead, can compare against tolerance in the
+   * squared space.
+   */
   rgbEuclideanDist(colorA: Color, colorB: Color): number {
     const dr = colorA.red - colorB.red;
     const dg = colorA.green - colorB.green;
@@ -251,9 +252,9 @@ export class MagicWandService {
   }
 
   /**@license MIT License <http://www.opensource.org/licenses/mit-license.php>
-  * Pretty good color distance from
-  * http://www.compuphase.com/cmetric.htm
-  */
+   * Pretty good color distance from
+   * http://www.compuphase.com/cmetric.htm
+   */
   colorDistance(a: Color, b: Color): number {
     const dr = a.red - b.red;
     const dg = a.green - b.green;
@@ -365,7 +366,7 @@ export class MagicWandService {
       if (previewMask.masksByTolerance[tolerance] === undefined) {
         previewMask.masksByTolerance[tolerance] = [];
       }
-      previewMask.masksByTolerance[tolerance].push(i*4);
+      previewMask.masksByTolerance[tolerance].push(i * 4);
     }
 
     return previewMask;
