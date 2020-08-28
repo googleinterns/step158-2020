@@ -378,8 +378,8 @@ interface Color {
 }
 
 interface PixelNode {
-  distance,
-  index
+  distance: number,
+  index: number
 }
 
   /**Tracks all versions of masks for 'preview' of floodfill.
