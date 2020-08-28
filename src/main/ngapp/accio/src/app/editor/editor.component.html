@@ -43,12 +43,15 @@
         [tolerance]="tolerance"
         [disableFloodFill]="disableFloodFill"
         [tool]="maskTool"
+        [translationCoords]="destinationCoords"
         (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"
         (newPaintMaskEvent)="maskControllerPaint()"
         (newMouseMoveEvent)="setCursorPosition($event)"
-        (newMouseOutEvent)="setCursorOut()">
+        (newMouseOutEvent)="setCursorOut()"
+        (newPanEvent)="pan($event)"
+        (newDestinationEvent)="setDestinationCoords($event)">
       </canvas>
 
       <canvas #cursorCanvas id="cursor-layer"

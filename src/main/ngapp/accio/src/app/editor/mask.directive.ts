@@ -21,6 +21,7 @@ export class MaskDirective {
   @Input() tolerance: number;
   @Input() disableFloodFill: boolean;
   @Input() tool: MaskTool;
+  @Input() translationCoords: Coordinate;
 
   @Output() newMaskEvent = new EventEmitter<Mask.MaskAction>();
   @Output() newPaintEvent = new EventEmitter<Coordinate>();
@@ -29,6 +30,9 @@ export class MaskDirective {
 
   @Output() newMouseMoveEvent = new EventEmitter<MouseEvent>();
   @Output() newMouseOutEvent = new EventEmitter<void>();
+
+  @Output() newPanEvent = new EventEmitter<Coordinate>();
+  @Output() newDestinationEvent = new EventEmitter<Coordinate>();
 
   // Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
@@ -84,12 +88,19 @@ export class MaskDirective {
         this.continuePaintEvent.emit(pixel);
       }
     }
+
+    else if (this.tool == MaskTool.PAN) {
+      this.mouseDown = true;
+      this.coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
+
+    }
   }
 
   /**
    * Listens for mouse movement over appMask, executes if user's mouse is clicked.
    * For each movement, the pixel is added to the paintPixels set and then painted
    *   on the canvas.
+   * If the user's tool is pan, then emits an event to redraw image given new offset.
    */
   @HostListener('mousemove', ['$event'])
   onMouseMove(e: MouseEvent) {
@@ -118,6 +129,15 @@ export class MaskDirective {
       // Fire event to draw pixel
       this.continuePaintEvent.emit(pixel);
     }
+
+    else if (this.tool == MaskTool.PAN && this.mouseDown) {
+      const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
+      console.log('offsetCoord' + (offsetCoord[0] - this.coord[0]) + ' ' + (offsetCoord[1] - this.coord[1]));
+      this.newPanEvent.emit(
+        new Coordinate((offsetCoord[0] - this.coord[0] + this.translationCoords.x), 
+                       (offsetCoord[1] - this.coord[1] + this.translationCoords.y))
+      );
+    }
     this.newMouseMoveEvent.emit(e);
   }
 
@@ -141,7 +161,7 @@ export class MaskDirective {
    */
   @HostListener('mouseup', ['$event'])
   onMouseUp(e: MouseEvent) {
-      this.mouseDown = false;
+    this.mouseDown = false;
     //  If user has paint selected, call paint to add pixels painted to master.
     //  TODO Pass back a set of all pixels added to the mask. aka, draw paint pixels then capture then make mask action
     if (this.tool == MaskTool.PAINT || this.tool == MaskTool.ERASE) {
@@ -195,13 +215,20 @@ export class MaskDirective {
         )
       );
     }
+    else if (this.tool == MaskTool.PAN) {
+      const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
+      this.newDestinationEvent.emit(
+        new Coordinate((offsetCoord[0] - this.coord[0] + this.translationCoords.x), 
+                       (offsetCoord[1] - this.coord[1] + this.translationCoords.y))
+      );
+    }
   }
 
   convertToUnscaledCoord(xOffset: number, yOffset: number): Array<number> {
     console.log(`this scale: ${this.scale} this offset x: ${xOffset}`)
     return new Array<number>(
-      Math.floor(xOffset / this.scale),
-      Math.floor(yOffset / this.scale)
+      Math.floor(xOffset / this.scale) - this.translationCoords.x,
+      Math.floor(yOffset / this.scale) - this.translationCoords.y
     );
   }
 }

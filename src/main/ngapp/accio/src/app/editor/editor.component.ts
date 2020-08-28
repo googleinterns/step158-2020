@@ -100,6 +100,10 @@ export class EditorComponent implements OnInit {
   //  Array<any> because info comes from survlet as json array
   imageArray: Array<Object>;
 
+  // The coordinates in the destination canvas at which to place 
+  //   the top-left corner of the source image. inputed from maskDirective
+  destinationCoords: Coordinate;
+
   // Inject canvas from html.
   @ViewChild('scaledCanvas', { static: true })
   scaledCanvas: ElementRef<HTMLCanvasElement>;
@@ -133,6 +137,7 @@ export class EditorComponent implements OnInit {
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
     this.brushWidth = 5;
+    this.destinationCoords = new Coordinate(0,0);
     document.body.classList.remove('busy-cursor');
 
     //  Gets last image array that user sorted on img-gallery page. Saves to session storage to keep through refresh.
@@ -267,7 +272,7 @@ export class EditorComponent implements OnInit {
     );
     this.maskCtx.clearRect(0, 0, imgWidth, imgHeight);
 
-    this.drawScaledImage();
+    this.drawScaledImage(this.destinationCoords.x, this.destinationCoords.y);
 
     // If there is a mask URL passed in then draw mask.
     if (this.maskUrl != '' && this.maskUrl) {
@@ -284,7 +289,7 @@ export class EditorComponent implements OnInit {
         console.log(`maskImage.width = ${maskImage.width}`);
         console.log(`image.width = ${this.image.width}`);
 
-        this.drawMask();
+        this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
       };
       maskImage.src = this.maskUrl;
     }
@@ -363,15 +368,20 @@ export class EditorComponent implements OnInit {
 
   /**
    *  Draws user's image scaled to canvas and restores ctx.
+   *  @param dx The x-axis coordinate in the destination canvas 
+   *    at which to place the top-left corner of the source image.
+   *  @param dy The y-axis coordinate in the destination canvas
+   *    at which to place the top-left corner of the source image.
    */
-  private drawScaledImage() {
+  private drawScaledImage(dx: number, dy: number) {
     this.imageCtx.clearRect(0,0,this.imageCanvas.nativeElement.width, this.imageCanvas.nativeElement.height);
     this.imageCtx.save();
+   // this.imageCtx.translate(dx, dy);
     this.imageCtx.scale(this.scaleFactor, this.scaleFactor);
     this.imageCtx.drawImage(
       this.image,
-      0,
-      0,
+      dx,
+      dy,
       this.image.width,
       this.image.height
     );
@@ -384,22 +394,27 @@ export class EditorComponent implements OnInit {
    *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
    *  Disables Flood fill before maskUrl is being set so new data isn't added
    *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
+   *  @param dx The x-axis coordinate in the destination canvas 
+   *    at which to place the top-left corner of the source image.
+   *  @param dy The y-axis coordinate in the destination canvas
+   *    at which to place the top-left corner of the source image.
    */
-  private drawMask() {
+  private drawMask(dx: number, dy: number) {
     this.clearScaledCanvas();
     console.log(`scaleFactor in draw mask ${this.scaleFactor}`)
     createImageBitmap(this.maskImageData).then((renderer) => {
-    this.scaledCtx.save();
+      this.scaledCtx.save();
+      //this.scaledCtx.translate(dx, dy);
       this.scaledCtx.scale(this.scaleFactor, this.scaleFactor);
       this.scaledCtx.globalAlpha = this.maskAlpha;
       this.scaledCtx.drawImage(
         renderer,
-        0,
-        0,
+        dx,
+        dy,
         this.image.width,
         this.image.height
       );
-    this.scaledCtx.restore();
+      this.scaledCtx.restore();
     });
   }
 
@@ -553,7 +568,7 @@ export class EditorComponent implements OnInit {
       new MaskAction(Action.INVERT, Tool.INVERT, this.allPixels)
     );
     this.setMaskTo(this.maskControllerService.getMask());
-    this.drawMask();
+    this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
     if (
       this.maskTool == MaskTool.MAGIC_WAND_ADD ||
       this.maskTool == MaskTool.MAGIC_WAND_SUB
@@ -601,7 +616,7 @@ export class EditorComponent implements OnInit {
       ? this.maskControllerService.undo()
       : this.maskControllerService.redo();
     this.setMaskTo(this.maskControllerService.getMask());
-    this.drawMask();
+    this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
     this.disableSubmit = this.disableFloodFill = false;
   }
 
@@ -624,7 +639,7 @@ export class EditorComponent implements OnInit {
     //  All cases beside 'magic-wand' must disableFloodFill.
     this.disableFloodFill = true;
     if (this.maskTool == MaskTool.MASK_ONLY) {
-      this.drawScaledImage();
+      this.drawScaledImage(this.destinationCoords.x, this.destinationCoords.y);
     }
     switch (tool) {
       case MaskTool.MAGIC_WAND_ADD:
@@ -639,6 +654,9 @@ export class EditorComponent implements OnInit {
         break;
       case MaskTool.ERASE:
         this.maskTool = MaskTool.ERASE;
+        break;
+      case MaskTool.PAN:
+        this.maskTool = MaskTool.PAN;
         break;
       case MaskTool.MASK_ONLY:
         this.maskTool = MaskTool.MASK_ONLY;
@@ -666,7 +684,7 @@ export class EditorComponent implements OnInit {
     this.maskAlpha = Math.min(Math.max(value, 0.0), 1.0);
     //  Draw mask with new maskAlpha value.
     this.disableFloodFill = true;
-    this.drawMask();
+    this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
     if (
       this.maskTool == MaskTool.MAGIC_WAND_ADD ||
       this.maskTool == MaskTool.MAGIC_WAND_SUB
@@ -707,7 +725,7 @@ export class EditorComponent implements OnInit {
     } else {
       this.maskControllerService.do(maskAction);
     }
-    this.drawMask();
+    this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
     this.disableSubmit = this.disableFloodFill = false;
   }
 
@@ -764,7 +782,7 @@ export class EditorComponent implements OnInit {
       this.image.width,
       this.image.height
     );
-    this.drawMask();
+    this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
   }
 
   /**
@@ -801,9 +819,19 @@ export class EditorComponent implements OnInit {
   */
   zoom(zoom: Zoom) {
     this.scaleCanvas(zoom);
-    this.drawScaledImage();
-    this.drawMask();
+    this.drawScaledImage(this.destinationCoords.x, this.destinationCoords.y);
+    this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
   } 
+
+  pan(destination: Coordinate) {
+    this.drawScaledImage(destination.x, destination.y);
+    this.drawMask(destination.x, destination.y);
+  }
+
+  setDestinationCoords(destination: Coordinate) {
+    this.destinationCoords = destination;
+    this.pan(this.destinationCoords);
+  }
 }
 
 // Required for typescript compiler; used for typing with cursorCanvas.
