@@ -97,13 +97,13 @@
   <div *ngFor="let image of imageArray; index as i" class="gallery-item">
     <div>
       <div title="Existing Mask" id="mask-tab" [hidden]="!hasMask(image)"><p>MASK</p></div> 
-      <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMask(image['masks']), i]">
+      <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMaskName(image), getFirstMask(image['masks']), i]">
         <img class="gallery-img" [src]="image['url']" />
       </a>
     </div>
     <div class="tab">
       <div class="gallery-item-name">
-        <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMask(image['masks']), i]">
+        <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMaskName(image), getFirstMask(image['masks']), i]">
           <p>{{ image["name"] }}</p>
         </a>
       </div>
@@ -134,14 +134,17 @@
 <div class="gallery" *ngIf="displayMasks">
   <ng-container *ngFor="let image of imageArray; index as j">
     <div *ngFor="let mask of image['masks']; index as k"  class="gallery-item">
+      <script>
+        console.log(mask['name']);
+      </script>
       <div>
-        <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['url'], j, k]">
+        <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['name'], mask['url'], j, k]">
           <img class="gallery-img" [src]="mask['url']" />
         </a>
       </div>
       <div class="tab">
         <div class="gallery-item-name">
-          <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['url'], j, k]">
+          <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['name'], mask['url'], j, k]">
             <p>{{ mask["name"] }}</p>
           </a>
         </div>
