@@ -25,7 +25,7 @@ export class EditorComponent implements OnInit {
     private router: Router,
     private postBlobsService: PostBlobsService,
     private fetchImagesService: FetchImagesService,
-    private maskControllerService: MaskControllerService,
+    private maskControllerService: MaskControllerService
   ) {
     //  Tells Router to not reuse route so when url is changed,
     //    reloads component with new url info.
@@ -55,6 +55,8 @@ export class EditorComponent implements OnInit {
   displayMaskForm: boolean = false;
   disableSubmit: boolean = false;
 
+  allPixels: Set<number>;
+
   stageWidth: number;
   stageHeight: number;
   brushWidth: number;
@@ -62,14 +64,14 @@ export class EditorComponent implements OnInit {
   MAGENTA: string = 'rgba(255, 0, 255, 1)';
   DESTINATION_OUT: string = 'destination-out';
   SOURCE_OVER: string = 'source-over';
-  
+
   // Form variables.
   uploadMaskForm: FormGroup;
   formData: FormData;
   projectId: string;
   parentName: string;
   maskUrl: string;
-  blobMask: Blob; 
+  blobMask: Blob;
 
   // scaleFactor is used to trim image scale so image
   //   is smaller than width and height of the user's screen.
@@ -86,7 +88,7 @@ export class EditorComponent implements OnInit {
 
   //  Declares the type of tool the user has selected from the tool bar:
   //      'magic-wand' = flood fill algorithm enabled.
-  //      'mask-only' = user sees only the mask and cannot use the magic wand tool. 
+  //      'mask-only' = user sees only the mask and cannot use the magic wand tool.
   maskTool: MaskTool;
 
   //  Stores image that user queued from img-Gallery for next and prev arrows.
@@ -95,7 +97,7 @@ export class EditorComponent implements OnInit {
 
   // Inject canvas from html.
   @ViewChild('scaledCanvas', { static: true })
-  scaledCanvas: ElementRef<HTMLCanvasElement>; 
+  scaledCanvas: ElementRef<HTMLCanvasElement>;
   private scaledCtx: CanvasRenderingContext2D;
 
   // Overlays custom "cursor" that changes based on brush size.
@@ -105,7 +107,7 @@ export class EditorComponent implements OnInit {
 
   //  Holds static user image for background.
   @ViewChild('imageCanvas', { static: true })
-  imageCanvas: ElementRef<HTMLCanvasElement>; 
+  imageCanvas: ElementRef<HTMLCanvasElement>;
   private imageCtx: CanvasRenderingContext2D;
 
   //  Unscaled canvas that is used to save mask
@@ -125,17 +127,24 @@ export class EditorComponent implements OnInit {
 
     //  Gets last image array that user sorted on img-gallery page. Saves to session storage to keep through refresh.
     //  If gallery reloaded a new Image array, newArray is set to true to signify the need to re-fetch array.
-    if (!window.sessionStorage.getItem('imageArray') || this.fetchImagesService.newArray) {
-      this.fetchImagesService.currentImages.subscribe(newImages => this.imageArray = newImages);
-      window.sessionStorage.setItem('imageArray', JSON.stringify(this.imageArray));
-      //  Images have been re-fetched, set new to false. 
+    if (
+      !window.sessionStorage.getItem('imageArray') ||
+      this.fetchImagesService.newArray
+    ) {
+      this.fetchImagesService.currentImages.subscribe(
+        (newImages) => (this.imageArray = newImages)
+      );
+      window.sessionStorage.setItem(
+        'imageArray',
+        JSON.stringify(this.imageArray)
+      );
+      //  Images have been re-fetched, set new to false.
       this.fetchImagesService.newArray = false;
-    }
-    else {
+    } else {
       this.imageArray = JSON.parse(window.sessionStorage.getItem('imageArray'));
     }
-    
-    this.route.paramMap.subscribe(params => {
+
+    this.route.paramMap.subscribe((params) => {
       this.projectId = params.get('proj-id ');
       this.parentName = params.get('parent-img ');
       this.imageUrl = params.get('img-url ');
@@ -146,11 +155,14 @@ export class EditorComponent implements OnInit {
         if (params.get('mask-index')) {
           this.maskIndex = Number(params.get('mask-index'));
         }
-      }
-      catch {
-        console.log(`index: ${params.get('index ')} or ${params.get('mask-index')} could not be parsed as number.`);
+      } catch {
+        console.log(
+          `index: ${params.get('index ')} or ${params.get(
+            'mask-index'
+          )} could not be parsed as number.`
+        );
         this.index = 0;
-        if(params.get('mask-index')) {
+        if (params.get('mask-index')) {
           this.maskIndex = 0;
         }
         this.router.navigate([`img-gallery/${this.projectId}`]);
@@ -177,10 +189,10 @@ export class EditorComponent implements OnInit {
       this.mySubscription.unsubscribe();
     }
   }
-  
+
   /**
    *  Draws the image user selects from gallery on Canvas
-   *    and creates a hidden canvas to store the original image 
+   *    and creates a hidden canvas to store the original image
    *    as a reference when scaling the imageUI.
    *  Assumes Image has loaded, i.e. image src is set before initCanvas
    *    is called (using onload).
@@ -192,19 +204,23 @@ export class EditorComponent implements OnInit {
     // Initialize transparent black image data to use for mask size of image
     this.maskImageData = new ImageData(imgWidth, imgHeight);
 
-    //  Used to scale the image to the window size, 
+    //  Used to scale the image to the window size,
     //    scaleFactor = .9 so the scaled image is smaller than the user's window.
-    this.scaleFactor = (window.innerHeight / imgHeight * this.scaleFactor);
+    this.scaleFactor = (window.innerHeight / imgHeight) * this.scaleFactor;
     try {
-      this.scaleFactor = Number((this.scaleFactor.toFixed(2)));
+      this.scaleFactor = Number(this.scaleFactor.toFixed(2));
       console.log(this.scaleFactor + ' this.scaleFactor');
     } catch {
       this.scaleFactor = 1;
-      console.log(`scale factor: ${this.scaleFactor.toFixed(2)} could not be converted to number`)
+      console.log(
+        `scale factor: ${this.scaleFactor.toFixed(
+          2
+        )} could not be converted to number`
+      );
     }
     // if scale is < .01, just set the scale manually
     if (this.scaleFactor <= 0) {
-      this.scaleFactor =  .01;
+      this.scaleFactor = 0.01;
     }
 
     // Canvas to draw mask, hidden.
@@ -238,22 +254,34 @@ export class EditorComponent implements OnInit {
     //  Only gets the image data from (0,0) to (width,height) of image.
     this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth, imgHeight);
     this.maskCtx.clearRect(0,0,imgWidth, imgHeight);
-    
+
     this.drawScaledImage();
 
     // If there is a mask URL passed in then draw mask.
     if (this.maskUrl != '' && this.maskUrl) {
-      console.log('there\'s a mask url' + this.maskUrl);
+      console.log("there's a mask url" + this.maskUrl);
       let maskImage = new Image();
       maskImage.onload = () => {
         this.maskCtx.drawImage(maskImage, 0, 0);
-        this.maskImageData = this.maskCtx.getImageData(0, 0, maskImage.width, maskImage.height);
+        this.maskImageData = this.maskCtx.getImageData(
+          0,
+          0,
+          maskImage.width,
+          maskImage.height
+        );
         this.drawMask();
-      }
+      };
       maskImage.src = this.maskUrl;
     }
-  }
 
+    this.allPixels = new Set([
+      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
+        function (x) {
+          return x * 4;
+        }
+      ),
+    ]);
+  }
 
   /* The following 2 functions: Handles cursor tracking and resizing. */
   
@@ -266,8 +294,14 @@ export class EditorComponent implements OnInit {
     this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
 
     this.cursorCtx.beginPath();
-    this.cursorCtx.arc(this.cursorX, this.cursorY,
-        this.brushWidth * this.scaleFactor * .5, 0, 2 * Math.PI, true);
+    this.cursorCtx.arc(
+      this.cursorX,
+      this.cursorY,
+      this.brushWidth * this.scaleFactor * 0.5,
+      0,
+      2 * Math.PI,
+      true
+    );
     this.cursorCtx.fillStyle = 'rgba(255, 0, 0, .5)';
     this.cursorCtx.strokeStyle = 'black';
     this.cursorCtx.stroke();
@@ -283,38 +317,55 @@ export class EditorComponent implements OnInit {
   * Clears full canvas.
   */
   private clearScaledCanvas() {
-    this.scaledCtx.clearRect(0, 0, this.scaledCanvas.nativeElement.width, this.scaledCanvas.nativeElement.height);
+    this.scaledCtx.clearRect(
+      0,
+      0,
+      this.scaledCanvas.nativeElement.width,
+      this.scaledCanvas.nativeElement.height
+    );
   }
 
- /**
-  *  Draws user's image scaled to canvas and restores ctx.
-  */
+  /**
+   *  Draws user's image scaled to canvas and restores ctx.
+   */
   private drawScaledImage() {
     this.imageCtx.save();
-    this.imageCtx.scale(this.scaleFactor, this.scaleFactor); 
-    this.imageCtx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
+    this.imageCtx.scale(this.scaleFactor, this.scaleFactor);
+    this.imageCtx.drawImage(
+      this.image,
+      0,
+      0,
+      this.image.width,
+      this.image.height
+    );
     this.imageCtx.restore();
   }
 
-/**  
-  *  Makes a png of mask so the the background is transparent.
-  *  Clears canvas, draws the original image and draws the mask.
-  *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
-  *  Disables Flood fill before maskUrl is being set so new data isn't added
-  *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
-  */  
+  /**
+   *  Makes a png of mask so the the background is transparent.
+   *  Clears canvas, draws the original image and draws the mask.
+   *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
+   *  Disables Flood fill before maskUrl is being set so new data isn't added
+   *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
+   */
   private drawMask() {
     this.clearScaledCanvas();
     this.scaledCtx.save();
     this.scaledCtx.scale(this.scaleFactor, this.scaleFactor);
-    createImageBitmap(this.maskImageData).then(renderer => {    
+    createImageBitmap(this.maskImageData).then((renderer) => {
       this.scaledCtx.globalAlpha = this.maskAlpha;
-      this.scaledCtx.drawImage(renderer, 0, 0, this.scaledCanvas.nativeElement.width, this.scaledCanvas.nativeElement.height);
+      this.scaledCtx.drawImage(
+        renderer,
+        0,
+        0,
+        this.scaledCanvas.nativeElement.width,
+        this.scaledCanvas.nativeElement.height
+      );
     });
     this.scaledCtx.restore();
   }
 
-  /** 
+  /**
    * Initializes Form group and data as new
    * Initializes @param projectId
    */
@@ -326,9 +377,9 @@ export class EditorComponent implements OnInit {
     this.formData = new FormData();
   }
 
- /** 
-  * Builds ImageBlob to be appended to form and posted.
-  */
+  /**
+   * Builds ImageBlob to be appended to form and posted.
+   */
   async onSubmit(): Promise<void> {
     //  Name is a required input. If it's null, do nothing.
     if (!this.uploadMaskForm.get('maskName').value) {
@@ -338,13 +389,13 @@ export class EditorComponent implements OnInit {
     await this.getMaskBlob();
 
     let imageBlob = new ImageBlob(
-      this.projectId, 
-      /*imageName=*/this.uploadMaskForm.get('maskName').value,
-      /*mode=*/'create', 
-      /*image=*/this.blobMask,
-      /*parentImageName=*/this.parentName,
-      /*newImageName=*/'',
-      /*tags=*/this.uploadMaskForm.get('tags').value
+      this.projectId,
+      /*imageName=*/ this.uploadMaskForm.get('maskName').value,
+      /*mode=*/ 'create',
+      /*image=*/ this.blobMask,
+      /*parentImageName=*/ this.parentName,
+      /*newImageName=*/ '',
+      /*tags=*/ this.uploadMaskForm.get('tags').value
     );
 
     this.postBlobsService.buildForm(
@@ -359,111 +410,128 @@ export class EditorComponent implements OnInit {
     this.initMaskForm();
   }
 
-  /** 
+  /**
    *  Gets current mask's url and sets the mask as a Blob to be uploaded to server. TODO HERE UPDATE URL
    */
   async getMaskBlob(): Promise<void> {
-    this.blobMask = await fetch(this.getMaskUrl()).then(response => response.blob());
+    this.blobMask = await fetch(this.getMaskUrl()).then((response) =>
+      response.blob()
+    );
   }
 
-   /** 
-  *  Draws Mask Data onto unscaled canvas to save as image or blob.
-  *  @returns url of newly created mask.
-  */
+  /**
+   *  Draws Mask Data onto unscaled canvas to save as image or blob.
+   *  @returns url of newly created mask.
+   */
   getMaskUrl(): string {
-    this.maskCtx.clearRect(0, 0, this.maskCanvas.nativeElement.width, this.maskCanvas.nativeElement.height);
+    this.maskCtx.clearRect(
+      0,
+      0,
+      this.maskCanvas.nativeElement.width,
+      this.maskCanvas.nativeElement.height
+    );
     this.maskCtx.beginPath();
     this.maskCtx.putImageData(this.maskImageData, 0, 0);
     return this.maskCanvas.nativeElement.toDataURL();
   }
 
- /** 
-  *  Returns the RouterLink for the next or previous image in the user's last selection 
-  *    of gallery images. If the user clicked on a specific mask, returns the next mask.
-  *  @param previous signifies whether the user has selected the previous image button.
-  */
+  /**
+   *  Returns the RouterLink for the next or previous image in the user's last selection
+   *    of gallery images. If the user clicked on a specific mask, returns the next mask.
+   *  @param previous signifies whether the user has selected the previous image button.
+   */
   switchImage(previous: boolean) {
     // If user clicks on an image's mask, then newImage will loop through all the image's masks.
     if (this.maskIndex == 0 || this.maskIndex) {
       let maskObject = this.imageArray[this.index]['masks'];
       if (previous) {
-        (this.maskIndex - 1 < 0) ? this.maskIndex = maskObject.length - 1 : --this.maskIndex;
-      }
-      else {
-        (this.maskIndex + 1 >= maskObject.length) ? this.maskIndex = 0 : ++this.maskIndex;
+        this.maskIndex - 1 < 0
+          ? (this.maskIndex = maskObject.length - 1)
+          : --this.maskIndex;
+      } else {
+        this.maskIndex + 1 >= maskObject.length
+          ? (this.maskIndex = 0)
+          : ++this.maskIndex;
       }
       let nextMask = this.imageArray[this.index]['masks'][this.maskIndex];
-      this.router.navigate(
-        ['/editor', this.projectId, 
-        this.parentName, this.imageUrl, 
-        nextMask['url'], this.index, 
-        this.maskIndex]
-      );
+      this.router.navigate([
+        '/editor',
+        this.projectId,
+        this.parentName,
+        this.imageUrl,
+        nextMask['url'],
+        this.index,
+        this.maskIndex,
+      ]);
     }
 
     //  Otherwise, newImage loops through the images last fetched in the imageArray
     else {
       if (previous) {
-        (this.index - 1 < 0) ? this.index = this.imageArray.length - 1 : --this.index;
-      }
-      else {
-        (this.index + 1 >= this.imageArray.length) ? this.index = 0 : ++this.index;
+        this.index - 1 < 0
+          ? (this.index = this.imageArray.length - 1)
+          : --this.index;
+      } else {
+        this.index + 1 >= this.imageArray.length
+          ? (this.index = 0)
+          : ++this.index;
       }
       let nextImage = this.imageArray[this.index];
-      this.router.navigate(
-        ['/editor', this.projectId, 
-        nextImage['name'], nextImage['url'], 
-        this.getFirstMask(nextImage['masks']), 
-        this.index]
-      );
+      this.router.navigate([
+        '/editor',
+        this.projectId,
+        nextImage['name'],
+        nextImage['url'],
+        this.getFirstMask(nextImage['masks']),
+        this.index,
+      ]);
     }
   }
 
   /** Helper function to get the first mask in an image's mask, to be drawn if a selected image has an existing mask. */
   getFirstMask(mask: Object): string {
     if (mask[0]) {
-      return (mask[0]['url']);
+      return mask[0]['url'];
     }
     console.log('no url found');
     return '';
   }
 
   /** FUNCTIONS CALLED FROM EMITTED EVENTS */
-    
+
   /**
-  *  Sets all pixels to magenta and inverts their alpha to display them or not. 
-  *  Disables flood fill and submit to avoid conflict as mask updates.
-  *  class @param this.disableSubmit set equal to true before pixels updated 
-  *    so submit isn't called before mask is drawn and url is updated.
-  *  class @param this.disableFloodFill must equal true before called because
-  *    maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
-  *    (flood fill not allowed any other time).
-  *  Called when invert event is emitted from top toolbar
-  */
+   *  Sets all pixels to magenta and inverts their alpha to display them or not.
+   *  Disables flood fill and submit to avoid conflict as mask updates.
+   *  class @param this.disableSubmit set equal to true before pixels updated
+   *    so submit isn't called before mask is drawn and url is updated.
+   *  class @param this.disableFloodFill must equal true before called because
+   *    maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
+   *    (flood fill not allowed any other time).
+   *  Called when invert event is emitted from top toolbar
+   */
   invertMask() {
     this.disableSubmit = this.disableFloodFill = true;
     this.maskControllerService.do(
-      new MaskAction(
-        Action.INVERT,
-        Tool.INVERT,
-        new Set([...Array(this.originalImageData.data.length).keys()])
-      )
+      new MaskAction(Action.INVERT, Tool.INVERT, this.allPixels)
     );
     this.setMaskTo(this.maskControllerService.getMask());
     this.drawMask();
-    if (this.maskTool == MaskTool.MAGIC_WAND_ADD || this.maskTool == MaskTool.MAGIC_WAND_SUB) {
+    if (
+      this.maskTool == MaskTool.MAGIC_WAND_ADD ||
+      this.maskTool == MaskTool.MAGIC_WAND_SUB
+    ) {
       this.disableFloodFill = false;
     }
     this.disableSubmit = false;
   }
 
- /**
-  *  Called when event is clearEvent is emitted from top-toolbar. Clears canvas of old mask.
-  *  Clears old image data. Disables submit while mask is updating.
-  *  class @param this.disableFloodFill must equal true before called because 
-  *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
-  *     (flood fill not allowed any other time).
-  */
+  /**
+   *  Called when event is clearEvent is emitted from top-toolbar. Clears canvas of old mask.
+   *  Clears old image data. Disables submit while mask is updating.
+   *  class @param this.disableFloodFill must equal true before called because
+   *     maskImageData is being updated. Only switched to false if user tool is 'magic-wand'
+   *     (flood fill not allowed any other time).
+   */
   clearMask() {
     this.disableFloodFill = true;
     this.maskImageData = new ImageData(this.image.width, this.image.height);
@@ -477,16 +545,23 @@ export class EditorComponent implements OnInit {
       )
     );
     this.disableSubmit = false;
-    if (this.maskTool == MaskTool.MAGIC_WAND_ADD || this.maskTool == MaskTool.MAGIC_WAND_SUB) {
+    if (
+      this.maskTool == MaskTool.MAGIC_WAND_ADD ||
+      this.maskTool == MaskTool.MAGIC_WAND_SUB
+    ) {
       this.disableFloodFill = false;
     }
   }
 
-
-  /** Undoes or redoes what the user had previously marked. Event emitted by top-toolbar */
+  /**
+   * Undoes or redoes what the user had previously marked. Event emitted by top-toolbar or
+   * called based on key presses.
+   */
   undoRedo(direction: string): void {
     this.disableSubmit = this.disableFloodFill = true;
-    (direction == 'undo') ? this.maskControllerService.undo() : this.maskControllerService.redo();
+    direction == 'undo'
+      ? this.maskControllerService.undo()
+      : this.maskControllerService.redo();
     this.setMaskTo(this.maskControllerService.getMask());
     this.drawMask();
     this.disableSubmit = this.disableFloodFill = false;
@@ -496,17 +571,16 @@ export class EditorComponent implements OnInit {
   setMaskTo(pixels: Set<number>): void {
     this.maskImageData = new ImageData(this.image.width, this.image.height);
     for (let pixel of pixels) {
-      this.maskImageData.data[pixel] = 255;      
-      this.maskImageData.data[pixel + 1] = 0;
+      this.maskImageData.data[pixel] = 255;
       this.maskImageData.data[pixel + 2] = 255;
       this.maskImageData.data[pixel + 3] = 255;
     }
   }
 
- /**
-  *  Updates the value of the Toolbar toggle group.
-  *  If the tool is switching from maskOnly, then it redraws the image on the imageCanvas.
-  */
+  /**
+   *  Updates the value of the Toolbar toggle group.
+   *  If the tool is switching from maskOnly, then it redraws the image on the imageCanvas.
+   */
   updateMaskTool(tool: string) {
     console.log('New Tool: ' + tool);
     //  All cases beside 'magic-wand' must disableFloodFill.
@@ -515,11 +589,11 @@ export class EditorComponent implements OnInit {
       this.drawScaledImage();
     }
     switch (tool) {
-      case MaskTool.MAGIC_WAND_ADD: 
+      case MaskTool.MAGIC_WAND_ADD:
         this.maskTool = MaskTool.MAGIC_WAND_ADD;
         this.disableFloodFill = false;
         break;
-      case MaskTool.MAGIC_WAND_SUB: 
+      case MaskTool.MAGIC_WAND_SUB:
         this.maskTool = MaskTool.MAGIC_WAND_SUB;
         break;
       case MaskTool.PAINT:
@@ -530,7 +604,12 @@ export class EditorComponent implements OnInit {
         break;
       case MaskTool.MASK_ONLY:
         this.maskTool = MaskTool.MASK_ONLY;
-        this.imageCtx.clearRect(0,0,this.imageCanvas.nativeElement.width, this.imageCanvas.nativeElement.height);
+        this.imageCtx.clearRect(
+          0,
+          0,
+          this.imageCanvas.nativeElement.width,
+          this.imageCanvas.nativeElement.height
+        );
         break;
     }
     console.log('switched tool to ' + this.maskTool);
@@ -541,100 +620,120 @@ export class EditorComponent implements OnInit {
     this.tolerance = value;
   }
 
-   /** 
-  *  Retrieves new alpha value from child component toolbar and draws mask with new alpha.
-  *  The alpha value cannot be larger than 1 or less than 0, so the value is adjusted to fit in range.
-  */
+  /**
+   *  Retrieves new alpha value from child component toolbar and draws mask with new alpha.
+   *  The alpha value cannot be larger than 1 or less than 0, so the value is adjusted to fit in range.
+   */
   updateMaskAlpha(value: number) {
     this.maskAlpha = Math.min(Math.max(value, 0.0), 1.0);
     //  Draw mask with new maskAlpha value.
     this.disableFloodFill = true;
     this.drawMask();
-    if (this.maskTool == MaskTool.MAGIC_WAND_ADD || this.maskTool == MaskTool.MAGIC_WAND_SUB) {
+    if (
+      this.maskTool == MaskTool.MAGIC_WAND_ADD ||
+      this.maskTool == MaskTool.MAGIC_WAND_SUB
+    ) {
       this.disableFloodFill = false;
     }
   }
 
   /** Recieves new width from event emitted by child component: toolbar. */
   updateBrushWidth(width: number) {
-    this.brushWidth = width
+    this.brushWidth = width;
   }
 
- /** 
-  *  Sets new pixels in magenta, clears canvas of previous data 
-  *    and draws image and mask as scaled. Disables submit
-  *    on mask until the url is set. 
-  *  class @param this.disableFloodFill must equal true before pixels updated  
-  *    so another floodfill isn't called before one finishes.
-  *  class @param this.disableSubmit set equal to true before pixels updated 
-  *    so submit isn't called before mask is drawn and url is updated.
-  *  class @param maskPixels event Output() from mask.directive
-  *    Gives the new pixels to add to the mask
-  *  Only returned when maskTool is 'magic-wand', no need to check maskTool
-  */
+  /**
+   *  Sets new pixels in magenta, clears canvas of previous data
+   *    and draws image and mask as scaled. Disables submit
+   *    on mask until the url is set.
+   *  class @param this.disableFloodFill must equal true before pixels updated
+   *    so another floodfill isn't called before one finishes.
+   *  class @param this.disableSubmit set equal to true before pixels updated
+   *    so submit isn't called before mask is drawn and url is updated.
+   *  class @param maskPixels event Output() from mask.directive
+   *    Gives the new pixels to add to the mask
+   *  Only returned when maskTool is 'magic-wand', no need to check maskTool
+   */
   floodfillMask(maskAction: MaskAction) {
     this.disableSubmit = this.disableFloodFill = true;
     //  Changes if set of pixels are added or removed from the mask depending on the tool.
-    let alphaValue = (this.maskTool == MaskTool.MAGIC_WAND_ADD) ? 255: 0;
+    let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
 
     for (let pixel of maskAction.getChangedPixels()) {
       this.maskImageData.data[pixel] = 255;
       this.maskImageData.data[pixel + 2] = 255;
       this.maskImageData.data[pixel + 3] = alphaValue;
     }
-    this.maskControllerService.do(maskAction);
+    if (maskAction.getActionType() == Action.SUBTRACT) {
+      this.maskControllerService.do(maskAction, this.allPixels);
+    } else {
+      this.maskControllerService.do(maskAction);
+    }
     this.drawMask();
     this.disableSubmit = this.disableFloodFill = false;
   }
 
-   /** 
-  *  Sets the start pixel where the users initially clicks the canvas to draw.
-  *  @param pixel is the (x,y) coordinate the user first clicks on.
-  *  The global composition changes depending on whether the user is painting or erasing.
-  *  DESTINATION_OUT for erase, SOURCE_OVER for draw
-  */
+  /**
+   *  Sets the start pixel where the users initially clicks the canvas to draw.
+   *  @param pixel is the (x,y) coordinate the user first clicks on.
+   *  The global composition changes depending on whether the user is painting or erasing.
+   *  DESTINATION_OUT for erase, SOURCE_OVER for draw
+   */
   startDraw(pixel: Coordinate) {
     this.startPixel = pixel;
     this.maskCtx.clearRect(0, 0, this.image.width, this.image.height);
     this.maskCtx.putImageData(this.maskImageData, 0, 0);
-    this.maskCtx.globalCompositeOperation = 
-            (this.maskTool == MaskTool.PAINT || this.maskTool == MaskTool.MAGIC_WAND_ADD) 
-             ? this.SOURCE_OVER : this.DESTINATION_OUT;
+    this.maskCtx.globalCompositeOperation =
+      this.maskTool == MaskTool.PAINT ||
+      this.maskTool == MaskTool.MAGIC_WAND_ADD
+        ? this.SOURCE_OVER
+        : this.DESTINATION_OUT;
   }
 
- /** 
-  *  Draws or erases line between previous point user moved over and next point moved over.
-  *  Adjusts line width based on user input if user is in paint mode.
-  *  @param pixel is emitted after user moves over a new x,y coordinate on the canvas.
-  *  Sets this.startPixel to @param pixel to keep continuous drawing line.
-  */
+  /**
+   *  Draws or erases line between previous point user moved over and next point moved over.
+   *  Adjusts line width based on user input if user is in paint mode.
+   *  @param pixel is emitted after user moves over a new x,y coordinate on the canvas.
+   *  Sets this.startPixel to @param pixel to keep continuous drawing line.
+   */
   drawPixel(pixel: Coordinate) {
     this.maskCtx.beginPath();
-    
-    this.maskCtx.lineWidth = 
-        (this.maskTool == MaskTool.MAGIC_WAND_ADD || this.maskTool == MaskTool.MAGIC_WAND_SUB) 
-        ? 1 : this.brushWidth;
+
+    this.maskCtx.lineWidth =
+      this.maskTool == MaskTool.MAGIC_WAND_ADD ||
+      this.maskTool == MaskTool.MAGIC_WAND_SUB
+        ? 1
+        : this.brushWidth;
 
     this.maskCtx.moveTo(this.startPixel.x, this.startPixel.y);
     this.maskCtx.lineTo(pixel.x, pixel.y);
     this.maskCtx.stroke();
 
     this.startPixel = pixel;
-    this.maskImageData = this.maskCtx.getImageData(0, 0, this.image.width, this.image.height);
+    this.maskImageData = this.maskCtx.getImageData(
+      0,
+      0,
+      this.image.width,
+      this.image.height
+    );
     this.drawMask();
   }
 
- /**
-  *  catches emitted MaskAction from mask.directive and calls the undo/redo 'do' function.
-  */
+  /**
+   *  catches emitted MaskAction from mask.directive and calls the undo/redo 'do' function.
+   */
   newMaskController(maskAction: MaskAction) {
-    this.maskControllerService.do(maskAction);
+    if (maskAction.getActionType() == Action.SUBTRACT) {
+      this.maskControllerService.do(maskAction, this.allPixels);
+    } else {
+      this.maskControllerService.do(maskAction);
+    }
   }
 }
 
 // Required for typescript compiler; used for typing with cursorCanvas.
 // Represents a cursor position (coordinate w/ x, y properties).
 interface CursorPos {
-  x: number,
-  y: number
+  x: number;
+  y: number;
 }
