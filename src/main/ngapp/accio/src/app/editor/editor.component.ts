@@ -274,9 +274,12 @@ export class EditorComponent implements OnInit {
       maskImage.src = this.maskUrl;
     }
 
+    let totalNumPixels = this.originalImageData.data.length / 4;
     this.allPixels = new Set([
-      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
-        function (x) {
+      ...Array.from(Array(totalNumPixels).keys()).map(  
+        // Multiplies every value in the pixel array by 4 to obtain
+        // the indices of the pixels within the RBGA array
+        function (x) { 
           return x * 4;
         }
       ),
