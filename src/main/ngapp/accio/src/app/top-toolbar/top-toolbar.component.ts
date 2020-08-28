@@ -1,5 +1,6 @@
 import { HostListener, Component, OnInit } from '@angular/core';
 import { Output, EventEmitter } from '@angular/core';
+import { Zoom, UndoRedo, SwitchImage } from '../enums';
 
 @Component({
   selector: 'app-top-toolbar',
@@ -9,11 +10,15 @@ import { Output, EventEmitter } from '@angular/core';
 export class TopToolbarComponent implements OnInit {
   @Output() clearMaskEvent = new EventEmitter<void>();
   @Output() invertMaskEvent = new EventEmitter<void>();
-  @Output() undoRedoEvent = new EventEmitter<string>();
-  @Output() switchImageEvent = new EventEmitter<boolean>();
+  @Output() undoRedoEvent = new EventEmitter<UndoRedo>();
+  @Output() switchImageEvent = new EventEmitter<SwitchImage>();
   @Output() newToleranceEvent = new EventEmitter<number>();
-
+  @Output() newZoomEvent = new EventEmitter();
   toleranceValue: number;
+  // To use enum in html
+  Zoom = Zoom;
+  UndoRedo = UndoRedo;
+  SwitchImage = SwitchImage;
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown($event: KeyboardEvent) {
@@ -21,22 +26,22 @@ export class TopToolbarComponent implements OnInit {
       switch ($event.keyCode) {
         case 89:
           console.log('CTRL + Y');
-          this.undoRedo('redo');
+          this.undoRedo(UndoRedo.REDO);
           break;
         case 90:
           console.log('CTRL + Z');
-          this.undoRedo('undo');
+          this.undoRedo(UndoRedo.UNDO);
           break;
       }
     } else {
       switch ($event.keyCode) {
         case 37:
           console.log('left-arrow');
-          this.switchImage(true);
+          this.switchImage(SwitchImage.PREVIOUS);
           break;
         case 39:
           console.log('right-arrow');
-          this.switchImage(false);
+          this.switchImage(SwitchImage.NEXT);
           break;
         case 49:
           console.log('1');
@@ -52,8 +57,6 @@ export class TopToolbarComponent implements OnInit {
     }
   }
 
-  constructor() {}
-
   ngOnInit(): void {
     this.toleranceValue = 30;
   }
@@ -68,21 +71,25 @@ export class TopToolbarComponent implements OnInit {
     this.invertMaskEvent.emit();
   }
 
-  undoRedo(direction: string) {
+  undoRedo(direction: UndoRedo) {
     this.undoRedoEvent.emit(direction);
   }
 
-  switchImage(previous: boolean) {
+  switchImage(direction: SwitchImage) {
     const confirmSave = confirm(
       'Are you sure you want to switch images? Make sure to save your current mask!'
     );
     if (confirmSave) {
-      this.switchImageEvent.emit(previous);
+      this.switchImageEvent.emit(direction);
     }
   }
 
   /** Emits value of user inputed/slider tolerance. */
   updateTolerance() {
     this.newToleranceEvent.emit(this.toleranceValue);
+  }
+
+  zoom(zoomType: Zoom) {
+    this.newZoomEvent.emit(zoomType);
   }
 }

@@ -51,6 +51,7 @@ export class MaskDirective {
    */
   @HostListener('mousedown', ['$event'])
   onMouseDown(e: MouseEvent) {
+    console.log(this.scale);
     if (
       this.tool == MaskTool.PAINT ||
       this.tool == MaskTool.ERASE ||
@@ -196,10 +197,11 @@ export class MaskDirective {
     }
   }
 
-  convertToUnscaledCoord(xIn: number, yIn: number): Array<number> {
+  convertToUnscaledCoord(xOffset: number, yOffset: number): Array<number> {
+    console.log(`this scale: ${this.scale} this offset x: ${xOffset}`)
     return new Array<number>(
-      Math.floor(xIn / this.scale),
-      Math.floor(yIn / this.scale)
+      Math.floor(xOffset / this.scale),
+      Math.floor(yOffset / this.scale)
     );
   }
 }

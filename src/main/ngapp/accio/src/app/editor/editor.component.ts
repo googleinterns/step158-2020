@@ -11,6 +11,8 @@ import { Coordinate } from './Coordinate';
 import * as $ from 'jquery';
 import { MaskAction, Action, Tool } from './mask-action';
 import { MaskControllerService } from './mask-controller.service';
+import { Zoom, UndoRedo, SwitchImage } from '../enums';
+
 
 @Component({
   selector: 'app-editor',
@@ -45,6 +47,9 @@ export class EditorComponent implements OnInit {
   // Cursor varaibles.
   cursorX = 0;
   cursorY = 0;
+
+  ZOOM_IN: number = 2;
+  ZOOM_OUT: number = .5
 
   //  Display variables.
   private image: HTMLImageElement;
@@ -122,7 +127,7 @@ export class EditorComponent implements OnInit {
 
   ngOnInit() {
     this.image = new Image();
-    this.scaleFactor = 0.9;
+    this.scaleFactor = .9
     this.tolerance = 30;
     this.maskAlpha = 1;
     this.disableFloodFill = false;
@@ -209,20 +214,11 @@ export class EditorComponent implements OnInit {
     // Initialize transparent black image data to use for mask size of image
     this.maskImageData = new ImageData(imgWidth, imgHeight);
 
-    //  Used to scale the image to the window size,
-    //    scaleFactor = .9 so the scaled image is smaller than the user's window.
-    this.scaleFactor = (window.innerHeight / imgHeight) * this.scaleFactor;
-    try {
-      this.scaleFactor = Number(this.scaleFactor.toFixed(2));
-      console.log(this.scaleFactor + ' this.scaleFactor');
-    } catch {
-      this.scaleFactor = 1;
-      console.log(
-        `scale factor: ${this.scaleFactor.toFixed(
-          2
-        )} could not be converted to number`
-      );
-    }
+    // Set initial canvas height based on the window and image height and scaleFactor
+    //   of .9 to make the image smaller than the screen.
+    this.scaleFactor *= (window.innerHeight / this.image.height);
+    // Updates canvas scale initially so the entire image is on the canvas, zoom = 1.
+    this.scaleCanvas();
     // if scale is < .01, just set the scale manually
     if (this.scaleFactor <= 0) {
       this.scaleFactor = 0.01;
@@ -256,7 +252,6 @@ export class EditorComponent implements OnInit {
     this.imageCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.imageCtx = this.imageCanvas.nativeElement.getContext('2d');
 
-
     this.stageWidth = imgWidth * this.scaleFactor;
     this.stageHeight = imgHeight * this.scaleFactor;
 
@@ -283,9 +278,12 @@ export class EditorComponent implements OnInit {
         this.maskImageData = this.maskCtx.getImageData(
           0,
           0,
-          maskImage.width,
-          maskImage.height
+          imgWidth,
+          imgHeight
         );
+        console.log(`maskImage.width = ${maskImage.width}`);
+        console.log(`image.width = ${this.image.width}`);
+
         this.drawMask();
       };
       maskImage.src = this.maskUrl;
@@ -298,6 +296,27 @@ export class EditorComponent implements OnInit {
         }
       ),
     ]);
+  }
+
+ /**
+  * Creates a new scaleFactor depending on zoom and image height and width
+  * @param zoom is the amount the scale should zoom in or out, if there's 
+  *   no value given, then zoom defaults to none. 
+  */ 
+
+  scaleCanvas(zoom: number = 1) {
+    this.scaleFactor *= zoom;
+    try {
+      this.scaleFactor = Number(this.scaleFactor.toFixed(2));
+      console.log(this.scaleFactor + ' this.scaleFactor');
+    } catch {
+      this.scaleFactor = 1;
+      console.log(
+        `scale factor: ${this.scaleFactor.toFixed(
+          2
+        )} could not be converted to number`
+      );
+    }
   }
 
   /* Handles cursor tracking and resizing. */
@@ -346,6 +365,7 @@ export class EditorComponent implements OnInit {
    *  Draws user's image scaled to canvas and restores ctx.
    */
   private drawScaledImage() {
+    this.imageCtx.clearRect(0,0,this.imageCanvas.nativeElement.width, this.imageCanvas.nativeElement.height);
     this.imageCtx.save();
     this.imageCtx.scale(this.scaleFactor, this.scaleFactor);
     this.imageCtx.drawImage(
@@ -367,19 +387,20 @@ export class EditorComponent implements OnInit {
    */
   private drawMask() {
     this.clearScaledCanvas();
-    this.scaledCtx.save();
-    this.scaledCtx.scale(this.scaleFactor, this.scaleFactor);
+    console.log(`scaleFactor in draw mask ${this.scaleFactor}`)
     createImageBitmap(this.maskImageData).then((renderer) => {
+    this.scaledCtx.save();
+      this.scaledCtx.scale(this.scaleFactor, this.scaleFactor);
       this.scaledCtx.globalAlpha = this.maskAlpha;
       this.scaledCtx.drawImage(
         renderer,
         0,
         0,
-        this.scaledCanvas.nativeElement.width,
-        this.scaledCanvas.nativeElement.height
+        this.image.width,
+        this.image.height
       );
-    });
     this.scaledCtx.restore();
+    });
   }
 
   /**
@@ -457,11 +478,11 @@ export class EditorComponent implements OnInit {
    *    of gallery images. If the user clicked on a specific mask, returns the next mask.
    *  @param previous signifies whether the user has selected the previous image button.
    */
-  switchImage(previous: boolean) {
+  switchImage(direction: SwitchImage) {
     // If user clicks on an image's mask, then newImage will loop through all the image's masks.
     if (this.maskIndex == 0 || this.maskIndex) {
       let maskObject = this.imageArray[this.index]['masks'];
-      if (previous) {
+      if (direction == SwitchImage.PREVIOUS) {
         this.maskIndex - 1 < 0
           ? (this.maskIndex = maskObject.length - 1)
           : --this.maskIndex;
@@ -484,7 +505,7 @@ export class EditorComponent implements OnInit {
 
     //  Otherwise, newImage loops through the images last fetched in the imageArray
     else {
-      if (previous) {
+      if (direction == SwitchImage.PREVIOUS) {
         this.index - 1 < 0
           ? (this.index = this.imageArray.length - 1)
           : --this.index;
@@ -574,9 +595,9 @@ export class EditorComponent implements OnInit {
    * Undoes or redoes what the user had previously marked. Event emitted by top-toolbar or
    * called based on key presses.
    */
-  undoRedo(direction: string): void {
+  undoRedo(direction: UndoRedo): void {
     this.disableSubmit = this.disableFloodFill = true;
-    direction == 'undo'
+    (direction == UndoRedo.UNDO)
       ? this.maskControllerService.undo()
       : this.maskControllerService.redo();
     this.setMaskTo(this.maskControllerService.getMask());
@@ -773,6 +794,16 @@ export class EditorComponent implements OnInit {
       this.maskControllerService.do(maskAction);
     }
   }
+
+ /** 
+  * catches the emitted zoom event and scales canvas based on user preference, in or out.
+  * @param zoomIn boolean to determine if user would like to zoom in or out. 
+  */
+  zoom(zoom: Zoom) {
+    this.scaleCanvas(zoom);
+    this.drawScaledImage();
+    this.drawMask();
+  } 
 }
 
 // Required for typescript compiler; used for typing with cursorCanvas.
