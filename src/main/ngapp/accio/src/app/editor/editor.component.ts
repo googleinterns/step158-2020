@@ -212,7 +212,7 @@ export class EditorComponent implements OnInit {
    *  Assumes Image has loaded, i.e. image src is set before initCanvas
    *    is called (using onload).
    */
-  private initCanvas(): void {
+  async initCanvas(): Promise<void> {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
@@ -223,7 +223,7 @@ export class EditorComponent implements OnInit {
     //   of .9 to make the image smaller than the screen.
     this.scaleFactor *= (window.innerHeight / this.image.height);
     // Updates canvas scale initially so the entire image is on the canvas, zoom = 1.
-    this.scaleCanvas();
+    this.setScaleFactor();
     // if scale is < .01, just set the scale manually
     if (this.scaleFactor <= 0) {
       this.scaleFactor = 0.01;
@@ -278,20 +278,22 @@ export class EditorComponent implements OnInit {
     if (this.maskUrl != '' && this.maskUrl) {
       console.log("there's a mask url" + this.maskUrl);
       let maskImage = new Image();
-      maskImage.onload = () => {
-        this.maskCtx.drawImage(maskImage, 0, 0);
-        this.maskImageData = this.maskCtx.getImageData(
-          0,
-          0,
-          imgWidth,
-          imgHeight
-        );
-        console.log(`maskImage.width = ${maskImage.width}`);
-        console.log(`image.width = ${this.image.width}`);
+      await this.maskControllerPaint().then((response) => {
+        maskImage.onload = () => {
+          this.maskCtx.drawImage(maskImage, 0, 0);
+          this.maskImageData = this.maskCtx.getImageData(
+            0,
+            0,
+            imgWidth,
+            imgHeight
+          );
+          // Initializes controller service with old mask.
+          this.maskControllerService =  new MaskControllerService(response);
 
-        this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
-      };
-      maskImage.src = this.maskUrl;
+          this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
+        };
+        maskImage.src = this.maskUrl;
+      });
     }
 
     this.allPixels = new Set([
@@ -309,7 +311,7 @@ export class EditorComponent implements OnInit {
   *   no value given, then zoom defaults to none. 
   */ 
 
-  scaleCanvas(zoom: number = 1) {
+  setScaleFactor(zoom: number = 1) {
     this.scaleFactor *= zoom;
     try {
       this.scaleFactor = Number(this.scaleFactor.toFixed(2));
@@ -376,7 +378,6 @@ export class EditorComponent implements OnInit {
   private drawScaledImage(dx: number, dy: number) {
     this.imageCtx.clearRect(0,0,this.imageCanvas.nativeElement.width, this.imageCanvas.nativeElement.height);
     this.imageCtx.save();
-   // this.imageCtx.translate(dx, dy);
     this.imageCtx.scale(this.scaleFactor, this.scaleFactor);
     this.imageCtx.drawImage(
       this.image,
@@ -404,7 +405,6 @@ export class EditorComponent implements OnInit {
     console.log(`scaleFactor in draw mask ${this.scaleFactor}`)
     createImageBitmap(this.maskImageData).then((renderer) => {
       this.scaledCtx.save();
-      //this.scaledCtx.translate(dx, dy);
       this.scaledCtx.scale(this.scaleFactor, this.scaleFactor);
       this.scaledCtx.globalAlpha = this.maskAlpha;
       this.scaledCtx.drawImage(
@@ -788,11 +788,11 @@ export class EditorComponent implements OnInit {
   /**
    *  Catches emitted event from mask.directive once users mouse lifts up.
    *  Finds all pixels painted on paint canvas and adds to set to pass into maskCOntroller.
-   *  Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes.
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
+   *  @returns set<number> of all indicies in the mask.
    */
 
-  maskControllerPaint() {
+  async maskControllerPaint() {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
     for (let i = 0; i < paintedImageData.length; i += 4) {
@@ -801,6 +801,12 @@ export class EditorComponent implements OnInit {
         paintedMask.add(i);
       }
     }
+    return paintedMask;
+  }
+  
+  /** Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes. */
+  async doMaskActionPaint(): Promise<void> {
+    let paintedMask = await this.maskControllerPaint();
     let maskAction = new MaskAction(
         ((this.maskTool == MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
         ((this.maskTool == MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
@@ -814,20 +820,34 @@ export class EditorComponent implements OnInit {
   }
 
  /** 
-  * catches the emitted zoom event and scales canvas based on user preference, in or out.
+  * Catches the emitted zoom event and scales canvas based on user preference, in or out.
   * @param zoomIn boolean to determine if user would like to zoom in or out. 
+  * TODO: MAKE ZOOM A TOGGLE FEATURE AND ZOOM WHERE USER CLICKS
   */
   zoom(zoom: Zoom) {
-    this.scaleCanvas(zoom);
+    this.setScaleFactor(zoom);
     this.drawScaledImage(this.destinationCoords.x, this.destinationCoords.y);
     this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
   } 
 
+ /** 
+  *  Inputs the offset of the user's click to where they pan to.
+  *  @param destination : Coordinate of the offset from where to user clicked on
+  *  the image to where they moved the mouse.
+  *  TODO: Adjust destination so the user cannot pan past the edge of the image.
+  */
   pan(destination: Coordinate) {
     this.drawScaledImage(destination.x, destination.y);
     this.drawMask(destination.x, destination.y);
   }
 
+ /** 
+  *  Inputs the offset of the user's click to where they pan to and sets the 
+  *  new x & y destination parameters to draw the image at.
+  *  @param destination : Coordinate of the offset from where to user clicked on
+  *  the image to where they lifted the mouse.
+  *  TODO: Adjust destination so the user cannot pan past the edge of the image.
+  */
   setDestinationCoords(destination: Coordinate) {
     this.destinationCoords = destination;
     this.pan(this.destinationCoords);

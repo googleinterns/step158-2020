@@ -47,11 +47,12 @@
         (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"
-        (newPaintMaskEvent)="maskControllerPaint()"
+        (newPaintMaskEvent)="doMaskActionPaint()"
         (newMouseMoveEvent)="setCursorPosition($event)"
         (newMouseOutEvent)="setCursorOut()"
         (newPanEvent)="pan($event)"
-        (newDestinationEvent)="setDestinationCoords($event)">
+        (newDestinationEvent)="setDestinationCoords($event)"
+        (newZoomEvent)="zoom($event)">
       </canvas>
 
       <canvas #cursorCanvas id="cursor-layer"

@@ -10,6 +10,7 @@ import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
 import { Coordinate } from './Coordinate';
 import * as Mask from './mask-action';
+import { Zoom } from '../enums';
 
 @Directive({
   selector: '[appMask]',
@@ -33,6 +34,7 @@ export class MaskDirective {
 
   @Output() newPanEvent = new EventEmitter<Coordinate>();
   @Output() newDestinationEvent = new EventEmitter<Coordinate>();
+  @Output() newZoomEvent = new EventEmitter<Zoom>();
 
   // Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
@@ -55,7 +57,6 @@ export class MaskDirective {
    */
   @HostListener('mousedown', ['$event'])
   onMouseDown(e: MouseEvent) {
-    console.log(this.scale);
     if (
       this.tool == MaskTool.PAINT ||
       this.tool == MaskTool.ERASE ||
@@ -79,7 +80,6 @@ export class MaskDirective {
         )
       );
 
-      console.log('drawing pixel mousedown');
       // Fire event to draw pixel
       this.newPaintEvent.emit(pixel);
       //Draw single pixel on mouse down
@@ -132,7 +132,6 @@ export class MaskDirective {
 
     else if (this.tool == MaskTool.PAN && this.mouseDown) {
       const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
-      console.log('offsetCoord' + (offsetCoord[0] - this.coord[0]) + ' ' + (offsetCoord[1] - this.coord[1]));
       this.newPanEvent.emit(
         new Coordinate((offsetCoord[0] - this.coord[0] + this.translationCoords.x), 
                        (offsetCoord[1] - this.coord[1] + this.translationCoords.y))
