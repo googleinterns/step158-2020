@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { MagicWandService, MasterMask } from './magic-wand.service';
+import { MagicWandService, PreviewMask } from './magic-wand.service';
 
 /* tslint:disable */
 describe('MagicWandService', () => {
@@ -151,69 +151,81 @@ describe('MagicWandService', () => {
       toThrowError(
       'Pixel index not pointing to the start of a new pixel...');
   });
-  it('Test Method: getAllFloodfillls()', () => {
-  let imgData: ImageData = makeImageExampleA();
+  it('Test Method: getShortestPaths()', () => {
+    let imgData: ImageData = makeImageExampleA();
 
-  const masterMask: MasterMask = service.getAllFloodfills(imgData, 2, 2, 420);
+    const shortestPaths: Array<number> =
+        service.getShortestPaths(imgData, 1, 1, 5);
+    let w, r, g, b;
+    [w, r, g, b] = [0, 16, 4, 9];
+    const expectedPaths: Array<number> =
+        [r, g, b, b, b, w, w, w, r, b, g, b, g, r, r, g, g, r, r, r];
 
-  expect(masterMask.masksByTolerance[0]).toEqual(
-      new Set<number>([24, 28, 32, 52, 56, 60]));
-  expect(masterMask.masksByTolerance[2]).toEqual(
-      new Set<number>([12, 36, 84, 88]));
-  expect(masterMask.masksByTolerance[3]).toEqual(
-      new Set<number>([4, 8, 76, 108, 112]));
-  expect(masterMask.masksByTolerance[4]).toEqual(
-      new Set<number>([0, 16, 48, 64, 80, 92, 104, 116]));
+    let pathsMatch = true;
+
+    for (let i = 0; i < expectedPaths.length; i++) {
+      if (expectedPaths[i] !== shortestPaths[i]) {
+        pathsMatch = false;
+        break;
+      }
+    }
+
+    expect(pathsMatch).toEqual(true);
   });
-  it('Test Method: maskAtTolerance()', () => {
-  let imgData: ImageData = makeImageExampleA();
+  it('Test Method: PreviewMask.maskAtTolerance()', () => {
+    let imgData: ImageData = makeImageExampleA();
 
-  const masterMask: MasterMask = service.getAllFloodfills(imgData, 2, 2, 420);
+    const previewMask: PreviewMask =
+        service.getPreviews(imgData, 1, 1, 5);
 
-  expect(masterMask.maskAtTolerance(0)).toEqual(
-      new Set<number>([24, 28, 32, 52, 56, 60]));
-  expect(masterMask.maskAtTolerance(1)).toEqual(
-      new Set<number>([24, 28, 32, 52, 56, 60]));
-  expect(masterMask.maskAtTolerance(2)).toEqual(
-      new Set<number>([24, 28, 32, 52, 56, 60, 12, 36, 84, 88]));
-  expect(masterMask.maskAtTolerance(3)).toEqual(
-      new Set<number>([24, 28, 32, 52, 56, 60, 12, 36, 84, 88, 4, 8,
-      76, 108, 112]));
-  expect(masterMask.maskAtTolerance(2)).toEqual(
-      new Set<number>([24, 28, 32, 52, 56, 60, 12, 36, 84, 88]));
-  expect(masterMask.maskAtTolerance(4)).toEqual(
-      new Set<number>([24, 28, 32, 52, 56, 60, 12, 36, 84, 88, 4, 8,
-      76, 108, 112, 0, 16, 48, 64, 80, 92, 104, 116]));
-  expect(masterMask.maskAtTolerance(0)).toEqual(
-      new Set<number>([24, 28, 32, 52, 56, 60]));
-  // Bounds-behavior (upper bound)
-  expect(masterMask.maskAtTolerance(100)).toEqual(
-      new Set<number>([24, 28, 32, 52, 56, 60, 12, 36, 84, 88, 4, 8,
-      76, 108, 112, 0, 16, 48, 64, 80, 92, 104, 116]));
-  // Bounds-behavior (lower bound)
-  expect(masterMask.maskAtTolerance(-7)).toEqual(
-      new Set<number>([]));
+    expect(previewMask.maskAtTolerance(0)).toEqual(
+        new Set<number>([20, 24, 28]));
+    expect(previewMask.maskAtTolerance(1)).toEqual(
+        new Set<number>([20, 24, 28]));
+    expect(previewMask.maskAtTolerance(2)).toEqual(
+        new Set<number>([20, 24, 28,
+        4, 40, 48, 60, 64]));
+    expect(previewMask.maskAtTolerance(3)).toEqual(
+        new Set<number>([20, 24, 28,
+        4, 40, 48, 60, 64,
+        44, 8, 12, 16, 36]));
+    expect(previewMask.maskAtTolerance(2)).toEqual(
+        new Set<number>([20, 24, 28,
+        4, 40, 48, 60, 64]));
+    expect(previewMask.maskAtTolerance(4)).toEqual(
+        new Set<number>([20, 24, 28,
+        4, 40, 48, 60, 64,
+        44, 8, 12, 16, 36,
+        68, 0, 32, 52, 56, 76, 72]));
+    expect(previewMask.maskAtTolerance(0)).toEqual(
+        new Set<number>([20, 24, 28]));
+    // Bounds-behavior (upper bound)
+    expect(previewMask.maskAtTolerance(100)).toEqual(
+        new Set<number>([20, 24, 28,
+        4, 40, 48, 60, 64,
+        44, 8, 12, 16, 36,
+        68, 0, 32, 52, 56, 76, 72]));
   });
 
   function makeImageExampleA(): ImageData {
-  let imgData: ImageData = new ImageData(6, 5);
-  const redSet = new Set<number>([0, 16, 44, 48, 64, 80, 92, 96, 104, 116]);
-  const blueSet = new Set<number>([4, 8, 20, 76, 108, 112]);
-  const greenSet = new Set<number>([12, 36, 72, 84, 88, 100]);
+    let imgData: ImageData = new ImageData(5, 4);
+    const redSet = new Set<number>([0, 32, 52, 56, 68]);
+    const blueSet = new Set<number>([8, 36, 44]);
+    const greenSet = new Set<number>([4, 16, 40, 48, 60, 64, 72, 76]);
 
-  imgData = setImageColors(
-    imgData,
-    redSet,
-    RED);
-  imgData = setImageColors(
-    imgData,
-    blueSet,
-    BLUE);
-  imgData = setImageColors(imgData,
-    greenSet,
-    GREEN);
+    imgData = setImageColors(
+      imgData,
+      redSet,
+      RED);
+    imgData = setImageColors(
+      imgData,
+      blueSet,
+      BLUE);
+    imgData = setImageColors(imgData,
+      greenSet,
+      GREEN);
 
-  return imgData;
+    return imgData;
   }
 });
 
@@ -222,7 +234,7 @@ describe('MagicWandService', () => {
 * @newColor should contain new Rgba values in format: [R, G, B, A]
 */
 function makeTestImage(width: number, height: number, newColor: Array<number>,
-    notMask: Set<number>): ImageData {
+   notMask: Set<number>): ImageData {
   const imgData: ImageData = new ImageData(width, height);
   for (const redIndex of notMask) {
     const red: number = redIndex;
@@ -243,7 +255,7 @@ function makeTestImage(width: number, height: number, newColor: Array<number>,
 * @param {Color} color
 * */
 function setImageColors(imgData: ImageData,
-    pixelsToChange: Set<number>, color: Color): ImageData {
+   pixelsToChange: Set<number>, color: Color): ImageData {
   for (let redIndex of pixelsToChange) {
     const red: number = redIndex;
     const green: number = redIndex + 1;
@@ -259,8 +271,8 @@ function setImageColors(imgData: ImageData,
 }
 
 interface Color {
- red: number,
- green: number,
- blue: number
+  red: number,
+  green: number,
+  blue: number
 }
 
