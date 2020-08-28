@@ -272,7 +272,7 @@ export class MagicWandService {
   getShortestPaths(imgData: ImageData, xCoord: number, yCoord: number,
       toleranceLimit: number): Array<number> {
     // Stores a queue of coords for pixels that we need to visit in "visit".
-    const visit: PriorityQueue<PixelNode> = 
+    const toVisit: PriorityQueue<PixelNode> = 
         new PriorityQueue(this.comparator);
     const distances: Array<number> = [];
     distances.fill(undefined, 0, imgData.data.length / 4 + 1);
@@ -286,7 +286,7 @@ export class MagicWandService {
 
     const vanillaIndex: number = 
         this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
-    visit.push({
+    toVisit.push({
         distance: 0,
         index: vanillaIndex / 4});
 
@@ -295,17 +295,14 @@ export class MagicWandService {
     // Works with tolerance limit in the squared space.
     toleranceLimit *= toleranceLimit;
 
-    // Loops over all plausible 'mask-pixels'.
-    // A pixel is plausibly a 'mask-pixel' if the color of the root pixel
-    // that we percolated from is closer in color to the vanilla
-    // pixel than the pixel being evaluated.
-    while (visit.getSize() !== 0) {
-      const curPixelNode: PixelNode = visit.pop();
+    // Updates shortest path between neighbor pixel and vanilla node.
+    while (toVisit.getSize() !== 0) {
+      const curPixelNode: PixelNode = toVisit.pop();
       // A node is considered visited once popped.
       visited.add(curPixelNode.index);
 
       // Gets coords of adjacent pixels.
-      let x, y;
+      let x: number, y: number;
       [x, y] = this.pixelIndexToXYCoord(curPixelNode.index * 4, imgData.width);
       const neighbors: Array<Array<number>> =
           [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
@@ -339,7 +336,7 @@ export class MagicWandService {
             Math.max(curPixelNode.distance, neighborColorDist);
 
         // Continues lifespan of the loop.
-        visit.push({
+        toVisit.push({
           distance: distances[neighborIndexReduced],
           index: neighborIndexReduced});
       }
@@ -348,6 +345,10 @@ export class MagicWandService {
     return distances;
   }
 
+  /**Finds shortest paths to every pixel from the vanilla pixel, and 
+   * adds organizes those distances into an array within a
+   * @returns {PreviewMask} previewMask object.
+   */
   getPreviews(imgData: ImageData, xCoord: number, yCoord: number,
       toleranceLimit: number): PreviewMask {
     const shortestPaths: Array<number> =
@@ -383,8 +384,8 @@ interface PixelNode {
 }
 
   /**Tracks all versions of masks for 'preview' of floodfill.
-  * Versions are based on different tolerance levels.
-  **/
+   * Versions are based on different tolerance levels.
+   **/
 export class PreviewMask {
   masksByTolerance: Array<Array<number>> = [];
   toleranceIndex = -1;
@@ -394,6 +395,10 @@ export class PreviewMask {
     this.masksByTolerance.fill(undefined, 0, toleranceLimit + 2);
   }
 
+  /**@returns {Set<number>} the complete floodfilled mask for
+   * the given 
+   * @param {number} tolerance level.
+   */
   public maskAtTolerance(tolerance: number): Set<number> {
     if (tolerance < 0) {
       throw new Error('Tolerance input must be a non-negative number...');
