@@ -21,8 +21,12 @@
   color: white;
   text-align: center;
   background-color: #3f4143;
-  height: 70px;
-  width: 95px;
+  height: 100px;
+  width: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .mat-button-toggle-checked{

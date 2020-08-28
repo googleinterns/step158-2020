@@ -1,34 +1,42 @@
-<form
-  novalidate
-  [formGroup]="uploadImageForm"
-  (ngSubmit)="onSubmit()"
-  *ngIf="displayUpload"
-  id="upload-image-form"
-  method="POST"
-  enctype="multipart/form-data"
->
+<div class="form">
+  <form
+    novalidate
+    [formGroup]="uploadImageForm"
+    (ngSubmit)="onSubmit()"
+    *ngIf="displayUpload"
+    id="upload-image-form"
+    method="POST"
+    enctype="multipart/form-data"
+  >
+    <h1 style="width: 100%">Upload an Image</h1>
+    <mat-form-field appearance="fill" class="user-input">
+      <mat-label>Image Name</mat-label>
+      <input
+        required
+        matInput
+        formControlName="imgName"
+        placeholder="Untitled"
+      />
+    </mat-form-field>
 
-  <mat-form-field appearance="fill" class="user-input">
-    <h1 style="width: 10%;">Upload an Image</h1>
-    <mat-label>Image Name</mat-label>
-    <input required matInput formControlName="imgName" placeholder="Untitled" />
-  </mat-form-field>
+    <mat-form-field class="user-input" appearance="fill">
+      <mat-label>Choose image...</mat-label>
+      <ngx-mat-file-input formControlName="image"> </ngx-mat-file-input>
 
-  <mat-form-field class="user-input" appearance="fill">
+      <mat-hint>Select an Image</mat-hint>
+    </mat-form-field>
 
-    <ngx-mat-file-input formControlName="image"> </ngx-mat-file-input>
+    <mat-form-field appearance="fill" class="user-input">
+      <mat-label>Tags (Optional)</mat-label>
+      <input matInput formControlName="tags" />
+      <mat-hint>Enter list separated by commas: "tag1, tag2, tag3"</mat-hint>
+    </mat-form-field>
 
-    <mat-hint>Select an Image</mat-hint>
-  </mat-form-field>
-
-  <mat-form-field appearance="fill" class="user-input">
-    <mat-label>Tags (Optional)</mat-label>
-    <input matInput formControlName="tags" />
-    <mat-hint>Enter list separated by commas: "tag1, tag2, tag3"</mat-hint>
-  </mat-form-field>
-
-  <button type="submit" mat-raised-button id="upload-button">Upload Image</button>
-</form>
+    <button type="submit" mat-raised-button id="upload-button">
+      Upload Image
+    </button>
+  </form>
+</div>
 
 <!--Filter Bar-->
 <div class="form" style="background-color: #f5f5f5">
@@ -66,8 +74,9 @@
     <mat-hint align="end">Default: no masks</mat-hint>
   </mat-form-field>
 
-  <button mat-raised-button (click)="loadGalleryImages()">Update filter(s)</button>
-
+  <button mat-raised-button (click)="loadGalleryImages()">
+    Update filter(s)
+  </button>
 
   <!--Project Download Bar-->
   <div id="project-download-bar">
@@ -91,19 +100,38 @@
 </div>
 <!--Filter Bar-->
 
-
 <!--Fetched Images-->
 <div class="gallery" *ngIf="displayImages">
   <div *ngFor="let image of imageArray; index as i" class="gallery-item">
     <div>
-      <div title="Existing Mask" id="mask-tab" [hidden]="!hasMask(image)"><p>MASK</p></div> 
-      <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMask(image['masks']), i]">
+      <div title="Existing Mask" id="mask-tab" [hidden]="!hasMask(image)">
+        <span>MASK</span>
+      </div>
+      <a
+        [routerLink]="[
+          '/editor',
+          projectId,
+          image['name'],
+          image['url'],
+          getFirstMask(image['masks']),
+          i
+        ]"
+      >
         <img class="gallery-img" [src]="image['url']" />
       </a>
     </div>
     <div class="tab">
       <div class="gallery-item-name">
-        <a [routerLink]="['/editor', projectId, image['name'], image['url'], getFirstMask(image['masks']), i]">
+        <a
+          [routerLink]="[
+            '/editor',
+            projectId,
+            image['name'],
+            image['url'],
+            getFirstMask(image['masks']),
+            i
+          ]"
+        >
           <p>{{ image["name"] }}</p>
         </a>
       </div>
@@ -111,7 +139,8 @@
         <button
           mat-icon-button
           [matMenuTriggerFor]="menu2"
-          aria-label="Image download menu">
+          aria-label="Image download menu"
+        >
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu2="matMenu">
@@ -123,6 +152,14 @@
             <mat-icon>photo_library</mat-icon>
             <span>Download image and masks</span>
           </button>
+          <button mat-menu-item (click)="updateButton(image['name'], '')">
+            <mat-icon>update</mat-icon>
+            <span>Update Image</span>
+          </button>
+          <button mat-menu-item (click)="deleteButton(image['name'], '')">
+            <mat-icon>delete</mat-icon>
+            <span>Delete Image</span>
+          </button>
         </mat-menu>
       </div>
     </div>
@@ -133,15 +170,35 @@
 <!--Fetched Masks-->
 <div class="gallery" *ngIf="displayMasks">
   <ng-container *ngFor="let image of imageArray; index as j">
-    <div *ngFor="let mask of image['masks']; index as k"  class="gallery-item">
+    <div *ngFor="let mask of image['masks']; index as k" class="gallery-item">
       <div>
-        <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['url'], j, k]">
+        <a
+          [routerLink]="[
+            '/editor',
+            projectId,
+            image['name'],
+            image['url'],
+            mask['url'],
+            j,
+            k
+          ]"
+        >
           <img class="gallery-img" [src]="mask['url']" />
         </a>
       </div>
       <div class="tab">
         <div class="gallery-item-name">
-          <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['url'], j, k]">
+          <a
+            [routerLink]="[
+              '/editor',
+              projectId,
+              image['name'],
+              image['url'],
+              mask['url'],
+              j,
+              k
+            ]"
+          >
             <p>{{ mask["name"] }}</p>
           </a>
         </div>
@@ -157,6 +214,20 @@
             <button mat-menu-item (click)="downloadImage(mask)">
               <mat-icon>image</mat-icon>
               <span>Download mask</span>
+            </button>
+            <button
+              mat-menu-item
+              (click)="updateButton(mask['name'], image['name'])"
+            >
+              <mat-icon>update</mat-icon>
+              <span>Update Image</span>
+            </button>
+            <button
+              formControlName="delete"
+              (click)="deleteButton(mask['name'], image['name'])"
+            >
+              <mat-icon>delete</mat-icon>
+              <span>Delete Image</span>
             </button>
           </mat-menu>
         </div>

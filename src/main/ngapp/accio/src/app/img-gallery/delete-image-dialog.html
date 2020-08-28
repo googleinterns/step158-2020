@@ -1,0 +1,9 @@
+<h1 mat-dialog-title>Delete {{ data.imageName }}?</h1>
+<div mat-dialog-content height="20%">
+  <form  novalidate method="POST" enctype="multipart/form-data">
+    <div mat-dialog-actions>
+      <button mat-raised-button (click)="onNoClick()">Cancel</button>
+      <button mat-raised-button (click)="onDeleteImage()" cdkFocusInitial>Delete</button>
+    </div>
+  </form>
+</div>
