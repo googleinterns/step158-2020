@@ -71,6 +71,9 @@ export class EditorComponent implements OnInit {
   maskUrl: string;
   blobMask: Blob; 
 
+  // Need the image's name for updates
+  imgName: string;
+
   // scaleFactor is used to trim image scale so image
   //   is smaller than width and height of the user's screen.
   // The following variables are bound to their
@@ -136,6 +139,7 @@ export class EditorComponent implements OnInit {
     }
     
     this.route.paramMap.subscribe(params => {
+      this.imgName = params.get('img-name ');
       this.projectId = params.get('proj-id ');
       this.parentName = params.get('parent-img ');
       this.imageUrl = params.get('img-url ');
@@ -359,6 +363,31 @@ export class EditorComponent implements OnInit {
     this.initMaskForm();
   }
 
+  async onClickSaveButton(): Promise<void> {
+    await this.getMaskBlob();
+
+    let imageBlob = new ImageBlob(
+      this.projectId, 
+      /*imageName=*/this.imgName,
+      /*mode=*/'update', 
+      /*image=*/this.blobMask,
+      /*parentImageName=*/this.parentName,
+      /*newImageName=*/undefined,
+      /*tags=*/undefined
+    );
+
+    this.postBlobsService.buildForm(
+      this.formData,
+      imageBlob,
+      this.parentName + 'Mask.png'
+    );
+
+    this.maskControllerService.save();
+
+    //  Reset form values
+    this.formData = new FormData();
+  }
+
   /** 
    *  Gets current mask's url and sets the mask as a Blob to be uploaded to server. TODO HERE UPDATE URL
    */
@@ -394,9 +423,13 @@ export class EditorComponent implements OnInit {
       }
       let nextMask = this.imageArray[this.index]['masks'][this.maskIndex];
       this.router.navigate(
-        ['/editor', this.projectId, 
-        this.parentName, this.imageUrl, 
-        nextMask['url'], this.index, 
+        ['/editor', 
+        this.projectId, 
+        this.parentName, 
+        this.imageUrl, 
+        this.imgName, 
+        nextMask['url'], 
+        this.index, 
         this.maskIndex]
       );
     }
@@ -411,8 +444,11 @@ export class EditorComponent implements OnInit {
       }
       let nextImage = this.imageArray[this.index];
       this.router.navigate(
-        ['/editor', this.projectId, 
-        nextImage['name'], nextImage['url'], 
+        ['/editor', 
+        this.projectId, 
+        nextImage['name'], 
+        nextImage['url'], 
+        this.imgName, 
         this.getFirstMask(nextImage['masks']), 
         this.index]
       );
