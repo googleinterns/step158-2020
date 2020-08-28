@@ -270,6 +270,13 @@ export class MagicWandService {
     return x.distance < y.distance;
   }
 
+  /**Runs shortest paths algo to find shortest distance from input pixel
+   * to every other pixel.
+   * Distance is judged by the pixel's colorDistance in relation to the input 
+   * pixel.
+   * @returns Array<number> distances, with indices representing the pixel coord
+   * and values representing the shortest distance of that pixel coord.
+   */
   getShortestPaths(imgData: ImageData, xCoord: number, yCoord: number,
       toleranceLimit: number): Array<number> {
     // Stores a queue of coords for pixels that we need to visit in "visit".
