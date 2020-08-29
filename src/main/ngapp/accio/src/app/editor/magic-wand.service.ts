@@ -407,7 +407,7 @@ export class PreviewMask {
    * the given 
    * @param {number} tolerance level.
    */
-  public maskAtTolerance(tolerance: number): Set<number> {
+  public changeMaskBy(tolerance: number): void {
     if (tolerance < 0) {
       throw new Error('Tolerance input must be a non-negative number...');
     }
@@ -434,7 +434,9 @@ export class PreviewMask {
         this.presentMask.push(pixelIndex);
       });
     }
+  }
 
+  public getMask(): Set<number> {
     return new Set<number>(this.presentMask);
   }
 }
