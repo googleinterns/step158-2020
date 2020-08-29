@@ -1,5 +1,6 @@
 import { SetOperator } from './set-operator';
 import { Move } from './mask-controller.service';
+import { PreviewMask } from './magic-wand.service';
 
 export enum Action {
   ADD = 'add',
@@ -29,7 +30,8 @@ export class MaskAction {
      *   INVERT: every pixel of the image
      *   CLEAR: the pixels of the current mask
      */
-    private changedPixels: Set<number>
+    private changedPixels: Set<number>,
+    public previewMaster: PreviewMask = undefined
   ) {}
 
   public getActionType(): Action {
