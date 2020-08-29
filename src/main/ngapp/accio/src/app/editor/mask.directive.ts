@@ -187,9 +187,7 @@ export class MaskDirective {
         this.tool == MaskTool.MAGIC_WAND_SUB) &&
       !this.scribbleFill
     ) {
-      // TODO: Implement Quick-floodfill option; replace boolean false with
-      // a variable to trigger quick-floodfill.
-      if (false) {
+      if (this.tool == MaskTool.MAGIC_WAND_SUB) {
         // Returns an array indices of each pixel in the mask.
         const maskPixels = this.magicWandService.floodfill(
           this.originalImageData,
@@ -200,9 +198,7 @@ export class MaskDirective {
 
         this.newMaskEvent.emit(
           new Mask.MaskAction(
-            this.tool == MaskTool.MAGIC_WAND_ADD
-              ? Mask.Action.ADD
-              : Mask.Action.SUBTRACT,
+            Mask.Action.SUBTRACT,
             Mask.Tool.MAGIC_WAND,
             maskPixels
           )
@@ -210,6 +206,7 @@ export class MaskDirective {
       } else {  // Default: does preview-style floodfill
         // TODO: Let user decide tolerance limit
         // (replace hardcoded val 300 with a var).
+        // TODO: Implement Quick-floodfill option (for);
         const previewMaster: PreviewMask = 
             this.magicWandService.getPreviews(
               this.originalImageData,
@@ -218,16 +215,14 @@ export class MaskDirective {
               /* toleranceLimit= */300
             );
 
-            this.newMaskEvent.emit(
-              new Mask.MaskAction(
-                this.tool == MaskTool.MAGIC_WAND_ADD
-                  ? Mask.Action.ADD
-                  : Mask.Action.SUBTRACT,
-                Mask.Tool.MAGIC_WAND,
-                undefined,
-                previewMaster
-              )
-            )
+        this.newMaskEvent.emit(
+          new Mask.MaskAction(
+            Mask.Action.ADD,
+            Mask.Tool.MAGIC_WAND,
+            undefined,
+            previewMaster
+          )
+        );
       }
 
     }
