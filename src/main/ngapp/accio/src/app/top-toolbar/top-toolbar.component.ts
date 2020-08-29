@@ -1,6 +1,5 @@
 import { HostListener, Component, OnInit } from '@angular/core';
 import { Output, EventEmitter } from '@angular/core';
-import { MatSliderChange } from '@angular/material/slider';
 
 @Component({
   selector: 'app-top-toolbar',
@@ -42,12 +41,12 @@ export class TopToolbarComponent implements OnInit {
         case 49:
           console.log('1');
           this.toleranceValue = Math.max(this.toleranceValue - 1, 0.0);
-          this.newToleranceEvent.emit(this.toleranceValue);
+          this.updateTolerance();
           break;
         case 50:
           console.log('2');
           this.toleranceValue = Math.min(this.toleranceValue + 1, 127.5);
-          this.newToleranceEvent.emit(this.toleranceValue);
+          this.updateTolerance();
           break;
       }
     }
@@ -56,7 +55,7 @@ export class TopToolbarComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
-    this.toleranceValue = 30;
+    this.toleranceValue = 15;
   }
 
   /** Called when user clicks clear mask button. */
@@ -83,8 +82,7 @@ export class TopToolbarComponent implements OnInit {
   }
 
   /** Emits value of user inputed/slider tolerance. */
-  updateTolerance(event: MatSliderChange) {
-    this.toleranceValue = event.value;
+  updateTolerance() {
     this.newToleranceEvent.emit(this.toleranceValue);
   }
 }
