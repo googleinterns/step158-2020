@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { PostBlobsService } from '../post-blobs.service';
 import { FetchImagesService } from '../fetch-images.service';
@@ -26,7 +27,8 @@ export class EditorComponent implements OnInit {
     private router: Router,
     private postBlobsService: PostBlobsService,
     private fetchImagesService: FetchImagesService,
-    private maskControllerService: MaskControllerService
+    private maskControllerService: MaskControllerService,
+    private snackBar: MatSnackBar
   ) {
     //  Tells Router to not reuse route so when url is changed,
     //    reloads component with new url info.
@@ -46,6 +48,12 @@ export class EditorComponent implements OnInit {
   // Cursor varaibles.
   cursorX = 0;
   cursorY = 0;
+
+  // Preview-floodfill variables.
+  private previewMaster: PreviewMask = new PreviewMask(0);
+  private previewImgData: ImageData;
+  private curMaskAction: MaskAction;
+  private continuePreview = false;
 
   // Display variables.
   private image: HTMLImageElement;
@@ -659,10 +667,6 @@ export class EditorComponent implements OnInit {
     this.brushWidth = width;
   }
 
-  private previewMaster: PreviewMask = new PreviewMask(0);
-  private previewImgData: ImageData;
-  private curMaskAction: MaskAction;
-  private continuePreview = false;
   /**
    *  Sets new pixels in magenta, clears canvas of previous data
    *    and draws image and mask as scaled. Disables submit
@@ -675,46 +679,76 @@ export class EditorComponent implements OnInit {
    *    Gives the new pixels to add to the mask
    *  Only returned when maskTool is 'magic-wand', no need to check maskTool
    */
-  floodfillMask(maskAction: MaskAction) {
+  floodfillMask(maskAction: MaskAction): void {
     this.disableSubmit = this.disableFloodFill = true;
-    // Remembers the maskAction for when the preview is committed.
-    this.curMaskAction = maskAction;
+    // Case 1: performs preview-floodfill sequence.
+    if (maskAction.previewMaster.masksByTolerance !== undefined) {
+      // Pauses any other canvas-editting sequences from registering
+      // on the canvas. 
+      const previewLayer = document.getElementById('preview-layer');
+      previewLayer.style.pointerEvents = 'auto';
 
-    this.previewMaster.masksByTolerance = 
-        maskAction.previewMaster.masksByTolerance;
-    // Activates updatePreview(), which is always called by a change in the 
-    // mat-slider, but only accepts the call if the floodfill preview sequence 
-    // is initiated. 
-    this.continuePreview = true;
+      // Remembers the maskAction for when the preview is committed.
+      this.curMaskAction = maskAction;
+
+      this.previewMaster.masksByTolerance = 
+          maskAction.previewMaster.masksByTolerance;
+          
+      // Activates updatePreview(), which is always called by a change in the 
+      // mat-slider, but only accepts the call if the floodfill preview sequence 
+      // is initiated. 
+      this.continuePreview = true;
+      this.updatePreview();
+    } else {
+      // Case 2: Performs scribble floodfill sequence.
+      let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
+
+      for (let pixel of maskAction.getChangedPixels()) {
+        this.maskImageData.data[pixel] = 255;
+        this.maskImageData.data[pixel + 2] = 255;
+        this.maskImageData.data[pixel + 3] = alphaValue;
+      }
+      if (maskAction.getActionType() == Action.SUBTRACT) {
+        this.maskControllerService.do(maskAction, this.allPixels);
+      } else {
+        this.maskControllerService.do(maskAction);
+      }
+      this.drawMask();
+      this.disableSubmit = this.disableFloodFill = false;
+      }
   }
-
-  updatePreview() {
+  /**Called whenever tolerance input changes. Only executes on a new 
+   * preview mask event;
+   * newMaskEvent >> floodfillMask() { execute: else block }.
+   */
+  updatePreview(): void {
     if (this.continuePreview) {
       this.previewImgData =  new ImageData(this.image.width, this.image.height);
       this.previewMaster.changeMaskBy(this.tolerance);
       
-      let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
-      
       for (let pixel of this.previewMaster.getMaskAsArray()) {
         this.previewImgData.data[pixel] = 255;
         this.previewImgData.data[pixel + 2] = 255;
-        this.previewImgData.data[pixel + 3] = alphaValue;
+        this.previewImgData.data[pixel + 3] = 255;
       }
 
       this.drawPreview();
     }
   }
-
+  /**Called when a new preview mask sequence and the tolerance input
+   * has been confirmed.
+   */
   endPreview(): void {
     if (this.continuePreview) {
       this.continuePreview = false;
+      this.clearPreviewCanvas();
 
       let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
 
       for (let pixel of this.previewMaster.getMaskAsArray()) {
         this.maskImageData.data[pixel] = 255;
         this.maskImageData.data[pixel + 2] = 255;
-        this.maskImageData.data[pixel + 3] = alphaValue;
+        this.maskImageData.data[pixel + 3] = 255;
       }
       if (this.curMaskAction.getActionType() == Action.SUBTRACT) {
         this.maskControllerService.do(this.curMaskAction, this.allPixels);
@@ -723,15 +757,16 @@ export class EditorComponent implements OnInit {
       }
       this.drawMask();
       this.disableSubmit = this.disableFloodFill = false;
+
+      // Unpauses other canvas-editting sequences from registering
+      // on the canvas. 
+      const previewLayer = document.getElementById('preview-layer');
+      previewLayer.style.pointerEvents = 'none';
     }
   }
-
-  private drawPreview() {
-    this.previewCtx.clearRect(
-        0,
-        0,
-        this.previewCanvas.nativeElement.width,
-        this.previewCanvas.nativeElement.height);
+  // Redraws the preview mask on the preview canvas.
+  private drawPreview(): void {
+    this.clearPreviewCanvas();
     this.previewCtx.save();
     this.previewCtx.scale(this.scaleFactor, this.scaleFactor);
     createImageBitmap(this.previewImgData).then((renderer) => {
@@ -744,6 +779,14 @@ export class EditorComponent implements OnInit {
           this.previewCanvas.nativeElement.height);
     });
     this.previewCtx.restore();
+  }
+
+  private clearPreviewCanvas(): void {
+    this.previewCtx.clearRect(
+        0,
+        0,
+        this.previewCanvas.nativeElement.width,
+        this.previewCanvas.nativeElement.height);
   }
 
   /**
