@@ -1,5 +1,6 @@
 import { HostListener, Component, OnInit } from '@angular/core';
 import { Output, EventEmitter } from '@angular/core';
+import { MatSliderChange } from '@angular/material/slider';
 
 @Component({
   selector: 'app-top-toolbar',
@@ -82,7 +83,8 @@ export class TopToolbarComponent implements OnInit {
   }
 
   /** Emits value of user inputed/slider tolerance. */
-  updateTolerance() {
+  updateTolerance(event: MatSliderChange) {
+    this.toleranceValue = event.value;
     this.newToleranceEvent.emit(this.toleranceValue);
   }
 }
