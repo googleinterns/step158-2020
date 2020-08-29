@@ -4,6 +4,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -51,6 +52,7 @@ import { TopToolbarComponent } from './top-toolbar/top-toolbar.component';
     MatIconModule,
     MatSliderModule,
     MatSidenavModule,
+    MatSnackBarModule,
     MatButtonToggleModule,
     MatButtonModule,
     MatFormFieldModule,
