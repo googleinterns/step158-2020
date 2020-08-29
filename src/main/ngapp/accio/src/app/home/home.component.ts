@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import * as moment from 'moment-timezone';
 import * as $ from 'jquery';
 
 @Component({
@@ -45,5 +46,13 @@ export class HomeComponent implements OnInit {
     const content = await response.json();
     console.log('content is: ' + content[0]['projId']);
     this.projects = content;
+  }
+
+  /**
+   * Use moment.js to format date and time.
+   */
+  formatDateTime(dateTime: string): string {
+    let tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return moment(dateTime).tz(tz).format('D MMM YYYY [at] h:mm a');
   }
 }

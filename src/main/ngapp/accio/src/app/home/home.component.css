@@ -1,16 +1,17 @@
 #banner {
   position: relative;
-  height: 25vw;
+  height: 10vw;
   color: #f5f5f5;
   text-align: center;
-  background-color: #4285f4;
-  padding:5%;
+  background-color: #2196f3;
+  padding: 5%;
 }
 
 #heading {
-  font-family: 'Sail', cursive;
-  font-size: 10vw;
+  font-family: "Sail", cursive;
+  font-size: 7.5vw;
   position: relative;
+  margin-bottom: 0;
 }
 
 .container {
@@ -19,6 +20,42 @@
 }
 
 #gallery {
-  padding-top:5vw;
-  padding-bottom:5vw;
+  padding-top: 5vw;
+  padding-bottom: 5vw;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
+a:hover {
+  font-weight: bold;
+}
+
+.timestamp {
+  font-size: 75%;
+}
+
+.project-item {
+  background-color: #d3d3d3;
+  margin-bottom: 20px;
+  padding: 10px;
+  height: 50px;
+}
+
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.col-025 {
+  width: 2.5%;
+  float: right;
+}
+
+.col-975 {
+  width: 97.5%;
+  float: left;
 }
