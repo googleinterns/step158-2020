@@ -5,7 +5,7 @@ import {
   Input,
   SimpleChanges,
 } from '@angular/core';
-import { MagicWandService } from './magic-wand.service';
+import { MagicWandService, PreviewMask } from './magic-wand.service';
 import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
 import { Coordinate } from './Coordinate';
@@ -28,6 +28,7 @@ export class MaskDirective {
   @Output() newMaskControllerEvent = new EventEmitter<Mask.MaskAction>();
   @Output() newMouseMoveEvent = new EventEmitter<MouseEvent>();
   @Output() newMouseOutEvent = new EventEmitter<void>();
+  @Output() newMouseDownEvent = new EventEmitter<void>();
 
   // Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
@@ -50,6 +51,7 @@ export class MaskDirective {
    */
   @HostListener('mousedown', ['$event'])
   onMouseDown(e: MouseEvent) {
+    this.newMouseDownEvent.emit();
     if (
       this.tool == MaskTool.PAINT ||
       this.tool == MaskTool.ERASE ||
@@ -185,23 +187,39 @@ export class MaskDirective {
         this.tool == MaskTool.MAGIC_WAND_SUB) &&
       !this.scribbleFill
     ) {
-      // Returns an array indices of each pixel in the mask.
-      const maskPixels = this.magicWandService.floodfill(
-        this.originalImageData,
-        this.coord[0],
-        this.coord[1],
-        this.tolerance
-      );
+      // TODO: Implement Quick-floodfill option; replace boolean false with
+      // a variable to trigger quick-floodfill.
+      if (false) {
+        // Returns an array indices of each pixel in the mask.
+        const maskPixels = this.magicWandService.floodfill(
+          this.originalImageData,
+          this.coord[0],
+          this.coord[1],
+          this.tolerance
+        );
 
-      this.newMaskEvent.emit(
-        new Mask.MaskAction(
-          this.tool == MaskTool.MAGIC_WAND_ADD
-            ? Mask.Action.ADD
-            : Mask.Action.SUBTRACT,
-          Mask.Tool.MAGIC_WAND,
-          maskPixels
-        )
-      );
+        this.newMaskEvent.emit(
+          new Mask.MaskAction(
+            this.tool == MaskTool.MAGIC_WAND_ADD
+              ? Mask.Action.ADD
+              : Mask.Action.SUBTRACT,
+            Mask.Tool.MAGIC_WAND,
+            maskPixels
+          )
+        );
+      } else {  // Default: does preview-style floodfill
+        // TODO: Let user decide tolerance limit
+        // (replace hardcoded val 300 with a var).
+        const previewMaster: PreviewMask = 
+            this.magicWandService.getPreviews(
+              this.originalImageData,
+              this.coord[0],
+              this.coord[1],
+              /* toleranceLimit= */300
+            );
+          
+      }
+
     }
   }
 
