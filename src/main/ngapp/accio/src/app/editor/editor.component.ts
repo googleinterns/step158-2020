@@ -11,6 +11,7 @@ import { Coordinate } from './Coordinate';
 import * as $ from 'jquery';
 import { MaskAction, Action, Tool } from './mask-action';
 import { MaskControllerService } from './mask-controller.service';
+import { PreviewMask } from './magic-wand.service';
 
 @Component({
   selector: 'app-editor',
@@ -99,6 +100,14 @@ export class EditorComponent implements OnInit {
   @ViewChild('scaledCanvas', { static: true })
   scaledCanvas: ElementRef<HTMLCanvasElement>;
   private scaledCtx: CanvasRenderingContext2D;
+
+  // Overlays a layer just for showing the preview of the mask.
+  // Once the preview is committed, this canvas is cleared and 
+  // the chosen preview is painted on the scaledCanvas as well 
+  // as committed to the maskCanavs.
+  @ViewChild('previewCanvas', { static: true })
+  previewCanvas: ElementRef<HTMLCanvasElement>;
+  private previewCtx: CanvasRenderingContext2D;
 
   // Overlays custom "cursor" that changes based on brush size.
   @ViewChild('cursorCanvas', { static: true })
@@ -234,6 +243,11 @@ export class EditorComponent implements OnInit {
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.scaledCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.scaledCtx = this.scaledCanvas.nativeElement.getContext('2d');
+
+    // Canvas to show preview of floodfills.
+    this.previewCanvas.nativeElement.width = imgWidth * this.scaleFactor;
+    this.previewCanvas.nativeElement.height = imgHeight * this.scaleFactor;
+    this.previewCtx = this.previewCanvas.nativeElement.getContext('2d');
 
     // Canvas to show Image (never changes unless user only wants to see Mask)
     this.imageCanvas.nativeElement.width = imgWidth * this.scaleFactor;
@@ -645,6 +659,10 @@ export class EditorComponent implements OnInit {
     this.brushWidth = width;
   }
 
+  private previewMaster: PreviewMask = new PreviewMask(0);
+  private previewImgData: ImageData;
+  private curMaskAction: MaskAction;
+  private continuePreview = false;
   /**
    *  Sets new pixels in magenta, clears canvas of previous data
    *    and draws image and mask as scaled. Disables submit
@@ -659,21 +677,73 @@ export class EditorComponent implements OnInit {
    */
   floodfillMask(maskAction: MaskAction) {
     this.disableSubmit = this.disableFloodFill = true;
-    //  Changes if set of pixels are added or removed from the mask depending on the tool.
-    let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
+    // Remembers the maskAction for when the preview is committed.
+    this.curMaskAction = maskAction;
 
-    for (let pixel of maskAction.getChangedPixels()) {
-      this.maskImageData.data[pixel] = 255;
-      this.maskImageData.data[pixel + 2] = 255;
-      this.maskImageData.data[pixel + 3] = alphaValue;
+    this.previewMaster.masksByTolerance = 
+        maskAction.previewMaster.masksByTolerance;
+    // Activates updatePreview(), which is always called by a change in the 
+    // mat-slider, but only accepts the call if the floodfill preview sequence 
+    // is initiated. 
+    this.continuePreview = true;
+  }
+
+  updatePreview() {
+    if (this.continuePreview) {
+      this.previewImgData =  new ImageData(this.image.width, this.image.height);
+      this.previewMaster.changeMaskBy(this.tolerance);
+      
+      let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
+      
+      for (let pixel of this.previewMaster.getMaskAsArray()) {
+        this.previewImgData.data[pixel] = 255;
+        this.previewImgData.data[pixel + 2] = 255;
+        this.previewImgData.data[pixel + 3] = alphaValue;
+      }
+
+      this.drawPreview();
     }
-    if (maskAction.getActionType() == Action.SUBTRACT) {
-      this.maskControllerService.do(maskAction, this.allPixels);
-    } else {
-      this.maskControllerService.do(maskAction);
+  }
+
+  endPreview(): void {
+    if (this.continuePreview) {
+      this.continuePreview = false;
+
+      let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
+
+      for (let pixel of this.previewMaster.getMaskAsArray()) {
+        this.maskImageData.data[pixel] = 255;
+        this.maskImageData.data[pixel + 2] = 255;
+        this.maskImageData.data[pixel + 3] = alphaValue;
+      }
+      if (this.curMaskAction.getActionType() == Action.SUBTRACT) {
+        this.maskControllerService.do(this.curMaskAction, this.allPixels);
+      } else {
+        this.maskControllerService.do(this.curMaskAction);
+      }
+      this.drawMask();
+      this.disableSubmit = this.disableFloodFill = false;
     }
-    this.drawMask();
-    this.disableSubmit = this.disableFloodFill = false;
+  }
+
+  private drawPreview() {
+    this.previewCtx.clearRect(
+        0,
+        0,
+        this.previewCanvas.nativeElement.width,
+        this.previewCanvas.nativeElement.height);
+    this.previewCtx.save();
+    this.previewCtx.scale(this.scaleFactor, this.scaleFactor);
+    createImageBitmap(this.previewImgData).then((renderer) => {
+      this.previewCtx.globalAlpha = this.maskAlpha / 2;
+      this.previewCtx.drawImage(
+          renderer,
+          0,
+          0,
+          this.previewCanvas.nativeElement.width,
+          this.previewCanvas.nativeElement.height);
+    });
+    this.previewCtx.restore();
   }
 
   /**

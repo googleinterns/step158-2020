@@ -30,13 +30,18 @@ canvas {
   cursor: none;
 }
 
+#preview-layer {
+  z-index: 3;
+  pointer-events: none;
+}
+
 #image-layer {
   z-index: 1;
   background-color:white;
 }
 
 #cursor-layer {
-  z-index: 3;
+  z-index: 4;
   pointer-events: none;
 }
 

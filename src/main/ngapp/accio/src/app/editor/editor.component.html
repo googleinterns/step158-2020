@@ -20,7 +20,7 @@
   (invertMaskEvent)="invertMask()"
   (undoRedoEvent)="undoRedo($event)"
   (switchImageEvent)="switchImage($event)"
-  (newToleranceEvent)="updateTolerance($event)">
+  (newToleranceEvent)="updateTolerance($event); updatePreview();">
 </app-top-toolbar>
 
 <mat-drawer-container id="img-editor">
@@ -47,7 +47,12 @@
         (continuePaintEvent)="drawPixel($event)"
         (newMaskControllerEvent)="newMaskController($event)"
         (newMouseMoveEvent)="setCursorPosition($event)"
-        (newMouseOutEvent)="setCursorOut()">
+        (newMouseOutEvent)="setCursorOut()"
+        (newMouseDownEvent)="endPreview()">
+      </canvas>
+
+      <canvas #previewCanvas id="preview-layer"
+        width="100px" height="100px">
       </canvas>
 
       <canvas #cursorCanvas id="cursor-layer"

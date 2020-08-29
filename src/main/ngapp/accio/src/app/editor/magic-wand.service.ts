@@ -396,8 +396,8 @@ interface PixelNode {
    **/
 export class PreviewMask {
   masksByTolerance: Array<Array<number>> = [];
-  toleranceIndex = -1;
-  presentMask: Array<number> = [];
+  private toleranceIndex = -1;
+  private presentMask: Array<number> = [];
 
   constructor(toleranceLimit: number) {
     this.masksByTolerance.fill(undefined, 0, toleranceLimit + 2);
@@ -436,7 +436,11 @@ export class PreviewMask {
     }
   }
 
-  public getMask(): Set<number> {
+  public getMaskAsSet(): Set<number> {
     return new Set<number>(this.presentMask);
+  }
+
+  public getMaskAsArray(): Array<number> {
+    return this.presentMask;
   }
 }

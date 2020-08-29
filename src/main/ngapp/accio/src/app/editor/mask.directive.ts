@@ -217,7 +217,17 @@ export class MaskDirective {
               this.coord[1],
               /* toleranceLimit= */300
             );
-          
+
+            this.newMaskEvent.emit(
+              new Mask.MaskAction(
+                this.tool == MaskTool.MAGIC_WAND_ADD
+                  ? Mask.Action.ADD
+                  : Mask.Action.SUBTRACT,
+                Mask.Tool.MAGIC_WAND,
+                undefined,
+                previewMaster
+              )
+            )
       }
 
     }
