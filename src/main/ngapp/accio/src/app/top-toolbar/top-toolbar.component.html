@@ -28,15 +28,14 @@
     Tolerance
     <mat-slider 
       title="Mask Tolerance    ↓1  2↑"  
-      (input)="updateTolerance()"
-      min="1" max="420" step="1" [(ngModel)]="toleranceValue">
+      (input)="updateTolerance($event)"
+      min="1" max="420" step="1">
     </mat-slider>
     <mat-form-field class="slider-value">
       <mat-label style="color=white">Tolerance</mat-label>
       <input
-        (change)="updateTolerance()" 
-        matInput type="number" 
-        [(ngModel)]="toleranceValue" 
+        (change)="updateTolerance($event)" 
+        matInput type="number"
         style="color=white">
     </mat-form-field>
   </span>
