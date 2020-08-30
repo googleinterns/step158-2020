@@ -29,6 +29,7 @@ import { CreateProjectComponent } from './create-project/create-project.componen
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { LogoutComponent } from './logout/logout.component';
 import { TopToolbarComponent } from './top-toolbar/top-toolbar.component';
+import { EndPageComponent } from './end-page/end-page.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import { TopToolbarComponent } from './top-toolbar/top-toolbar.component';
     ToolbarComponent,
     LogoutComponent,
     UpdateImageDialog,
-    TopToolbarComponent
+    TopToolbarComponent,
+    EndPageComponent
   ],
   imports: [
     BrowserModule,

@@ -39,7 +39,7 @@
 </div>
 
 <!--Filter Bar-->
-<div class="form" style="background-color: #f5f5f5">
+<div class="form" id="filter-form" style="background-color: #f5f5f5">
   <h1>Search by:</h1>
   <mat-form-field hintLabel="Clear to remove this filter" appearance="fill">
     <mat-label>Image Name</mat-label>
@@ -77,28 +77,28 @@
   <button mat-raised-button (click)="loadGalleryImages()">
     Update filter(s)
   </button>
-
-  <!--Project Download Bar-->
-  <div id="project-download-bar">
-    <div id="project-download">
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="menu1"
-        aria-label="Project download menu"
-      >
-        <mat-icon>more_vert</mat-icon>
-      </button>
-      <mat-menu #menu1="matMenu">
-        <button mat-menu-item (click)="downloadProjectImages()">
-          <mat-icon>folder</mat-icon>
-          <span>Download project files</span>
-        </button>
-      </mat-menu>
-    </div>
-  </div>
-  <!--Project Download Bar-->
 </div>
 <!--Filter Bar-->
+
+<!--Project Download-->
+<div id="project-download-bar">
+  <div id="project-download">
+    <button
+      mat-icon-button
+      [matMenuTriggerFor]="menu1"
+      aria-label="Project download menu"
+    >
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #menu1="matMenu">
+      <button mat-menu-item (click)="downloadProjectImages()">
+        <mat-icon>folder</mat-icon>
+        <span>Download project files</span>
+      </button>
+    </mat-menu>
+  </div>
+</div>
+<!--Project Download-->
 
 <!--Fetched Images-->
 <div class="gallery" *ngIf="displayImages">
@@ -237,4 +237,4 @@
 </div>
 <!--Fetched Masks-->
 
-<div class="end-page"></div>
+<app-end-page></app-end-page>
