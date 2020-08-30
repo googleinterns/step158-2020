@@ -305,6 +305,12 @@ export class MagicWandService {
 
     // Updates shortest path between neighbor pixel and vanilla node.
     while (toVisit.getSize() !== 0) {
+      // This if statement limits the size of the priority queue for 
+      // reasonable runtime performance in the browser. Removing this 
+      // may cause the browser to become unresponsive for big previews.
+      if (toVisit.getSize() > 600000) {
+        return distances;
+      }
       const curPixelNode: PixelNode = toVisit.pop();
       // A node is considered visited once popped.
       visited.add(curPixelNode.index);
