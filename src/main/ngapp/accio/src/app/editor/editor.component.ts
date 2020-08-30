@@ -748,7 +748,7 @@ export class EditorComponent implements OnInit {
 
   /**
    *  Catches emitted event from mask.directive once users mouse lifts up.
-   *  Finds all pixels painted on paint canvas and adds to set to pass into maskCOntroller.
+   *  Finds all pixels painted on paint canvas and adds to set to pass into maskController.
    *  Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes.
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    */
