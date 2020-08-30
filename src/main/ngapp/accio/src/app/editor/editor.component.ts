@@ -699,6 +699,9 @@ export class EditorComponent implements OnInit {
       // is initiated. 
       this.continuePreview = true;
       this.updatePreview();
+
+      // Pops up a snackbar to tell the user what to do next.
+      this.openPreviewSnackBar();
     } else {
       // Case 2: Performs scribble floodfill sequence.
       let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
@@ -717,6 +720,22 @@ export class EditorComponent implements OnInit {
       this.disableSubmit = this.disableFloodFill = false;
       }
   }
+
+  // User must confirm the preview and commit it to the mask before 
+  // the preview-sequence can end.
+  openPreviewSnackBar() {
+    let snackBarRef = this.snackBar.open(
+        /*message=*/'Blocking: Please confirm the floodfill on this preview!',
+        /*action-message=*/'Confirm!',
+        { horizontalPosition: 'left',
+          verticalPosition: 'top'}
+        );
+    
+    snackBarRef.afterDismissed().subscribe(() => {
+      this.endPreview();
+    });
+  }
+
   /**Called whenever tolerance input changes. Only executes on a new 
    * preview mask event;
    * newMaskEvent >> floodfillMask() { execute: else block }.
@@ -750,6 +769,8 @@ export class EditorComponent implements OnInit {
         this.maskImageData.data[pixel + 2] = 255;
         this.maskImageData.data[pixel + 3] = 255;
       }
+
+      this.previewMaster.resetMask();
       if (this.curMaskAction.getActionType() == Action.SUBTRACT) {
         this.maskControllerService.do(this.curMaskAction, this.allPixels);
       } else {
