@@ -770,6 +770,11 @@ export class EditorComponent implements OnInit {
         this.maskImageData.data[pixel + 3] = 255;
       }
 
+      // Updates curMaskAction to hold the changedPixels,
+      // and pass them into maskController.
+      this.curMaskAction.commitPreviewPixels(
+        this.previewMaster.getMaskAsSet()
+      );
       this.previewMaster.resetMask();
       if (this.curMaskAction.getActionType() == Action.SUBTRACT) {
         this.maskControllerService.do(this.curMaskAction, this.allPixels);

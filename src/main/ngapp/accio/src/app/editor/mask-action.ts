@@ -46,6 +46,10 @@ export class MaskAction {
     return this.changedPixels;
   }
 
+  public commitPreviewPixels(mask: Set<number>): void {
+    this.changedPixels = mask;
+  }
+
   /**
    * Does or undoes the action.
    * @param     {Move}          direction
