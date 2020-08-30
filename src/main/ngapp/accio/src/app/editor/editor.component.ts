@@ -682,7 +682,7 @@ export class EditorComponent implements OnInit {
   floodfillMask(maskAction: MaskAction): void {
     this.disableSubmit = this.disableFloodFill = true;
     // Case 1: performs preview-floodfill sequence.
-    if (maskAction.previewMaster.masksByTolerance !== undefined) {
+    if (maskAction.previewMaster.getIsPreview()) {
       // Pauses any other canvas-editting sequences from registering
       // on the canvas. 
       const previewLayer = document.getElementById('preview-layer');

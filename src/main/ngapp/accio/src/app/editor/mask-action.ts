@@ -31,7 +31,7 @@ export class MaskAction {
      *   CLEAR: the pixels of the current mask
      */
     private changedPixels: Set<number>,
-    public previewMaster: PreviewMask = undefined
+    public previewMaster: PreviewMask = new PreviewMask(-1)
   ) {}
 
   public getActionType(): Action {

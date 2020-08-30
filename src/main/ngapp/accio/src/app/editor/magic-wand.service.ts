@@ -398,8 +398,12 @@ export class PreviewMask {
   masksByTolerance: Array<Array<number>> = [];
   private toleranceIndex = -1;
   private presentMask: Array<number> = [];
+  private isPreview = true;
 
   constructor(toleranceLimit: number) {
+    if (toleranceLimit === -1) {
+      this.isPreview = false;
+    }
     this.masksByTolerance.fill(undefined, 0, toleranceLimit + 2);
   }
 
@@ -450,5 +454,9 @@ export class PreviewMask {
     this.masksByTolerance[this.toleranceIndex--].forEach(() => {
       this.presentMask.pop();
     })
+  }
+
+  public getIsPreview(): boolean {
+    return this.isPreview;
   }
 }
