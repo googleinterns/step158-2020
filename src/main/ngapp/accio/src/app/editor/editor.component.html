@@ -44,6 +44,7 @@
         [disableFloodFill]="disableFloodFill"
         [tool]="maskTool"
         [translationCoords]="destinationCoords"
+        [totalZoom]="totalZoom"
         (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"

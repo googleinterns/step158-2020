@@ -23,6 +23,7 @@ export class MaskDirective {
   @Input() disableFloodFill: boolean;
   @Input() tool: MaskTool;
   @Input() translationCoords: Coordinate;
+  @Input() totalZoom: number;
 
   @Output() newMaskEvent = new EventEmitter<Mask.MaskAction>();
   @Output() newPaintEvent = new EventEmitter<Coordinate>();
@@ -219,6 +220,14 @@ export class MaskDirective {
       this.newDestinationEvent.emit(
         new Coordinate((offsetCoord[0] - this.coord[0] + this.translationCoords.x), 
                        (offsetCoord[1] - this.coord[1] + this.translationCoords.y))
+      );
+    }
+    else if (this.tool == MaskTool.ZOOM_IN || this.tool == MaskTool.ZOOM_OUT) {
+      const tool = (this.tool == MaskTool.ZOOM_IN ? -Zoom.IN : Zoom.OUT);
+      const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
+      console.log('total zoom : ' + this.totalZoom);
+      this.newDestinationEvent.emit(
+        new Coordinate(offsetCoord[0] + (this.translationCoords.x / tool), offsetCoord[1] + (this.translationCoords.x / tool))
       );
     }
   }

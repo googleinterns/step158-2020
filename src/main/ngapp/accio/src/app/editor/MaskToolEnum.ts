@@ -4,5 +4,7 @@ export enum MaskTool {
   MASK_ONLY = 'MASK-ONLY',
   PAINT = 'PAINT',
   ERASE = 'ERASE',
-  PAN = 'PAN'
+  PAN = 'PAN', 
+  ZOOM_IN = 'ZOOM_IN',
+  ZOOM_OUT = 'ZOOM_OUT'
 }

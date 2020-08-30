@@ -103,6 +103,7 @@ export class EditorComponent implements OnInit {
   // The coordinates in the destination canvas at which to place 
   //   the top-left corner of the source image. inputed from maskDirective
   destinationCoords: Coordinate;
+  totalZoom: number; 
 
   // Inject canvas from html.
   @ViewChild('scaledCanvas', { static: true })
@@ -138,6 +139,7 @@ export class EditorComponent implements OnInit {
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
     this.brushWidth = 5;
     this.destinationCoords = new Coordinate(0,0);
+    this.totalZoom = 1;
     document.body.classList.remove('busy-cursor');
 
     //  Gets last image array that user sorted on img-gallery page. Saves to session storage to keep through refresh.
@@ -312,6 +314,7 @@ export class EditorComponent implements OnInit {
   */ 
 
   setScaleFactor(zoom: number = 1) {
+    this.totalZoom *= zoom;
     this.scaleFactor *= zoom;
     try {
       this.scaleFactor = Number(this.scaleFactor.toFixed(2));
@@ -658,6 +661,12 @@ export class EditorComponent implements OnInit {
       case MaskTool.PAN:
         this.maskTool = MaskTool.PAN;
         break;
+      case MaskTool.ZOOM_IN:
+        this.maskTool = MaskTool.ZOOM_IN;
+        break;
+      case MaskTool.ZOOM_OUT:
+        this.maskTool = MaskTool.ZOOM_OUT;
+        break;
       case MaskTool.MASK_ONLY:
         this.maskTool = MaskTool.MASK_ONLY;
         this.imageCtx.clearRect(
@@ -824,8 +833,8 @@ export class EditorComponent implements OnInit {
   * @param zoomIn boolean to determine if user would like to zoom in or out. 
   * TODO: MAKE ZOOM A TOGGLE FEATURE AND ZOOM WHERE USER CLICKS
   */
-  zoom(zoom: Zoom) {
-    this.setScaleFactor(zoom);
+  async zoom(zoom: Zoom): Promise<void> {
+    await this.setScaleFactor(zoom);
     this.drawScaledImage(this.destinationCoords.x, this.destinationCoords.y);
     this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
   } 
@@ -836,7 +845,11 @@ export class EditorComponent implements OnInit {
   *  the image to where they moved the mouse.
   *  TODO: Adjust destination so the user cannot pan past the edge of the image.
   */
-  pan(destination: Coordinate) {
+  async pan(destination: Coordinate): Promise<void> {
+    if (this.maskTool == MaskTool.ZOOM_IN || this.maskTool == MaskTool.ZOOM_OUT) {
+      let tool = (this.maskTool == MaskTool.ZOOM_IN) ? Zoom.IN : Zoom.OUT
+      await this.zoom(tool);
+    }
     this.drawScaledImage(destination.x, destination.y);
     this.drawMask(destination.x, destination.y);
   }
