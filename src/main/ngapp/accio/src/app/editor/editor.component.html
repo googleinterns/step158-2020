@@ -47,8 +47,7 @@
         (continuePaintEvent)="drawPixel($event)"
         (newMaskControllerEvent)="newMaskController($event)"
         (newMouseMoveEvent)="setCursorPosition($event)"
-        (newMouseOutEvent)="setCursorOut()"
-        (newMouseDownEvent)="endPreview()">
+        (newMouseOutEvent)="setCursorOut()">
       </canvas>
 
       <canvas #previewCanvas id="preview-layer"
