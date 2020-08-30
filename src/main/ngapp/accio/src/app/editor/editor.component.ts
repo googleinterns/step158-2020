@@ -3,6 +3,7 @@ import { ViewChild, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
 
+import { MagicWandService } from './magic-wand.service';
 import { PostBlobsService } from '../post-blobs.service';
 import { FetchImagesService } from '../fetch-images.service';
 import { ImageBlob } from '../ImageBlob';
@@ -25,6 +26,7 @@ export class EditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private magicWandService: MagicWandService,
     private postBlobsService: PostBlobsService,
     private fetchImagesService: FetchImagesService,
     private maskControllerService: MaskControllerService
@@ -278,7 +280,7 @@ export class EditorComponent implements OnInit {
     if (this.maskUrl != '' && this.maskUrl) {
       console.log("there's a mask url" + this.maskUrl);
       let maskImage = new Image();
-      await this.maskControllerPaint().then((response) => {
+      const paintSet = await this.getPaintedSet();
         maskImage.onload = () => {
           this.maskCtx.drawImage(maskImage, 0, 0);
           this.maskImageData = this.maskCtx.getImageData(
@@ -288,12 +290,11 @@ export class EditorComponent implements OnInit {
             imgHeight
           );
           // Initializes controller service with old mask.
-          this.maskControllerService =  new MaskControllerService(response);
+          this.maskControllerService =  new MaskControllerService(paintSet);
 
           this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
         };
         maskImage.src = this.maskUrl;
-      });
     }
 
     this.allPixels = new Set([
@@ -729,6 +730,42 @@ export class EditorComponent implements OnInit {
     this.disableSubmit = this.disableFloodFill = false;
   }
 
+  getFloodfillSet(coord: Coordinate) {
+    const maskSet = this.magicWandService.floodfill(
+      this.originalImageData,
+      coord.x,
+      coord.y, 
+      this.tolerance
+    )
+    this.floodfillMask(
+      new MaskAction(          
+        this.maskTool == MaskTool.MAGIC_WAND_ADD
+            ? Action.ADD
+            : Action.SUBTRACT,
+          Tool.MAGIC_WAND,
+          maskSet
+    ));
+  }
+
+  async getScribbleSet(coord: Coordinate): Promise<void> {
+    const paintedSet = await this.getPaintedSet();
+    const maskSet = this.magicWandService.scribbleFloodfill (
+      this.originalImageData,
+      coord.x,
+      coord.y, 
+      this.tolerance,
+      paintedSet
+    )
+    this.floodfillMask(
+      new MaskAction(
+        this.maskTool == MaskTool.MAGIC_WAND_ADD
+          ? Action.ADD
+          : Action.SUBTRACT,
+        Tool.SCRIBBLE,
+        maskSet
+    ));
+  }
+
   /**
    *  Sets the start pixel where the users initially clicks the canvas to draw.
    *  @param pixel is the (x,y) coordinate the user first clicks on.
@@ -761,11 +798,7 @@ export class EditorComponent implements OnInit {
     this.maskCtx.beginPath();
     this.paintCtx.beginPath();
 
-    this.maskCtx.lineWidth = this.paintCtx.lineWidth =
-      this.maskTool == MaskTool.MAGIC_WAND_ADD ||
-      this.maskTool == MaskTool.MAGIC_WAND_SUB
-        ? 1
-        : this.brushWidth;
+    this.maskCtx.lineWidth = this.paintCtx.lineWidth = this.brushWidth;
 
     this.maskCtx.moveTo(this.startPixel.x, this.startPixel.y);
     this.maskCtx.lineTo(pixel.x, pixel.y);
@@ -792,7 +825,7 @@ export class EditorComponent implements OnInit {
    *  @returns set<number> of all indicies in the mask.
    */
 
-  async maskControllerPaint() {
+  getPaintedSet() {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
     for (let i = 0; i < paintedImageData.length; i += 4) {
@@ -806,7 +839,7 @@ export class EditorComponent implements OnInit {
   
   /** Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes. */
   async doMaskActionPaint(): Promise<void> {
-    let paintedMask = await this.maskControllerPaint();
+    let paintedMask = await this.getPaintedSet();
     let maskAction = new MaskAction(
         ((this.maskTool == MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
         ((this.maskTool == MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
