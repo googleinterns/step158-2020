@@ -443,4 +443,12 @@ export class PreviewMask {
   public getMaskAsArray(): Array<number> {
     return this.presentMask;
   }
+
+  public resetMask(): void {
+    this.changeMaskBy(0);
+
+    this.masksByTolerance[this.toleranceIndex--].forEach(() => {
+      this.presentMask.pop();
+    })
+  }
 }
