@@ -1,5 +1,10 @@
 import { HostListener, Component, OnInit } from '@angular/core';
+import { MaskControllerService } from '../editor/mask-controller.service';
 import { Output, EventEmitter } from '@angular/core';
+
+  export class SaveState {
+constructor(public text: string, public icon: string){}
+  }
 
 @Component({
   selector: 'app-top-toolbar',
@@ -52,7 +57,7 @@ export class TopToolbarComponent implements OnInit {
     }
   }
 
-  constructor() {}
+  constructor(private maskControllerService: MaskControllerService) {}
 
   ngOnInit(): void {
     this.toleranceValue = 30;
@@ -84,5 +89,18 @@ export class TopToolbarComponent implements OnInit {
   /** Emits value of user inputed/slider tolerance. */
   updateTolerance() {
     this.newToleranceEvent.emit(this.toleranceValue);
+  }
+
+  getSaveState(): SaveState {
+      let text: string;
+      let icon: string;
+      if (this.maskControllerService.isSaved()) {
+          text = 'up to date';
+          icon = 'check';
+      } else {
+          text = 'unsaved changes';
+          icon = 'history';
+      }
+      return new SaveState(text, icon);
   }
 }

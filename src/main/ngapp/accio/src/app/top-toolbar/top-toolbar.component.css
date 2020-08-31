@@ -16,6 +16,15 @@
   left: 5%;
 }
 
+.indicator {
+  color: white;
+  border: none;
+  height: 100%;
+  width: 50px;
+  padding: 10px;
+  left: 5%;
+}
+
 .button:hover {
   background-color: #28292b;
   color: #cdd1d3;
