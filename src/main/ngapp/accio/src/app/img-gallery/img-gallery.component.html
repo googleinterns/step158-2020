@@ -152,7 +152,7 @@
             <mat-icon>photo_library</mat-icon>
             <span>Download image and masks</span>
           </button>
-          <button mat-menu-item (click)="updateButton(image['name'], '')">
+          <button mat-menu-item (click)="updateButton(image['name'], '', (image['tags'] !== undefined) ? image['tags'].toString().replace(',', ', ') : '')">
             <mat-icon>update</mat-icon>
             <span>Update Image</span>
           </button>
@@ -217,7 +217,7 @@
             </button>
             <button
               mat-menu-item
-              (click)="updateButton(mask['name'], image['name'])"
+              (click)="updateButton(mask['name'], image['name'], (mask['tags'] !== undefined) ? mask['tags'].toString().replace(',', ', ') : '')"
             >
               <mat-icon>update</mat-icon>
               <span>Update Image</span>
