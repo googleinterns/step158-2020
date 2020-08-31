@@ -172,8 +172,8 @@ export class MaskDirective {
       );
     } else if (
       (this.tool == MaskTool.MAGIC_WAND_ADD ||
-        this.tool == MaskTool.MAGIC_WAND_SUB) &&
-      !this.scribbleFill
+       this.tool == MaskTool.MAGIC_WAND_SUB) &&
+       !this.scribbleFill
     ) {
       // Returns an array indices of each pixel in the mask.
       const maskPixels = this.magicWandService.floodfill(
