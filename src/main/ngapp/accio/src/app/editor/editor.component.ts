@@ -267,10 +267,6 @@ export class EditorComponent implements OnInit {
     this.maskCtx.drawImage(this.image, 0, 0);
 
     //  Only gets the image data from (0,0) to (width,height) of image.
-    this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth,
-      imgHeight
-    );
-    this.maskCtx.clearRect(0, 0, imgWidth, imgHeight);
     this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth, imgHeight);
     this.maskCtx.clearRect(0,0,imgWidth, imgHeight);
 
@@ -766,16 +762,39 @@ export class EditorComponent implements OnInit {
     let paintedMask = new Set<number>();
 
     let leftTop = this.searchRectangle.getLeftTop();
-    let bottomRight = this.searchRectangle.getBottomRight();
+    let rightBottom = this.searchRectangle.getRightBottom();
 
-    let leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
-    let bottomRightIndex = this.magicWandService.coordToDataArrayIndex(bottomRight.x, bottomRight.y, this.image.width);
+    const leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
+    const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, rightBottom.y, this.image.width);
+   
+    let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
 
-    for (let i = 0; i < paintedImageData.length; i += 4) {
+    console.log(`top left (${leftTop.x}, ${leftTop.y}) or index ${leftTopIndex}`);
+
+    // Loops through image data starting at top left until bottom right, skipping along the way.
+    for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
       // If the alpha value has value
       if (paintedImageData[i + 3] == 255) {
         paintedMask.add(i);
       }
+        this.maskImageData[i] = 0; //DELETE
+        this.maskImageData[i + 1] = 0;
+        this.maskImageData[i + 2] = 255;//TO HERE
+        this.maskImageData[i + 3] = 255
+
+      // Checks if i is the top right index, if it is, changes i to the next index in the rectangle.
+      if (i === currRightTopIndex) {
+        console.log(`top right (${rightBottom.x}, ${leftTop.y}) or index ${currRightTopIndex}`);
+        
+        i = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y + 1, this.image.width);
+        currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y + 1, this.image.width);
+
+        console.log(`new top right (${rightBottom.x}, ${leftTop.y}) or index ${currRightTopIndex}`);
+
+      }
+
+      this.drawMask(); //DELETE
+
     }
     let maskAction = new MaskAction(
         ((this.maskTool == MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
@@ -832,22 +851,27 @@ class Rectangle {
 
     if (this.top > topY) {
       this.top = topY;
+      console.log(`top changed ${this.top}`);
     }
     if (this.bottom < bottomY) {
       this.bottom = bottomY;
+      console.log(`bottom changed ${this.bottom}`);
     }
     if (this.left > leftX) {
       this.left = leftX;
+      console.log(`left changed ${this.left}`);
+
     }
     if (this.right < rightX) {
       this.right = rightX;
+      console.log(`right changed ${this.right}`);
     }
   }
 
   getLeftTop() {
     return new Coordinate(this.left, this.top);
   }
-  getBottomRight() {
+  getRightBottom() {
     return new Coordinate(this.right, this.bottom);
   }
 }
