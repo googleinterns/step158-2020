@@ -369,10 +369,10 @@ export class MagicWandService {
       // Reducing tolerance to the root reduces the number of iterations
       // inside PreviewMask.masksAtTolerance()
       tolerance = Math.ceil(Math.sqrt(shortestPaths[i]));
-      // Pixel index is i * 4.
       if (previewMask.masksByTolerance[tolerance] === undefined) {
         previewMask.masksByTolerance[tolerance] = [];
       }
+      // Pixel index is i * 4.
       previewMask.masksByTolerance[tolerance].push(i * 4);
     }
 
