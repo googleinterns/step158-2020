@@ -4,6 +4,7 @@ import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
 
 import { PostBlobsService } from '../post-blobs.service';
+import { MagicWandService } from './magic-wand.service';
 import { FetchImagesService } from '../fetch-images.service';
 import { ImageBlob } from '../ImageBlob';
 import { MaskTool } from './MaskToolEnum';
@@ -25,6 +26,7 @@ export class EditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private magicWandService: MagicWandService, 
     private postBlobsService: PostBlobsService,
     private fetchImagesService: FetchImagesService,
     private maskControllerService: MaskControllerService
@@ -103,6 +105,9 @@ export class EditorComponent implements OnInit {
   // The coordinates in the destination canvas at which to place 
   //   the top-left corner of the source image. inputed from maskDirective
   destinationCoords: Coordinate;
+
+  // Rectangle used when user goes to paint or scribble paint as search box.
+  private searchRectangle: Rectangle;
 
   // Inject canvas from html.
   @ViewChild('scaledCanvas', { static: true })
@@ -241,11 +246,6 @@ export class EditorComponent implements OnInit {
     this.paintCtx = this.paintCanvas.nativeElement.getContext('2d');
     this.paintCtx.lineCap = this.paintCtx.lineJoin = 'round';
     this.paintCtx.strokeStyle = this.MAGENTA;
-
-    // Canvas to paint cursor-overlay of brush size.
-    this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
-    this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
-    this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
     
     // Canvas to show mask scaled.
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
@@ -747,6 +747,7 @@ export class EditorComponent implements OnInit {
         ? this.SOURCE_OVER
         : this.DESTINATION_OUT;
     this.paintCtx.globalCompositeOperation = this.SOURCE_OVER;
+    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
   }
 
   /**
@@ -756,6 +757,8 @@ export class EditorComponent implements OnInit {
    *  Sets this.startPixel to @param pixel to keep continuous drawing line.
    */
   drawPixel(pixel: Coordinate) {
+    this.searchRectangle.compareCoordinateToCurrentRectangle(pixel);
+
     this.maskCtx.beginPath();
     this.paintCtx.beginPath();
 
@@ -785,7 +788,12 @@ export class EditorComponent implements OnInit {
 
   /**
    *  Catches emitted event from mask.directive once users mouse lifts up.
+<<<<<<< HEAD
    *  Finds all pixels painted on paint canvas and adds to set to pass into maskCOntroller.
+=======
+   *  Finds all pixels painted on paint canvas and adds to set to pass into maskController.
+   *  Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes.
+>>>>>>> c50b5ac4c1b1f04c92bb243a5d0b3f019a41c17a
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    *  @returns set<number> of all indicies in the mask.
    */
@@ -793,11 +801,24 @@ export class EditorComponent implements OnInit {
   async maskControllerPaint() {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
-    for (let i = 0; i < paintedImageData.length; i += 4) {
-      // If the alpha value has value
+
+    let leftTop = this.searchRectangle.getLeftTop();
+    let rightBottom = this.searchRectangle.getRightBottom();
+
+    const leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
+    const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, rightBottom.y, this.image.width);
+   
+    let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
+    let newTopY = leftTop.y;
+
+    for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
+      // If the alpha value has value.
       if (paintedImageData[i + 3] == 255) {
         paintedMask.add(i);
       }
+
+      // TODO(SHMCAFFREY) loop through only the indicies in the rectangle.
+
     }
     return paintedMask;
   }
@@ -857,4 +878,59 @@ export class EditorComponent implements OnInit {
 interface CursorPos {
   x: number;
   y: number;
+}
+
+class Rectangle {
+  imageWidth: number;
+  imageHeight: number;
+  brushRadius: number;
+  // Lowest y touched by the brush.
+  top: number;
+  // Highest y touched by the brush. 
+  bottom: number;
+  // Lowest x touched by the brush.
+  left: number;
+  // Highest x touched by the brush.
+  right: number;
+  
+  constructor(imageWidth: number, imageHeight: number, brushWidth: number, coord: Coordinate) {
+    this.imageWidth = imageWidth;
+    this.imageHeight = imageHeight;
+    this.brushRadius = brushWidth / 2;
+
+    this.top = Math.max(coord.y - this.brushRadius, 0);
+    this.bottom = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
+
+    this.left = Math.max(coord.x - this.brushRadius, 0);
+    this.right = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
+  }
+
+  /** Compares the index's left, right, top, and bottom most pixel based on the brush radius to the current max and mins of all members */
+  compareCoordinateToCurrentRectangle(coord: Coordinate) {
+    const topY = Math.max(coord.y - this.brushRadius, 0);
+    const bottomY = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
+    
+    const leftX = Math.max(coord.x - this.brushRadius, 0);
+    const rightX = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
+
+    if (this.top > topY) {
+      this.top = topY;
+    }
+    if (this.bottom < bottomY) {
+      this.bottom = bottomY;
+    }
+    if (this.left > leftX) {
+      this.left = leftX;
+    }
+    if (this.right < rightX) {
+      this.right = rightX;
+    }
+  }
+
+  getLeftTop() {
+    return new Coordinate(this.left, this.top);
+  }
+  getRightBottom() {
+    return new Coordinate(this.right, this.bottom);
+  }
 }
