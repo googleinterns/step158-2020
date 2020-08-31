@@ -361,7 +361,7 @@ export class EditorComponent implements OnInit {
   }
 
   /**
-   *  Makes a png of mask so the the background is transparent.
+   *  Makes a pewtopg of mask so the the background is transparent.
    *  Clears canvas, draws the original image and draws the mask.
    *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
    *  Disables Flood fill before maskUrl is being set so new data isn't added
@@ -770,16 +770,28 @@ export class EditorComponent implements OnInit {
    
     let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
     let newTopY = leftTop.y;
+    console.log(`top left index ${leftTopIndex}, bottom right index ${rightBottomIndex}`);
 
-    for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
+    for (let i = leftTopIndex; i <= /*rightBottomIndex*/ currRightTopIndex; i += 4) {
       // If the alpha value has value.
-      if (paintedImageData[i + 3] == 255) {
+      // if (paintedImageData[i + 3] === 255) {
         paintedMask.add(i);
+      // }
+
+      // if (i === currRightTopIndex) {
+      //   i = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y + 1, this.image.width);
+      //   currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, ++newTopY, this.image.width);
+      //   console.log(`new top left (${leftTop.x}, ${newTopY}) or index ${currRightTopIndex}`);
+      // }
+
+      if(i == rightBottomIndex) {
+        console.log('reached bottom right index, should exit now.')
       }
 
       // TODO(SHMCAFFREY) loop through only the indicies in the rectangle.
 
     }
+
     let maskAction = new MaskAction(
         ((this.maskTool == MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
         ((this.maskTool == MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
@@ -835,22 +847,28 @@ class Rectangle {
 
     if (this.top > topY) {
       this.top = topY;
+      console.log(`Top  change: ${this.top}`);
     }
     if (this.bottom < bottomY) {
       this.bottom = bottomY;
+      console.log(`bottom  change: ${this.bottom}`);
     }
     if (this.left > leftX) {
       this.left = leftX;
+      console.log(` left change: ${this.left}`);
     }
     if (this.right < rightX) {
       this.right = rightX;
+      console.log(`Right change: ${this.right}`);
     }
   }
 
   getLeftTop() {
+    console.log(`left: ${this.left}, top: ${this.top}`);
     return new Coordinate(this.left, this.top);
   }
   getRightBottom() {
+    console.log(`left: ${this.right}, top: ${this.bottom}`);
     return new Coordinate(this.right, this.bottom);
   }
 }
