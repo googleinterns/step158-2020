@@ -1,4 +1,4 @@
-import { MaskAction, Action } from './mask-action';
+import { MaskAction, Action, Tool } from './mask-action';
 import { SetOperator } from './set-operator';
 import { Injectable } from '@angular/core';
 
@@ -114,5 +114,25 @@ export class MaskControllerService {
 
   public redo(): MaskAction {
     return this.move(Move.FORWARD_ONE);
+  }
+
+  /**
+   * Return the next action in history for redo preview. 
+   */
+  public nextAction(): MaskAction {
+    if (this.history[this.pPresent + 1] === undefined) {
+        return new MaskAction(null, Tool.NOTHING_REDO, null);
+    }
+    return this.history[this.pPresent + 1];
+  }
+
+  /**
+   * Return the last applied action in history for undo preview. 
+   */
+  public prevAction(): MaskAction {
+    if (this.history[this.pPresent] === undefined) {
+        return new MaskAction(null, Tool.NOTHING_UNDO, null);
+    }
+    return this.history[this.pPresent];
   }
 }

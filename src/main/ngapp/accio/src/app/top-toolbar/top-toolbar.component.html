@@ -25,13 +25,19 @@
     <p>Invert Mask</p>
   </div>
   <div class="icon">
-    <mat-icon class="button" title="Undo    Ctrl+Z" (click)="undoRedo('undo')"
+    <mat-icon
+      class="button"
+      title="Undo    Ctrl+Z    undo {{ getUndoRedoToolName(UndoRedo.UNDO) }}"
+      (click)="undoRedo(UndoRedo.UNDO)"
       >undo</mat-icon
     >
     <p>Undo</p>
   </div>
   <div class="icon">
-    <mat-icon class="button" title="Redo    Ctrl+Y" (click)="undoRedo('redo')"
+    <mat-icon
+      class="button"
+      title="Redo    Ctrl+Y    redo {{ getUndoRedoToolName(UndoRedo.REDO) }}"
+      (click)="undoRedo(UndoRedo.REDO)"
       >redo</mat-icon
     >
     <p>Redo</p>

@@ -1,9 +1,15 @@
 import { HostListener, Component, OnInit } from '@angular/core';
 import { MaskControllerService } from '../editor/mask-controller.service';
+import { MaskAction, Tool, Action } from '../editor/mask-action';
 import { Output, EventEmitter } from '@angular/core';
 
 export class SaveState {
   constructor(public text: string, public icon: string) {}
+}
+
+export enum UndoRedo {
+  UNDO = 'undo',
+  REDO = 'redo',
 }
 
 @Component({
@@ -17,6 +23,8 @@ export class TopToolbarComponent implements OnInit {
   @Output() undoRedoEvent = new EventEmitter<string>();
   @Output() switchImageEvent = new EventEmitter<boolean>();
   @Output() newToleranceEvent = new EventEmitter<number>();
+
+  UndoRedo = UndoRedo;
 
   readonly SAVED_STATE: SaveState = new SaveState('up to date', 'check');
   readonly UNSAVED_STATE: SaveState = new SaveState(
@@ -32,11 +40,11 @@ export class TopToolbarComponent implements OnInit {
       switch ($event.keyCode) {
         case 89:
           console.log('CTRL + Y');
-          this.undoRedo('redo');
+          this.undoRedo(UndoRedo.UNDO);
           break;
         case 90:
           console.log('CTRL + Z');
-          this.undoRedo('undo');
+          this.undoRedo(UndoRedo.REDO);
           break;
       }
     } else {
@@ -79,8 +87,8 @@ export class TopToolbarComponent implements OnInit {
     this.invertMaskEvent.emit();
   }
 
-  undoRedo(direction: string) {
-    this.undoRedoEvent.emit(direction);
+  undoRedo(undoRedo: UndoRedo) {
+    this.undoRedoEvent.emit(undoRedo);
   }
 
   switchImage(previous: boolean) {
@@ -98,7 +106,7 @@ export class TopToolbarComponent implements OnInit {
   }
 
   /**
-   * Return the SaveState based on the maskControllerService state including 
+   * Return the SaveState based on the maskControllerService state including
    * the text and icon to display.
    */
   getSaveState(): SaveState {
@@ -106,5 +114,24 @@ export class TopToolbarComponent implements OnInit {
       return this.SAVED_STATE;
     }
     return this.UNSAVED_STATE;
+  }
+
+  /**
+   * Return the tool name of the last or next action for hover preview.
+   */
+  getUndoRedoToolName(undoRedo: UndoRedo): string {
+    let maskAction: MaskAction;
+    if (undoRedo === UndoRedo.UNDO) {
+      maskAction = this.maskControllerService.prevAction();
+    } else {
+      maskAction = this.maskControllerService.nextAction();
+    }
+    if (
+      maskAction.getActionType() === Action.ADD ||
+      maskAction.getActionType() === Action.SUBTRACT
+    ) {
+      return maskAction.getActionType() + ' with ' + maskAction.getToolName();
+    }
+    return maskAction.getToolName();
   }
 }
