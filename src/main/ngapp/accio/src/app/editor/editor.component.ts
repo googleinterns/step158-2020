@@ -51,7 +51,7 @@ export class EditorComponent implements OnInit {
   ZOOM_IN: number = 2;
   ZOOM_OUT: number = .5
 
-  //  Display variables.
+  // Display variables.
   private image: HTMLImageElement;
   private maskImageData: ImageData;
   private imageUrl: string;
@@ -257,6 +257,11 @@ export class EditorComponent implements OnInit {
     this.imageCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.imageCtx = this.imageCanvas.nativeElement.getContext('2d');
 
+    // Canvas to paint cursor-overlay of brush size.
+    this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
+    this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
+    this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
+
     this.stageWidth = imgWidth * this.scaleFactor;
     this.stageHeight = imgHeight * this.scaleFactor;
 
@@ -264,12 +269,7 @@ export class EditorComponent implements OnInit {
     this.maskCtx.drawImage(this.image, 0, 0);
 
     //  Only gets the image data from (0,0) to (width,height) of image.
-    this.originalImageData = this.maskCtx.getImageData(
-      0,
-      0,
-      imgWidth,
-      imgHeight
-    );
+    this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth, imgHeight);
     this.maskCtx.clearRect(0, 0, imgWidth, imgHeight);
 
     this.drawScaledImage(this.destinationCoords.x, this.destinationCoords.y);
@@ -295,9 +295,12 @@ export class EditorComponent implements OnInit {
       });
     }
 
+    let totalNumPixels = this.originalImageData.data.length / 4;
     this.allPixels = new Set([
-      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
-        function (x) {
+      ...Array.from(Array(totalNumPixels).keys()).map(  
+        // Multiplies every value in the pixel array by 4 to obtain
+        // the indices of the pixels within the RBGA array
+        function (x) { 
           return x * 4;
         }
       ),
@@ -324,8 +327,8 @@ export class EditorComponent implements OnInit {
     }
   }
 
-  /* Handles cursor tracking and resizing. */
-
+  /* The following 2 functions: Handles cursor tracking and resizing. */
+  
   // Draws/Redraws 'cursor' at the current position of user's mouse.
   setCursorPosition(e: MouseEvent): void {
     // These are the coordinates used to paint.
@@ -354,9 +357,9 @@ export class EditorComponent implements OnInit {
     this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
   }
 
-  /**
-   *   Clears full canvas.
-   */
+ /**
+  * Clears full canvas.
+  */
   private clearScaledCanvas() {
     this.scaledCtx.clearRect(
       0,
