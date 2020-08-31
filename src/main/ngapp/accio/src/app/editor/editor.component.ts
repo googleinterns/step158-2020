@@ -267,10 +267,6 @@ export class EditorComponent implements OnInit {
     this.maskCtx.drawImage(this.image, 0, 0);
 
     //  Only gets the image data from (0,0) to (width,height) of image.
-    this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth,
-      imgHeight
-    );
-    this.maskCtx.clearRect(0, 0, imgWidth, imgHeight);
     this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth, imgHeight);
     this.maskCtx.clearRect(0,0,imgWidth, imgHeight);
 
@@ -725,7 +721,7 @@ export class EditorComponent implements OnInit {
    *  Sets this.startPixel to @param pixel to keep continuous drawing line.
    */
   drawPixel(pixel: Coordinate) {
-    this.searchRectangle.compare(pixel);
+    this.searchRectangle.compareCoordinateToCurrentRectangle(pixel);
 
     this.maskCtx.beginPath();
     this.paintCtx.beginPath();
@@ -766,13 +762,17 @@ export class EditorComponent implements OnInit {
     let paintedMask = new Set<number>();
 
     let leftTop = this.searchRectangle.getLeftTop();
-    let bottomRight = this.searchRectangle.getBottomRight();
+    let rightBottom = this.searchRectangle.getRightBottom();
 
-    let leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
-    let bottomRightIndex = this.magicWandService.coordToDataArrayIndex(bottomRight.x, bottomRight.y, this.image.width);
+    const leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
+    const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, rightBottom.y, this.image.width);
+   
+    let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
 
-    for (let i = 0; i < paintedImageData.length; i += 4) {
-      // If the alpha value has value
+    for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
+      // If the alpha value has value.
+
+      //
       if (paintedImageData[i + 3] == 255) {
         paintedMask.add(i);
       }
@@ -815,20 +815,20 @@ class Rectangle {
     this.imageHeight = imageHeight;
     this.brushRadius = brushWidth / 2;
 
-    this.top = (coord.y - this.brushRadius) >= 0 ? (coord.y - this.brushRadius) : 0;
-    this.bottom = (coord.y + this.brushRadius) <= (this.imageHeight - 1) ? (coord.y + this.brushRadius) : (this.imageHeight - 1);
-    
-    this.left = (coord.x - this.brushRadius) >= 0 ? (coord.x - this.brushRadius) : 0;
-    this.right = (coord.x + this.brushRadius) <= (this.imageWidth - 1) ? (coord.x + this.brushRadius) : (this.imageWidth - 1);
+    this.top = Math.max(coord.y - this.brushRadius, 0);
+    this.bottom = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
+
+    this.left = Math.max(coord.x - this.brushRadius, 0);
+    this.right = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
   }
 
   /** Compares the index's left, right, top, and bottom most pixel based on the brush radius to the current max and mins of all members */
-  compare(coord: Coordinate) {
-    let topY = (coord.y - this.brushRadius) >= 0 ? (coord.y - this.brushRadius) : 0;
-    let bottomY = (coord.y + this.brushRadius) <= (this.imageHeight - 1) ? (coord.y + this.brushRadius) : (this.imageHeight - 1);
+  compareCoordinateToCurrentRectangle(coord: Coordinate) {
+    const topY = Math.max(coord.y - this.brushRadius, 0);
+    const bottomY = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
     
-    let leftX = (coord.x - this.brushRadius) >= 0 ? (coord.x - this.brushRadius) : 0;
-    let rightX = (coord.x + this.brushRadius) <= (this.imageWidth - 1) ? (coord.x + this.brushRadius) : (this.imageWidth - 1);
+    const leftX = Math.max(coord.x - this.brushRadius, 0);
+    const rightX = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
 
     if (this.top > topY) {
       this.top = topY;
@@ -847,7 +847,7 @@ class Rectangle {
   getLeftTop() {
     return new Coordinate(this.left, this.top);
   }
-  getBottomRight() {
+  getRightBottom() {
     return new Coordinate(this.right, this.bottom);
   }
 }

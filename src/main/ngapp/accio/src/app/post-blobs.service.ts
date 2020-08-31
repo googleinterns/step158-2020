@@ -19,16 +19,12 @@ export class PostBlobsService {
     let response = await fetch('/blob-upload');
     let blobUploadUrl = await response.json();
     this.actionUrl = blobUploadUrl;
-
-    console.log('actionURL: ' + this.actionUrl);
-    console.log('upload ready');
   }
 
   /** 
    * Fetches the blobUploadURL to post image data to datastore
    */
   private onUpload(formData: FormData) {
-    console.log('here 1');
     this.http.post<any>(this.actionUrl, formData).subscribe(
       (res) => {
         console.log('SUCCESS: Image uploaded to server.');
@@ -49,7 +45,6 @@ export class PostBlobsService {
         window.location.reload();
       }
     );
-      console.log('here 2');
   }
 
   /** 
@@ -73,17 +68,12 @@ export class PostBlobsService {
     formData.append('mode', imageBlob.mode);
     if (imageBlob.image) {
       formData.append('image', imageBlob.image, fileName);
-      console.log('image appended');
     }
-    console.log(imageBlob.image);
 
     formData.append('parent-img', imageBlob.parentImageName);
     formData.append('new-name', imageBlob.newImageName);
     formData.append('tags', tags);
     formData.append('delete', deleteString);
-
-    console.log('formData:');
-    console.log(formData);
     
     this.onUpload(formData);
   }

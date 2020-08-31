@@ -147,7 +147,6 @@ export class MaskDirective {
       this.scribbleFill = false;
       this.newPaintMaskEvent.emit();
     } 
-
     //  If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
     else if ((this.tool == MaskTool.MAGIC_WAND_ADD
         || this.tool == MaskTool.MAGIC_WAND_SUB) 
