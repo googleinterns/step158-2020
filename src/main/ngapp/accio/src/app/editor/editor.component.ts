@@ -46,7 +46,7 @@ export class EditorComponent implements OnInit {
   cursorX = 0;
   cursorY = 0;
 
-  //  Display variables.
+  // Display variables.
   private image: HTMLImageElement;
   private maskImageData: ImageData;
   private imageUrl: string;
@@ -240,11 +240,6 @@ export class EditorComponent implements OnInit {
     this.paintCtx = this.paintCanvas.nativeElement.getContext('2d');
     this.paintCtx.lineCap = this.paintCtx.lineJoin = 'round';
     this.paintCtx.strokeStyle = this.MAGENTA;
-
-    // Canvas to paint cursor-overlay of brush size.
-    this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
-    this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
-    this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
     
     // Canvas to show mask scaled.
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
@@ -256,6 +251,10 @@ export class EditorComponent implements OnInit {
     this.imageCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.imageCtx = this.imageCanvas.nativeElement.getContext('2d');
 
+    // Canvas to paint cursor-overlay of brush size.
+    this.cursorCanvas.nativeElement.width = imgWidth * this.scaleFactor;
+    this.cursorCanvas.nativeElement.height = imgHeight * this.scaleFactor;
+    this.cursorCtx = this.cursorCanvas.nativeElement.getContext('2d');
 
     this.stageWidth = imgWidth * this.scaleFactor;
     this.stageHeight = imgHeight * this.scaleFactor;
@@ -264,13 +263,12 @@ export class EditorComponent implements OnInit {
     this.maskCtx.drawImage(this.image, 0, 0);
 
     //  Only gets the image data from (0,0) to (width,height) of image.
-    this.originalImageData = this.maskCtx.getImageData(
-      0,
-      0,
-      imgWidth,
+    this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth,
       imgHeight
     );
     this.maskCtx.clearRect(0, 0, imgWidth, imgHeight);
+    this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth, imgHeight);
+    this.maskCtx.clearRect(0,0,imgWidth, imgHeight);
 
     this.drawScaledImage();
 
@@ -291,17 +289,20 @@ export class EditorComponent implements OnInit {
       maskImage.src = this.maskUrl;
     }
 
+    let totalNumPixels = this.originalImageData.data.length / 4;
     this.allPixels = new Set([
-      ...Array.from(Array(this.originalImageData.data.length / 4).keys()).map(
-        function (x) {
+      ...Array.from(Array(totalNumPixels).keys()).map(  
+        // Multiplies every value in the pixel array by 4 to obtain
+        // the indices of the pixels within the RBGA array
+        function (x) { 
           return x * 4;
         }
       ),
     ]);
   }
 
-  /* Handles cursor tracking and resizing. */
-
+  /* The following 2 functions: Handles cursor tracking and resizing. */
+  
   // Draws/Redraws 'cursor' at the current position of user's mouse.
   setCursorPosition(e: MouseEvent): void {
     // These are the coordinates used to paint.
@@ -330,9 +331,9 @@ export class EditorComponent implements OnInit {
     this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
   }
 
-  /**
-   *   Clears full canvas.
-   */
+ /**
+  * Clears full canvas.
+  */
   private clearScaledCanvas() {
     this.scaledCtx.clearRect(
       0,
