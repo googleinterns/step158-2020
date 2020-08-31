@@ -289,21 +289,21 @@ export class MagicWandService {
     // (as opposed to coord format; for Set funcs).
     const visited: Set<number> = new Set();
 
-    const vanillaPixelColor: Color = 
+    const originalPixelColor: Color = 
         this.dataArrayToRgb(imgData, xCoord, yCoord);
 
-    const vanillaIndex: number = 
+    const originalIndex: number = 
         this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
     toVisit.push({
         distance: 0,
-        index: vanillaIndex / 4});
+        index: originalIndex / 4});
 
-    distances[vanillaIndex / 4] = 0;
+    distances[originalIndex / 4] = 0;
 
     // Works with tolerance limit in the squared space.
     toleranceLimit *= toleranceLimit;
 
-    // Updates shortest path between neighbor pixel and vanilla node.
+    // Updates shortest path between neighbor pixel and original node.
     while (toVisit.getSize() !== 0) {
       const curPixelNode: PixelNode = toVisit.pop();
       // A node is considered visited once popped.
@@ -336,7 +336,7 @@ export class MagicWandService {
         const neighborPixelColor: Color =
             this.dataArrayToRgb(imgData, neighborX, neighborY);
         const neighborColorDist: number =
-            this.rgbEuclideanDist(neighborPixelColor, vanillaPixelColor);
+            this.rgbEuclideanDist(neighborPixelColor, originalPixelColor);
 
         // Sets a limit to how far (color-wise) we search the image
         // for 'mask-pixels'.
@@ -361,7 +361,7 @@ export class MagicWandService {
     return distances;
   }
 
-  /**Finds shortest paths to every pixel from the vanilla pixel, and 
+  /**Finds shortest paths to every pixel from the original pixel, and 
    * organizes those distances into an array within a
    * @returns {PreviewMask} previewMask object.
    */
