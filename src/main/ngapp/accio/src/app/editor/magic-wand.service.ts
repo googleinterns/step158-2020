@@ -318,9 +318,8 @@ export class MagicWandService {
       for (const neighborPixel of neighbors) {
         const neighborX: number = neighborPixel[0];
         const neighborY: number = neighborPixel[1];
-        const neighborIndex: number =
-            this.coordToDataArrayIndex(neighborX, neighborY, imgData.width);
-        const neighborIndexReduced = neighborIndex / 4;
+        const neighborIndexReduced = 
+            this.coordToDataArrayIndex(neighborX, neighborY, imgData.width) / 4;
 
         // Checks if coord is in bounds and has not been visited first.
         if (visited.has(neighborIndexReduced) ||
