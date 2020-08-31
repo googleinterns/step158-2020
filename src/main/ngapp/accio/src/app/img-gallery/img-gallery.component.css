@@ -65,7 +65,7 @@ upload-image-form {
   object-fit: cover;
   z-index: 1;
   width: 100%;
-  height: 75%;
+  height: 360px;
 }
 
 .tab {

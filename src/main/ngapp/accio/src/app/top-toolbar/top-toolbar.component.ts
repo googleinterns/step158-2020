@@ -53,6 +53,14 @@ export class TopToolbarComponent implements OnInit {
           this.toleranceValue = Math.min(this.toleranceValue + 1, 127.5);
           this.updateTolerance();
           break;
+        case 91:
+          console.log('[');
+          this.zoom(Zoom.IN);
+          break;
+        case 93:
+          console.log(']');
+          this.zoom(Zoom.OUT);
+          break;
       }
     }
   }

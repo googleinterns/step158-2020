@@ -166,7 +166,6 @@ export class MaskDirective {
       this.scribbleFill = false;
       this.newPaintMaskEvent.emit();
     } 
-
     //  If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
     else if ((this.tool == MaskTool.MAGIC_WAND_ADD
         || this.tool == MaskTool.MAGIC_WAND_SUB) 
@@ -194,7 +193,6 @@ export class MaskDirective {
   }
 
   convertToUnscaledCoord(xOffset: number, yOffset: number): Array<number> {
-    console.log(`this scale: ${this.scale} this offset x: ${xOffset}`)
     return new Array<number>(
       Math.floor(xOffset / this.scale) - this.translationCoords.x,
       Math.floor(yOffset / this.scale) - this.translationCoords.y
