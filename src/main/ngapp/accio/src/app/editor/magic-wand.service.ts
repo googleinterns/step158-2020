@@ -266,8 +266,8 @@ export class MagicWandService {
 
   /* Code for 'preview' algorithm */
 
-  comparator(x: PixelNode, y: PixelNode): boolean {
-    return x.distance < y.distance;
+  comparator(pixelA: PixelNode, pixelB: PixelNode): boolean {
+    return pixelA.distance < pixelB.distance;
   }
 
   /**Implements Dijkstra's algorithm to compute the shortest distance
