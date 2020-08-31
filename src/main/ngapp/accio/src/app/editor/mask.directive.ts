@@ -224,7 +224,6 @@ export class MaskDirective {
   }
 
   convertToUnscaledCoord(xOffset: number, yOffset: number): Array<number> {
-    console.log(`this scale: ${this.scale} this offset x: ${xOffset}`)
     return new Array<number>(
       Math.floor(xOffset / this.scale) - this.translationCoords.x,
       Math.floor(yOffset / this.scale) - this.translationCoords.y

@@ -276,7 +276,6 @@ export class EditorComponent implements OnInit {
 
     // If there is a mask URL passed in then draw mask.
     if (this.maskUrl != '' && this.maskUrl) {
-      console.log("there's a mask url" + this.maskUrl);
       let maskImage = new Image();
       await this.maskControllerPaint().then((response) => {
         maskImage.onload = () => {
@@ -315,7 +314,6 @@ export class EditorComponent implements OnInit {
     this.scaleFactor *= zoom;
     try {
       this.scaleFactor = Number(this.scaleFactor.toFixed(2));
-      console.log(this.scaleFactor + ' this.scaleFactor');
     } catch {
       this.scaleFactor = 1;
       console.log(
@@ -402,7 +400,6 @@ export class EditorComponent implements OnInit {
    */
   private drawMask(dx: number, dy: number) {
     this.clearScaledCanvas();
-    console.log(`scaleFactor in draw mask ${this.scaleFactor}`)
     createImageBitmap(this.maskImageData).then((renderer) => {
       this.scaledCtx.save();
       this.scaledCtx.scale(this.scaleFactor, this.scaleFactor);
@@ -495,9 +492,9 @@ export class EditorComponent implements OnInit {
    */
   switchImage(direction: SwitchImage) {
     // If user clicks on an image's mask, then newImage will loop through all the image's masks.
-    if (this.maskIndex == 0 || this.maskIndex) {
+    if (this.maskIndex === 0 || this.maskIndex) {
       let maskObject = this.imageArray[this.index]['masks'];
-      if (direction == SwitchImage.PREVIOUS) {
+      if (direction === SwitchImage.PREVIOUS) {
         this.maskIndex - 1 < 0
           ? (this.maskIndex = maskObject.length - 1)
           : --this.maskIndex;
@@ -520,7 +517,7 @@ export class EditorComponent implements OnInit {
 
     //  Otherwise, newImage loops through the images last fetched in the imageArray
     else {
-      if (direction == SwitchImage.PREVIOUS) {
+      if (direction === SwitchImage.PREVIOUS) {
         this.index - 1 < 0
           ? (this.index = this.imageArray.length - 1)
           : --this.index;
@@ -570,8 +567,8 @@ export class EditorComponent implements OnInit {
     this.setMaskTo(this.maskControllerService.getMask());
     this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
     if (
-      this.maskTool == MaskTool.MAGIC_WAND_ADD ||
-      this.maskTool == MaskTool.MAGIC_WAND_SUB
+      this.maskTool === MaskTool.MAGIC_WAND_ADD ||
+      this.maskTool === MaskTool.MAGIC_WAND_SUB
     ) {
       this.disableFloodFill = false;
     }
@@ -599,8 +596,8 @@ export class EditorComponent implements OnInit {
     );
     this.disableSubmit = false;
     if (
-      this.maskTool == MaskTool.MAGIC_WAND_ADD ||
-      this.maskTool == MaskTool.MAGIC_WAND_SUB
+      this.maskTool === MaskTool.MAGIC_WAND_ADD ||
+      this.maskTool === MaskTool.MAGIC_WAND_SUB
     ) {
       this.disableFloodFill = false;
     }
@@ -612,7 +609,7 @@ export class EditorComponent implements OnInit {
    */
   undoRedo(direction: UndoRedo): void {
     this.disableSubmit = this.disableFloodFill = true;
-    (direction == UndoRedo.UNDO)
+    (direction === UndoRedo.UNDO)
       ? this.maskControllerService.undo()
       : this.maskControllerService.redo();
     this.setMaskTo(this.maskControllerService.getMask());
@@ -635,10 +632,9 @@ export class EditorComponent implements OnInit {
    *  If the tool is switching from maskOnly, then it redraws the image on the imageCanvas.
    */
   updateMaskTool(tool: string) {
-    console.log('New Tool: ' + tool);
     //  All cases beside 'magic-wand' must disableFloodFill.
     this.disableFloodFill = true;
-    if (this.maskTool == MaskTool.MASK_ONLY) {
+    if (this.maskTool === MaskTool.MASK_ONLY) {
       this.drawScaledImage(this.destinationCoords.x, this.destinationCoords.y);
     }
     switch (tool) {
@@ -668,7 +664,6 @@ export class EditorComponent implements OnInit {
         );
         break;
     }
-    console.log('switched tool to ' + this.maskTool);
   }
 
   /**  Retrieves new tolerance value from event emitted by child component: toolbar. */
@@ -686,8 +681,8 @@ export class EditorComponent implements OnInit {
     this.disableFloodFill = true;
     this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
     if (
-      this.maskTool == MaskTool.MAGIC_WAND_ADD ||
-      this.maskTool == MaskTool.MAGIC_WAND_SUB
+      this.maskTool === MaskTool.MAGIC_WAND_ADD ||
+      this.maskTool === MaskTool.MAGIC_WAND_SUB
     ) {
       this.disableFloodFill = false;
     }
@@ -713,14 +708,14 @@ export class EditorComponent implements OnInit {
   floodfillMask(maskAction: MaskAction) {
     this.disableSubmit = this.disableFloodFill = true;
     //  Changes if set of pixels are added or removed from the mask depending on the tool.
-    let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
+    let alphaValue = this.maskTool === MaskTool.MAGIC_WAND_ADD ? 255 : 0;
 
     for (let pixel of maskAction.getChangedPixels()) {
       this.maskImageData.data[pixel] = 255;
       this.maskImageData.data[pixel + 2] = 255;
       this.maskImageData.data[pixel + 3] = alphaValue;
     }
-    if (maskAction.getActionType() == Action.SUBTRACT) {
+    if (maskAction.getActionType() === Action.SUBTRACT) {
       this.maskControllerService.do(maskAction, this.allPixels);
     } else {
       this.maskControllerService.do(maskAction);
@@ -744,8 +739,8 @@ export class EditorComponent implements OnInit {
     this.paintCtx.clearRect(0, 0, this.image.width, this.image.height);
     this.maskCtx.putImageData(this.maskImageData, 0, 0);
     this.maskCtx.globalCompositeOperation =
-      this.maskTool == MaskTool.PAINT ||
-      this.maskTool == MaskTool.MAGIC_WAND_ADD
+      this.maskTool === MaskTool.PAINT ||
+      this.maskTool === MaskTool.MAGIC_WAND_ADD
         ? this.SOURCE_OVER
         : this.DESTINATION_OUT;
     this.paintCtx.globalCompositeOperation = this.SOURCE_OVER;
@@ -762,8 +757,8 @@ export class EditorComponent implements OnInit {
     this.paintCtx.beginPath();
 
     this.maskCtx.lineWidth = this.paintCtx.lineWidth =
-      this.maskTool == MaskTool.MAGIC_WAND_ADD ||
-      this.maskTool == MaskTool.MAGIC_WAND_SUB
+      this.maskTool === MaskTool.MAGIC_WAND_ADD ||
+      this.maskTool === MaskTool.MAGIC_WAND_SUB
         ? 1
         : this.brushWidth;
 
@@ -808,11 +803,11 @@ export class EditorComponent implements OnInit {
   async doMaskActionPaint(): Promise<void> {
     let paintedMask = await this.maskControllerPaint();
     let maskAction = new MaskAction(
-        ((this.maskTool == MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
-        ((this.maskTool == MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
+        ((this.maskTool === MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
+        ((this.maskTool === MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
         paintedMask)
 
-    if (maskAction.getActionType() == Action.SUBTRACT) {
+    if (maskAction.getActionType() === Action.SUBTRACT) {
       this.maskControllerService.do(maskAction, this.allPixels);
     } else {
       this.maskControllerService.do(maskAction);
