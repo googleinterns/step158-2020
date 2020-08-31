@@ -4,6 +4,7 @@ import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
 
 import { PostBlobsService } from '../post-blobs.service';
+import { MagicWandService } from './magic-wand.service';
 import { FetchImagesService } from '../fetch-images.service';
 import { ImageBlob } from '../ImageBlob';
 import { MaskTool } from './MaskToolEnum';
@@ -23,6 +24,7 @@ export class EditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private magicWandService: MagicWandService, 
     private postBlobsService: PostBlobsService,
     private fetchImagesService: FetchImagesService,
     private maskControllerService: MaskControllerService
@@ -94,6 +96,8 @@ export class EditorComponent implements OnInit {
   //  Stores image that user queued from img-Gallery for next and prev arrows.
   //  Array<any> because info comes from survlet as json array
   imageArray: Array<Object>;
+
+  private searchRectangle: Rectangle;
 
   // Inject canvas from html.
   @ViewChild('scaledCanvas', { static: true })
@@ -711,6 +715,7 @@ export class EditorComponent implements OnInit {
         ? this.SOURCE_OVER
         : this.DESTINATION_OUT;
     this.paintCtx.globalCompositeOperation = this.SOURCE_OVER;
+    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
   }
 
   /**
@@ -720,6 +725,8 @@ export class EditorComponent implements OnInit {
    *  Sets this.startPixel to @param pixel to keep continuous drawing line.
    */
   drawPixel(pixel: Coordinate) {
+    this.searchRectangle.compare(pixel);
+
     this.maskCtx.beginPath();
     this.paintCtx.beginPath();
 
@@ -757,6 +764,13 @@ export class EditorComponent implements OnInit {
   maskControllerPaint() {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
+
+    let leftTop = this.searchRectangle.getLeftTop();
+    let bottomRight = this.searchRectangle.getBottomRight();
+
+    let leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
+    let bottomRightIndex = this.magicWandService.coordToDataArrayIndex(bottomRight.x, bottomRight.y, this.image.width);
+
     for (let i = 0; i < paintedImageData.length; i += 4) {
       // If the alpha value has value
       if (paintedImageData[i + 3] == 255) {
@@ -781,4 +795,59 @@ export class EditorComponent implements OnInit {
 interface CursorPos {
   x: number;
   y: number;
+}
+
+class Rectangle {
+  imageWidth: number;
+  imageHeight: number;
+  brushRadius: number;
+  // Lowest y touched by the brush.
+  top: number;
+  // Highest y touched by the brush. 
+  bottom: number;
+  // Lowest x touched by the brush.
+  left: number;
+  // Highest x touched by the brush.
+  right: number;
+  
+  constructor(imageWidth: number, imageHeight: number, brushWidth: number, coord: Coordinate) {
+    this.imageWidth = imageWidth;
+    this.imageHeight = imageHeight;
+    this.brushRadius = brushWidth / 2;
+
+    this.top = (coord.y - this.brushRadius) >= 0 ? (coord.y - this.brushRadius) : 0;
+    this.bottom = (coord.y + this.brushRadius) <= (this.imageHeight - 1) ? (coord.y + this.brushRadius) : (this.imageHeight - 1);
+    
+    this.left = (coord.x - this.brushRadius) >= 0 ? (coord.x - this.brushRadius) : 0;
+    this.right = (coord.x + this.brushRadius) <= (this.imageWidth - 1) ? (coord.x + this.brushRadius) : (this.imageWidth - 1);
+  }
+
+  /** Compares the index's left, right, top, and bottom most pixel based on the brush radius to the current max and mins of all members */
+  compare(coord: Coordinate) {
+    let topY = (coord.y - this.brushRadius) >= 0 ? (coord.y - this.brushRadius) : 0;
+    let bottomY = (coord.y + this.brushRadius) <= (this.imageHeight - 1) ? (coord.y + this.brushRadius) : (this.imageHeight - 1);
+    
+    let leftX = (coord.x - this.brushRadius) >= 0 ? (coord.x - this.brushRadius) : 0;
+    let rightX = (coord.x + this.brushRadius) <= (this.imageWidth - 1) ? (coord.x + this.brushRadius) : (this.imageWidth - 1);
+
+    if (this.top > topY) {
+      this.top = topY;
+    }
+    if (this.bottom < bottomY) {
+      this.bottom = bottomY;
+    }
+    if (this.left > leftX) {
+      this.left = leftX;
+    }
+    if (this.right < rightX) {
+      this.right = rightX;
+    }
+  }
+
+  getLeftTop() {
+    return new Coordinate(this.left, this.top);
+  }
+  getBottomRight() {
+    return new Coordinate(this.right, this.bottom);
+  }
 }
