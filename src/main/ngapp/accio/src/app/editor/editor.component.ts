@@ -50,9 +50,6 @@ export class EditorComponent implements OnInit {
   cursorX = 0;
   cursorY = 0;
 
-  ZOOM_IN: number = 2;
-  ZOOM_OUT: number = .5
-
   // Display variables.
   private image: HTMLImageElement;
   private maskImageData: ImageData;
