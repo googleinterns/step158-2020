@@ -340,6 +340,10 @@ export class MagicWandService {
           continue;
         }
 
+        // Shortest path evaluation:
+        // The shortest path from the original pixel to the current pixel's neighbor
+        // is the greater of the color distance in respect to the original pixel of 
+        // the current pixel and it's neigbor that is being evaluated.
         distances[neighborIndexReduced] =
             Math.max(curPixelNode.distance, neighborColorDist);
 
