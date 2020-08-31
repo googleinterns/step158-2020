@@ -97,6 +97,7 @@ export class EditorComponent implements OnInit {
   //  Array<any> because info comes from survlet as json array
   imageArray: Array<Object>;
 
+  // Rectangle used when user goes to paint or scribble paint as search box.
   private searchRectangle: Rectangle;
 
   // Inject canvas from html.
@@ -768,14 +769,16 @@ export class EditorComponent implements OnInit {
     const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, rightBottom.y, this.image.width);
    
     let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
+    let newTopY = leftTop.y;
 
     for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
       // If the alpha value has value.
-
-      //
       if (paintedImageData[i + 3] == 255) {
         paintedMask.add(i);
       }
+
+      // TODO(SHMCAFFREY) loop through only the indicies in the rectangle.
+
     }
     let maskAction = new MaskAction(
         ((this.maskTool == MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
