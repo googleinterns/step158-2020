@@ -354,7 +354,7 @@ export class MagicWandService {
   }
 
   /**Finds shortest paths to every pixel from the vanilla pixel, and 
-   * adds organizes those distances into an array within a
+   * organizes those distances into an array within a
    * @returns {PreviewMask} previewMask object.
    */
   getPreviews(imgData: ImageData, xCoord: number, yCoord: number,
