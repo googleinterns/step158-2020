@@ -36,6 +36,9 @@ export class ToolbarComponent implements OnInit {
         console.log('M');
         this.updateTool('MASK-ONLY');
         break;
+      case 80:
+        console.log('P');
+        this.updateTool('PAN');
       case 81:
         console.log('Q');
         this.updateTool('MAGIC-WAND-SUB');
