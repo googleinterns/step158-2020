@@ -87,9 +87,7 @@ export class MaskDirective {
         || this.tool == MaskTool.ERASE) {
         this.continuePaintEvent.emit(pixel);
       }
-    }
-
-    else if (this.tool == MaskTool.PAN) {
+    } else if (this.tool == MaskTool.PAN) {
       this.mouseDown = true;
       this.coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
 
@@ -128,14 +126,9 @@ export class MaskDirective {
       );
       // Fire event to draw pixel
       this.continuePaintEvent.emit(pixel);
-    }
-
-    else if (this.tool == MaskTool.PAN && this.mouseDown) {
+    } else if (this.tool == MaskTool.PAN && this.mouseDown) {
       const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
-      this.newPanEvent.emit(
-        new Coordinate((offsetCoord[0] - this.coord[0] + this.translationCoords.x), 
-                       (offsetCoord[1] - this.coord[1] + this.translationCoords.y))
-      );
+      this.newPanEvent.emit(this.getPanDestinationCoord(offsetCoord));
     }
     this.newMouseMoveEvent.emit(e);
   }
@@ -212,20 +205,26 @@ export class MaskDirective {
           maskPixels
         )
       );
-    }
-    else if (this.tool == MaskTool.PAN) {
+    } else if (this.tool == MaskTool.PAN) {
       const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
-      this.newDestinationEvent.emit(
-        new Coordinate((offsetCoord[0] - this.coord[0] + this.translationCoords.x), 
-                       (offsetCoord[1] - this.coord[1] + this.translationCoords.y))
-      );
+      this.newDestinationEvent.emit(this.getPanDestinationCoord(offsetCoord));
     }
   }
 
+ /** 
+  *  Translates user inputed coordinate to appropriate corresponding 
+  *  coordinate on original image.
+  */
   convertToUnscaledCoord(xOffset: number, yOffset: number): Array<number> {
     return new Array<number>(
       Math.floor(xOffset / this.scale) - this.translationCoords.x,
       Math.floor(yOffset / this.scale) - this.translationCoords.y
     );
+  }
+
+  /** Computes destination coordinate based on where the user moved their mouse to.*/
+  getPanDestinationCoord(offsetCoord: Array<number>) {
+    return new Coordinate((offsetCoord[0] - this.coord[0] + this.translationCoords.x), 
+                          (offsetCoord[1] - this.coord[1] + this.translationCoords.y))
   }
 }

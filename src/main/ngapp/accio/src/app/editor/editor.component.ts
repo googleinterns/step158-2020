@@ -514,7 +514,6 @@ export class EditorComponent implements OnInit {
         this.maskIndex,
       ]);
     }
-
     //  Otherwise, newImage loops through the images last fetched in the imageArray
     else {
       if (direction === SwitchImage.PREVIOUS) {
