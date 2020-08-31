@@ -399,9 +399,9 @@ interface PixelNode {
   index: number
 }
 
-  /**Tracks all versions of masks for 'preview' of floodfill.
-   * Versions are based on different tolerance levels.
-   **/
+/**Tracks all versions of masks for 'preview' of floodfill.
+  * Versions are based on different tolerance levels.
+  **/
 export class PreviewMask {
   masksByTolerance: Array<Array<number>> = [];
   toleranceIndex = -1;
