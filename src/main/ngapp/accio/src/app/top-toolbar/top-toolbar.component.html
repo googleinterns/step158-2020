@@ -1,5 +1,5 @@
 <!-- Single use buttons -->
-<div id="single-click-buttons">
+<mat-toolbar id="single-click-buttons">
   <div class="icon">
     <mat-icon class="button" title="Previous Image    ←" (click)="switchImage(true)">navigate_before</mat-icon>
     <p>Previous Image</p>
@@ -25,19 +25,17 @@
     <p>Clear Mask</p>
   </div>
   <span style="display: inline; width:100%; height:100%; color:white left:5%"> 
-    Tolerance
     <mat-slider 
       title="Mask Tolerance    ↓1  2↑"  
       (change)="updateTolerance()"
       min="1" max="127.5" step=".5" [(ngModel)]="toleranceValue">
     </mat-slider>
     <mat-form-field class="slider-value">
-      <mat-label style="color=white">Tolerance</mat-label>
+      <mat-label style="color:white">Tolerance</mat-label>
       <input
         (change)="updateTolerance()" 
         matInput type="number" 
-        [(ngModel)]="toleranceValue" 
-        style="color=white">
+        [(ngModel)]="toleranceValue">
     </mat-form-field>
   </span>
-</div>
+</mat-toolbar>

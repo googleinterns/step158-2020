@@ -25,7 +25,8 @@ export class MaskDirective {
   @Output() newMaskEvent = new EventEmitter<Mask.MaskAction>();
   @Output() newPaintEvent = new EventEmitter<Coordinate>();
   @Output() continuePaintEvent = new EventEmitter<Coordinate>();
-  @Output() newMaskControllerEvent = new EventEmitter<Mask.MaskAction>();
+  @Output() newPaintMaskEvent = new EventEmitter<void>();
+
   @Output() newMouseMoveEvent = new EventEmitter<MouseEvent>();
   @Output() newMouseOutEvent = new EventEmitter<void>();
 
@@ -76,6 +77,11 @@ export class MaskDirective {
       console.log('drawing pixel mousedown');
       // Fire event to draw pixel
       this.newPaintEvent.emit(pixel);
+      //Draw single pixel on mouse down
+      if (this.tool == MaskTool.PAINT
+        || this.tool == MaskTool.ERASE) {
+        this.continuePaintEvent.emit(pixel);
+      }
     }
   }
 
@@ -134,34 +140,18 @@ export class MaskDirective {
    */
   @HostListener('mouseup', ['$event'])
   onMouseUp(e: MouseEvent) {
-    this.mouseDown = false;
-    // If user has paint selected, call paint to add pixels painted to master.
-    if (this.tool == MaskTool.PAINT) {
+      this.mouseDown = false;
+    //  If user has paint selected, call paint to add pixels painted to master.
+    //  TODO Pass back a set of all pixels added to the mask. aka, draw paint pixels then capture then make mask action
+    if (this.tool == MaskTool.PAINT || this.tool == MaskTool.ERASE) {
       this.scribbleFill = false;
-      this.newMaskControllerEvent.emit(
-        new Mask.MaskAction(
-          Mask.Action.ADD,
-          Mask.Tool.PAINTBRUSH,
-          this.paintPixels
-        )
-      );
-    } else if (this.tool == MaskTool.ERASE) {
-      this.scribbleFill = false;
+      this.newPaintMaskEvent.emit();
+    } 
+    //  If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
+    else if ((this.tool == MaskTool.MAGIC_WAND_ADD
+        || this.tool == MaskTool.MAGIC_WAND_SUB) 
+        && this.scribbleFill) {
 
-      this.newMaskControllerEvent.emit(
-        new Mask.MaskAction(
-          Mask.Action.SUBTRACT,
-          Mask.Tool.ERASER,
-          this.paintPixels
-        )
-      );
-    }
-    // If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
-    else if (
-      (this.tool == MaskTool.MAGIC_WAND_ADD ||
-        this.tool == MaskTool.MAGIC_WAND_SUB) &&
-      this.scribbleFill
-    ) {
       this.scribbleFill = false;
       const maskPixels = this.magicWandService.scribbleFloodfill(
         this.originalImageData,

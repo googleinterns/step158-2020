@@ -45,7 +45,7 @@
         (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"
-        (newMaskControllerEvent)="newMaskController($event)"
+        (newPaintMaskEvent)="maskControllerPaint()"
         (newMouseMoveEvent)="setCursorPosition($event)"
         (newMouseOutEvent)="setCursorOut()">
       </canvas>
@@ -60,6 +60,10 @@
       
       <canvas #maskCanvas style="display:none">
       </canvas>
+
+      <canvas #paintCanvas style="display:none">
+      </canvas>
+
     </div>
   </mat-drawer-content>
 </mat-drawer-container>

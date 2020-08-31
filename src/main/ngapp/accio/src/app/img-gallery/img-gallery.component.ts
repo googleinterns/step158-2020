@@ -33,6 +33,7 @@ export interface StoredMask {
 })
 export class ImgGalleryComponent implements OnInit {
   uploadImageForm: FormGroup;
+  filterForm: FormGroup;
   formData: FormData;
 
   // ProjectId is binded with the upload form input.
@@ -41,9 +42,6 @@ export class ImgGalleryComponent implements OnInit {
   displayUpload: boolean;
   displayImages: boolean;
   displayMasks: boolean;
-  // Needed to switch whether masks are shown or not.
-  falseVal: boolean = false;
-  trueVal: boolean = true;
   
   // Filters for fetching images
   imgName: string = '';
@@ -65,6 +63,7 @@ export class ImgGalleryComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    document.body.classList.remove('busy-cursor');
     this.displayUpload = false;
     this.displayImages = false;
     this.displayMasks = false;
@@ -74,7 +73,9 @@ export class ImgGalleryComponent implements OnInit {
       image: new FormControl(),
       tags: new FormControl(),
     });
-
+    this.filterForm = new FormGroup({
+      
+    })
     // Creates the form data of parameters to be sent to servlet.
     this.formData = new FormData();
 
@@ -142,6 +143,8 @@ export class ImgGalleryComponent implements OnInit {
       return;
     }
 
+    document.body.classList.add('busy-cursor');
+
     //  uploadImageForm 'image' contains a file, so the value is a file array.
     //  To serve the blob we have to access the first file in the array.
     const fileArray = this.uploadImageForm.get('image').value;
@@ -159,7 +162,6 @@ export class ImgGalleryComponent implements OnInit {
     );
 
     this.postBlobsService.buildForm(this.formData, imageBlob, imageFile.name);
-    window.location.reload();
   }
 
   // Opens up the dialog for updating the clicked image.
@@ -394,8 +396,6 @@ export class UpdateImageDialog {
       /*tags=*/this.updateImageForm.get('updateTags').value,
       /*delete=*/false
       );
-
-    console.log(this.updateImageForm.get('delete').value);
 
     this.postBlobsService.buildForm(this.formData, imageBlob, '');
 

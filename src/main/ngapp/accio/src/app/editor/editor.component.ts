@@ -4,6 +4,7 @@ import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
 
 import { PostBlobsService } from '../post-blobs.service';
+import { MagicWandService } from './magic-wand.service';
 import { FetchImagesService } from '../fetch-images.service';
 import { ImageBlob } from '../ImageBlob';
 import { MaskTool } from './MaskToolEnum';
@@ -23,6 +24,7 @@ export class EditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private magicWandService: MagicWandService, 
     private postBlobsService: PostBlobsService,
     private fetchImagesService: FetchImagesService,
     private maskControllerService: MaskControllerService
@@ -95,6 +97,9 @@ export class EditorComponent implements OnInit {
   //  Array<any> because info comes from survlet as json array
   imageArray: Array<Object>;
 
+  // Rectangle used when user goes to paint or scribble paint as search box.
+  private searchRectangle: Rectangle;
+
   // Inject canvas from html.
   @ViewChild('scaledCanvas', { static: true })
   scaledCanvas: ElementRef<HTMLCanvasElement>;
@@ -116,6 +121,10 @@ export class EditorComponent implements OnInit {
   maskCanvas: ElementRef<HTMLCanvasElement>;
   private maskCtx: CanvasRenderingContext2D;
 
+  @ViewChild('paintCanvas', { static: true })
+  paintCanvas: ElementRef<HTMLCanvasElement>;
+  private paintCtx: CanvasRenderingContext2D;
+
   ngOnInit() {
     this.image = new Image();
     this.scaleFactor = 0.9;
@@ -124,6 +133,7 @@ export class EditorComponent implements OnInit {
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
     this.brushWidth = 5;
+    document.body.classList.remove('busy-cursor');
 
     //  Gets last image array that user sorted on img-gallery page. Saves to session storage to keep through refresh.
     //  If gallery reloaded a new Image array, newArray is set to true to signify the need to re-fetch array.
@@ -230,6 +240,12 @@ export class EditorComponent implements OnInit {
     this.maskCtx.lineCap = this.maskCtx.lineJoin = 'round';
     this.maskCtx.strokeStyle = this.MAGENTA;
 
+    this.paintCanvas.nativeElement.width = imgWidth;
+    this.paintCanvas.nativeElement.height = imgHeight;
+    this.paintCtx = this.paintCanvas.nativeElement.getContext('2d');
+    this.paintCtx.lineCap = this.paintCtx.lineJoin = 'round';
+    this.paintCtx.strokeStyle = this.MAGENTA;
+    
     // Canvas to show mask scaled.
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.scaledCanvas.nativeElement.height = imgHeight * this.scaleFactor;
@@ -414,7 +430,7 @@ export class EditorComponent implements OnInit {
   }
 
   /**
-   *  Gets current mask's url and sets the mask as a Blob to be uploaded to server. TODO HERE UPDATE URL
+   *  Gets current mask's url and sets the mask as a Blob to be uploaded to server.
    */
   async getMaskBlob(): Promise<void> {
     this.blobMask = await fetch(this.getMaskUrl()).then((response) =>
@@ -680,17 +696,23 @@ export class EditorComponent implements OnInit {
    *  Sets the start pixel where the users initially clicks the canvas to draw.
    *  @param pixel is the (x,y) coordinate the user first clicks on.
    *  The global composition changes depending on whether the user is painting or erasing.
-   *  DESTINATION_OUT for erase, SOURCE_OVER for draw
+   *  DESTINATION_OUT for erase, SOURCE_OVER for draw.
+   *  Also initializes the paint canvas to paint ONLY the new mask being added for maskController.
+   *  We need to capture the pixels erased or painted, paint ctx paints in color, 
+   *      MaskAction will determine if they're painted or erased with TOOL parameter.
    */
   startDraw(pixel: Coordinate) {
     this.startPixel = pixel;
     this.maskCtx.clearRect(0, 0, this.image.width, this.image.height);
+    this.paintCtx.clearRect(0, 0, this.image.width, this.image.height);
     this.maskCtx.putImageData(this.maskImageData, 0, 0);
     this.maskCtx.globalCompositeOperation =
       this.maskTool == MaskTool.PAINT ||
       this.maskTool == MaskTool.MAGIC_WAND_ADD
         ? this.SOURCE_OVER
         : this.DESTINATION_OUT;
+    this.paintCtx.globalCompositeOperation = this.SOURCE_OVER;
+    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
   }
 
   /**
@@ -700,9 +722,12 @@ export class EditorComponent implements OnInit {
    *  Sets this.startPixel to @param pixel to keep continuous drawing line.
    */
   drawPixel(pixel: Coordinate) {
-    this.maskCtx.beginPath();
+    this.searchRectangle.compareCoordinateToCurrentRectangle(pixel);
 
-    this.maskCtx.lineWidth =
+    this.maskCtx.beginPath();
+    this.paintCtx.beginPath();
+
+    this.maskCtx.lineWidth = this.paintCtx.lineWidth =
       this.maskTool == MaskTool.MAGIC_WAND_ADD ||
       this.maskTool == MaskTool.MAGIC_WAND_SUB
         ? 1
@@ -711,6 +736,10 @@ export class EditorComponent implements OnInit {
     this.maskCtx.moveTo(this.startPixel.x, this.startPixel.y);
     this.maskCtx.lineTo(pixel.x, pixel.y);
     this.maskCtx.stroke();
+
+    this.paintCtx.moveTo(this.startPixel.x, this.startPixel.y);
+    this.paintCtx.lineTo(pixel.x, pixel.y);
+    this.paintCtx.stroke();
 
     this.startPixel = pixel;
     this.maskImageData = this.maskCtx.getImageData(
@@ -723,9 +752,39 @@ export class EditorComponent implements OnInit {
   }
 
   /**
-   *  catches emitted MaskAction from mask.directive and calls the undo/redo 'do' function.
+   *  Catches emitted event from mask.directive once users mouse lifts up.
+   *  Finds all pixels painted on paint canvas and adds to set to pass into maskController.
+   *  Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes.
+   *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    */
-  newMaskController(maskAction: MaskAction) {
+
+  maskControllerPaint() {
+    let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
+    let paintedMask = new Set<number>();
+
+    let leftTop = this.searchRectangle.getLeftTop();
+    let rightBottom = this.searchRectangle.getRightBottom();
+
+    const leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
+    const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, rightBottom.y, this.image.width);
+   
+    let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
+    let newTopY = leftTop.y;
+
+    for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
+      // If the alpha value has value.
+      if (paintedImageData[i + 3] == 255) {
+        paintedMask.add(i);
+      }
+
+      // TODO(SHMCAFFREY) loop through only the indicies in the rectangle.
+
+    }
+    let maskAction = new MaskAction(
+        ((this.maskTool == MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
+        ((this.maskTool == MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
+        paintedMask)
+
     if (maskAction.getActionType() == Action.SUBTRACT) {
       this.maskControllerService.do(maskAction, this.allPixels);
     } else {
@@ -739,4 +798,59 @@ export class EditorComponent implements OnInit {
 interface CursorPos {
   x: number;
   y: number;
+}
+
+class Rectangle {
+  imageWidth: number;
+  imageHeight: number;
+  brushRadius: number;
+  // Lowest y touched by the brush.
+  top: number;
+  // Highest y touched by the brush. 
+  bottom: number;
+  // Lowest x touched by the brush.
+  left: number;
+  // Highest x touched by the brush.
+  right: number;
+  
+  constructor(imageWidth: number, imageHeight: number, brushWidth: number, coord: Coordinate) {
+    this.imageWidth = imageWidth;
+    this.imageHeight = imageHeight;
+    this.brushRadius = brushWidth / 2;
+
+    this.top = Math.max(coord.y - this.brushRadius, 0);
+    this.bottom = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
+
+    this.left = Math.max(coord.x - this.brushRadius, 0);
+    this.right = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
+  }
+
+  /** Compares the index's left, right, top, and bottom most pixel based on the brush radius to the current max and mins of all members */
+  compareCoordinateToCurrentRectangle(coord: Coordinate) {
+    const topY = Math.max(coord.y - this.brushRadius, 0);
+    const bottomY = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
+    
+    const leftX = Math.max(coord.x - this.brushRadius, 0);
+    const rightX = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
+
+    if (this.top > topY) {
+      this.top = topY;
+    }
+    if (this.bottom < bottomY) {
+      this.bottom = bottomY;
+    }
+    if (this.left > leftX) {
+      this.left = leftX;
+    }
+    if (this.right < rightX) {
+      this.right = rightX;
+    }
+  }
+
+  getLeftTop() {
+    return new Coordinate(this.left, this.top);
+  }
+  getRightBottom() {
+    return new Coordinate(this.right, this.bottom);
+  }
 }

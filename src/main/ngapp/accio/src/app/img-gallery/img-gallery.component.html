@@ -68,8 +68,8 @@
   <mat-form-field appearance="fill">
     <mat-label>Show masks for Image: {{ imgName }}</mat-label>
     <mat-select [(ngModel)]="displayMasks">
-      <mat-option [value]="falseVal">Don't show masks</mat-option>
-      <mat-option [value]="trueVal">Show masks for: {{ imgName }}</mat-option>
+      <mat-option [value]="false">Don't show masks</mat-option>
+      <mat-option [value]="true">Show masks for: {{ imgName }}</mat-option>
     </mat-select>
     <mat-hint align="end">Default: no masks</mat-hint>
   </mat-form-field>
@@ -223,7 +223,6 @@
               <span>Update Image</span>
             </button>
             <button
-              formControlName="delete"
               (click)="deleteButton(mask['name'], image['name'])"
             >
               <mat-icon>delete</mat-icon>
