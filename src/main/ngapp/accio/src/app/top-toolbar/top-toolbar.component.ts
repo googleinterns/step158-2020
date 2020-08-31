@@ -2,9 +2,9 @@ import { HostListener, Component, OnInit } from '@angular/core';
 import { MaskControllerService } from '../editor/mask-controller.service';
 import { Output, EventEmitter } from '@angular/core';
 
-  export class SaveState {
-constructor(public text: string, public icon: string){}
-  }
+export class SaveState {
+  constructor(public text: string, public icon: string) {}
+}
 
 @Component({
   selector: 'app-top-toolbar',
@@ -17,6 +17,12 @@ export class TopToolbarComponent implements OnInit {
   @Output() undoRedoEvent = new EventEmitter<string>();
   @Output() switchImageEvent = new EventEmitter<boolean>();
   @Output() newToleranceEvent = new EventEmitter<number>();
+
+  readonly SAVED_STATE: SaveState = new SaveState('up to date', 'check');
+  readonly UNSAVED_STATE: SaveState = new SaveState(
+    'unsaved changes',
+    'history'
+  );
 
   toleranceValue: number;
 
@@ -91,16 +97,14 @@ export class TopToolbarComponent implements OnInit {
     this.newToleranceEvent.emit(this.toleranceValue);
   }
 
+  /**
+   * Return the SaveState based on the maskControllerService state including 
+   * the text and icon to display.
+   */
   getSaveState(): SaveState {
-      let text: string;
-      let icon: string;
-      if (this.maskControllerService.isSaved()) {
-          text = 'up to date';
-          icon = 'check';
-      } else {
-          text = 'unsaved changes';
-          icon = 'history';
-      }
-      return new SaveState(text, icon);
+    if (this.maskControllerService.isSaved()) {
+      return this.SAVED_STATE;
+    }
+    return this.UNSAVED_STATE;
   }
 }
