@@ -318,6 +318,11 @@ export class MagicWandService {
       for (const neighborPixel of neighbors) {
         const neighborX: number = neighborPixel[0];
         const neighborY: number = neighborPixel[1];
+        // Neigbor index is reduced because these will be used to as
+        // indices to iterate through. Reducing them by a factor of 4
+        // eliminates empty spaces caused by gaps in neigbhor index values
+        // (since these values correspond to the indexing style of 
+        // ImageData.data).
         const neighborIndexReduced = 
             this.coordToDataArrayIndex(neighborX, neighborY, imgData.width) / 4;
 
