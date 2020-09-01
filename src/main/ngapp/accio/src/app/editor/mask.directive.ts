@@ -227,16 +227,6 @@ export class MaskDirective {
           )
         );
       }
-
-      this.newMaskEvent.emit(
-        new Mask.MaskAction(
-          this.tool == MaskTool.MAGIC_WAND_ADD
-            ? Mask.Action.ADD
-            : Mask.Action.SUBTRACT,
-          Mask.Tool.MAGIC_WAND,
-          maskPixels
-        )
-      );
     } else if (this.tool == MaskTool.PAN) {
       const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
       this.newDestinationEvent.emit(this.getPanDestinationCoord(offsetCoord));
