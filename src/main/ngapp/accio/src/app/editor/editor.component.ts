@@ -77,6 +77,9 @@ export class EditorComponent implements OnInit {
   maskUrl: string;
   blobMask: Blob;
 
+  // Need the image's name for updates
+  imgName: string;
+
   // scaleFactor is used to trim image scale so image
   //   is smaller than width and height of the user's screen.
   // The following variables are bound to their
@@ -160,8 +163,9 @@ export class EditorComponent implements OnInit {
     } else {
       this.imageArray = JSON.parse(window.sessionStorage.getItem('imageArray'));
     }
-
-    this.route.paramMap.subscribe((params) => {
+    
+    this.route.paramMap.subscribe(params => {
+      this.imgName = params.get('img-name ');
       this.projectId = params.get('proj-id ');
       this.parentName = params.get('parent-img ');
       this.imageUrl = params.get('img-url ');
@@ -460,6 +464,30 @@ export class EditorComponent implements OnInit {
     this.initMaskForm();
   }
 
+  async onClickSaveButton(): Promise<void> {
+    await this.getMaskBlob();
+
+    let imageBlob = new ImageBlob(
+      this.projectId, 
+      /*imageName=*/this.imgName,
+      /*mode=*/'update', 
+      /*image=*/this.blobMask,
+      /*parentImageName=*/this.parentName,
+      /*newImageName=*/undefined,
+      /*tags=*/undefined
+    );
+
+    this.postBlobsService.buildForm(
+      this.formData,
+      imageBlob,
+      this.parentName + 'Mask.png'
+    );
+
+    this.maskControllerService.save();
+
+    //  Reset form values
+    this.formData = new FormData();
+  }
   /**
    *  Gets current mask's url and sets the mask as a Blob to be uploaded to server.
    */
@@ -504,15 +532,16 @@ export class EditorComponent implements OnInit {
           : ++this.maskIndex;
       }
       let nextMask = this.imageArray[this.index]['masks'][this.maskIndex];
-      this.router.navigate([
-        '/editor',
-        this.projectId,
-        this.parentName,
-        this.imageUrl,
-        nextMask['url'],
-        this.index,
-        this.maskIndex,
-      ]);
+      this.router.navigate(
+        ['/editor', 
+        this.projectId, 
+        this.parentName, 
+        this.imageUrl, 
+        this.imgName, 
+        nextMask['url'], 
+        this.index, 
+        this.maskIndex]
+      );
     }
     //  Otherwise, newImage loops through the images last fetched in the imageArray
     else {
@@ -526,14 +555,15 @@ export class EditorComponent implements OnInit {
           : ++this.index;
       }
       let nextImage = this.imageArray[this.index];
-      this.router.navigate([
-        '/editor',
-        this.projectId,
-        nextImage['name'],
-        nextImage['url'],
-        this.getFirstMask(nextImage['masks']),
-        this.index,
-      ]);
+      this.router.navigate(
+        ['/editor', 
+        this.projectId, 
+        nextImage['name'], 
+        nextImage['url'], 
+        this.imgName, 
+        this.getFirstMask(nextImage['masks']), 
+        this.index]
+      );
     }
   }
 
@@ -784,12 +814,8 @@ export class EditorComponent implements OnInit {
 
   /**
    *  Catches emitted event from mask.directive once users mouse lifts up.
-<<<<<<< HEAD
-   *  Finds all pixels painted on paint canvas and adds to set to pass into maskCOntroller.
-=======
    *  Finds all pixels painted on paint canvas and adds to set to pass into maskController.
    *  Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes.
->>>>>>> c50b5ac4c1b1f04c92bb243a5d0b3f019a41c17a
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    *  @returns set<number> of all indicies in the mask.
    */
