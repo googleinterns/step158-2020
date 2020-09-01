@@ -382,7 +382,7 @@ export class MagicWandService {
 
     for (let i = 0; i < imgData.data.length / 4; i++) {
       // Reducing tolerance to the root reduces the number of iterations
-      // inside PreviewMask.masksAtTolerance()
+      // inside PreviewMask.changeMaskBy()
       tolerance = Math.ceil(Math.sqrt(shortestPaths[i]));
       if (previewMask.masksByTolerance[tolerance] === undefined) {
         previewMask.masksByTolerance[tolerance] = [];
