@@ -784,7 +784,7 @@ export class EditorComponent implements OnInit {
       this.drawMask();
       this.disableSubmit = this.disableFloodFill = false;
 
-      // Unpauses other canvas-editting sequences from registering
+      // Unpauses other canvas-editing sequences from registering
       // on the canvas. 
       const previewLayer = document.getElementById('preview-layer');
       previewLayer.style.pointerEvents = 'none';
