@@ -297,6 +297,7 @@ export class MagicWandService {
     toVisit.push({
         distance: 0,
         index: originalIndex / 4});
+    visited.add(originalIndex / 4);
 
     distances[originalIndex / 4] = 0;
 
@@ -306,8 +307,6 @@ export class MagicWandService {
     // Updates shortest path between neighbor pixel and original node.
     while (toVisit.getSize() !== 0) {
       const curPixelNode: PixelNode = toVisit.pop();
-      // A node is considered visited once popped.
-      visited.add(curPixelNode.index);
 
       // Gets coords of adjacent pixels.
       let x: number, y: number;
@@ -355,6 +354,8 @@ export class MagicWandService {
         toVisit.push({
           distance: distances[neighborIndexReduced],
           index: neighborIndexReduced});
+        // A node is considered visited once pushed.
+        visited.add(curPixelNode.index);
       }
     }  // End of while loop.
 
