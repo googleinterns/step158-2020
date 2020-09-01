@@ -11,7 +11,10 @@
     <input matInput formControlName="tags" placeholder="Tags (optional)"/>
     <mat-hint>Enter list seperated by commas: "tag 1, tag 2, tag 3"</mat-hint>
   </mat-form-field>
-  <button [disabled]="disableSubmit" type="submit" mat-raised-button id="save-button">Save Mask</button>
+  <button [disabled]="disableSubmit" type="submit" mat-raised-button id="save-button">Save Mask As</button>
+  <!-- Save(Update) Image-->
+  <button mat-raised-button type="click" (click)="onClickSaveButton()">Save Mask</button>
+  <!-- Save(Update) Image-->
 </form>
 
 <!-- Editor -->
