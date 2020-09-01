@@ -309,7 +309,6 @@ export class EditorComponent implements OnInit {
         maskSet.add(i);
       }
     }
-    console.log(maskSet);
     this.maskControllerService =  new MaskControllerService(maskSet);
   }
 
@@ -798,7 +797,6 @@ export class EditorComponent implements OnInit {
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    *  @returns set<number> of all indicies in the mask.
    */
-
   async maskControllerPaint() {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
@@ -808,30 +806,21 @@ export class EditorComponent implements OnInit {
 
     const leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
     const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, rightBottom.y, this.image.width);
-   
     let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
+
     let newTopY = leftTop.y;
-    console.log(`top left index ${leftTopIndex}, bottom right index ${rightBottomIndex}`);
 
-    for (let i = leftTopIndex; i <= /*rightBottomIndex*/ currRightTopIndex; i += 4) {
+    for (let i = leftTopIndex; i <= rightBottomIndex; i += 4) {
       // If the alpha value has value.
-
-      // if (paintedImageData[i + 3] === 255) {
+      if (paintedImageData[i + 3] === 255) {
         paintedMask.add(i);
-      // }
-
-      // if (i === currRightTopIndex) {
-      //   i = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y + 1, this.image.width);
-      //   currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, ++newTopY, this.image.width);
-      //   console.log(`new top left (${leftTop.x}, ${newTopY}) or index ${currRightTopIndex}`);
-      // }
-
-      if(i == rightBottomIndex) {
-        console.log('reached bottom right index, should exit now.')
       }
 
-      // TODO(SHMCAFFREY) loop through only the indicies in the rectangle.
-
+      if (i === currRightTopIndex) {
+        // minus 4 to account for i += 4 in loop
+        i = this.magicWandService.coordToDataArrayIndex(leftTop.x, ++newTopY, this.image.width) - 4;
+        currRightTopIndex =  this.magicWandService.coordToDataArrayIndex(rightBottom.x, newTopY, this.image.width);
+      }
     }
     return paintedMask;
   }
@@ -928,28 +917,34 @@ class Rectangle {
 
     if (this.top > topY) {
       this.top = topY;
-      console.log(`Top  change: ${this.top}`);
     }
     if (this.bottom < bottomY) {
       this.bottom = bottomY;
-      console.log(`bottom  change: ${this.bottom}`);
     }
     if (this.left > leftX) {
       this.left = leftX;
-      console.log(` left change: ${this.left}`);
     }
     if (this.right < rightX) {
       this.right = rightX;
-      console.log(`Right change: ${this.right}`);
     }
   }
 
-  getLeftTop() {
-    console.log(`left: ${this.left}, top: ${this.top}`);
-    return new Coordinate(this.left, this.top);
+ /**  
+  *  @returns {Coordinate} the floored (x,y) of the combination of the left
+  *    most and top most coordinate the users brush touched.
+  *  Floor is needed to calculate the propper index in the data array.
+  *    It allows the iindex to be a valid (x,y) coordinate
+  */
+  getLeftTop(): Coordinate {
+    return new Coordinate(Math.floor(this.left), Math.floor(this.top));
   }
-  getRightBottom() {
-    console.log(`left: ${this.right}, top: ${this.bottom}`);
-    return new Coordinate(this.right, this.bottom);
+ /** 
+  *  @returns {Coordinate} the ceiling of the (x,y) combination from the 
+  *    right most and bottom most coordinate the users brush touched.
+  *  Ceil is needed to calculate the propper index in the data array.
+  *    It allows the iindex to be a valid (x,y) coordinate.
+  */
+  getRightBottom(): Coordinate {
+    return new Coordinate(Math.ceil(this.right), Math.ceil(this.bottom));
   }
 }

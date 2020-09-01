@@ -110,7 +110,6 @@ export class MaskDirective {
       this.mouseDown
     ) {
       const coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
-
       // User moved mouse, use scribble fill.
       this.scribbleFill = true;
 
@@ -124,7 +123,6 @@ export class MaskDirective {
           this.originalImageData.width
         )
       );
-      console.log(this.magicWandService.coordToDataArrayIndex(coord[0],coord[1],this.originalImageData.width));
       // Fire event to draw pixel
       this.continuePaintEvent.emit(pixel);
     } else if (this.tool == MaskTool.PAN && this.mouseDown) {
