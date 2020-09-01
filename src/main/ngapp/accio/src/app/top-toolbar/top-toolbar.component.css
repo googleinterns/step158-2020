@@ -2,10 +2,6 @@
   font-size: 48px; 
 }
 
-#single-click-buttons {
-  padding: 10px;
-}
-
 .button {
   color: white;
   cursor: pointer;
@@ -14,6 +10,7 @@
   width: 50px;
   padding: 10px;
   left: 5%;
+  margin: 0;
 }
 
 .button:hover {
@@ -21,9 +18,26 @@
   color: #cdd1d3;
 }
 
+.icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 1%;
+}
+
 #single-click-buttons {
-  position: relative;
+  position: sticky;
+  top: 0;
+  height: 100px;
+  z-index: 100;
+  padding: 10px;
   background-color: #3f4143;
   border: 10px solid #5e6469;
-  border-bottom: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
 }
+
+p { margin: 0 }

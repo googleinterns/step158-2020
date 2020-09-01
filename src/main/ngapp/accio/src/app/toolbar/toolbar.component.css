@@ -6,9 +6,16 @@
   color: white;
   cursor: pointer;
   border: none;
+  height: 50px;
+  width: 100%;
   padding: 10px;
-  width: 75px;
-  height: 45px;
+  top: 5%;
+  left: 0;
+  margin: 0;
+}
+
+p {
+  margin: 0;
 }
 
 .button:hover {
@@ -21,8 +28,10 @@
   color: white;
   text-align: center;
   background-color: #3f4143;
-  height: 70px;
-  width: 95px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .mat-button-toggle-checked{

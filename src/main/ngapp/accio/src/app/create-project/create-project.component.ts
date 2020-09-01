@@ -10,6 +10,7 @@ import * as $ from 'jquery';
 export class CreateProjectComponent implements OnInit {
   projectName: string;
   visibility: string;
+  editorsList: string;
 
   constructor(
       private router: Router) { }
@@ -22,7 +23,8 @@ export class CreateProjectComponent implements OnInit {
     const url = '/projects?' + $.param({
       mode: 'create',
       'proj-name': this.projectName,
-      'visibility': this.visibility
+      'visibility': this.visibility,
+      'editors': this.editorsList,
     });
     console.log(url);
 
