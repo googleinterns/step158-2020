@@ -309,6 +309,11 @@ export class MagicWandService {
       // This if statement limits the size of the priority queue for 
       // reasonable runtime performance in the browser. Removing this 
       // may cause the browser to become unresponsive for big previews.
+      // When the limit is reached, the algorithm returns the 
+      // shortest distances that it has calculated so far. If the user
+      // changes the tolerance input to a higher tolerance than what was 
+      // calcualted within this limit, then the distances up to the highest 
+      // calculated tolerance will be returned.
       if (toVisit.getSize() > 600000) {
         return distances;
       }
