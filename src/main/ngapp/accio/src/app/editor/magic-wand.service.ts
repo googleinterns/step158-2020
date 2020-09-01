@@ -306,6 +306,17 @@ export class MagicWandService {
 
     // Updates shortest path between neighbor pixel and original node.
     while (toVisit.getSize() !== 0) {
+      // This if statement limits the size of the priority queue for 
+      // reasonable runtime performance in the browser. Removing this 
+      // may cause the browser to become unresponsive for big previews.
+      // When the limit is reached, the algorithm returns the 
+      // shortest distances that it has calculated so far. If the user
+      // changes the tolerance input to a higher tolerance than what was 
+      // calcualted within this limit, then the distances up to the highest 
+      // calculated tolerance will be returned.
+      if (toVisit.getSize() > 600000) {
+        return distances;
+      }
       const curPixelNode: PixelNode = toVisit.pop();
 
       // Gets coords of adjacent pixels.
@@ -376,7 +387,7 @@ export class MagicWandService {
 
     for (let i = 0; i < imgData.data.length / 4; i++) {
       // Reducing tolerance to the root reduces the number of iterations
-      // inside PreviewMask.masksAtTolerance()
+      // inside PreviewMask.changeMaskBy()
       tolerance = Math.ceil(Math.sqrt(shortestPaths[i]));
       if (previewMask.masksByTolerance[tolerance] === undefined) {
         previewMask.masksByTolerance[tolerance] = [];
@@ -405,10 +416,14 @@ interface PixelNode {
   **/
 export class PreviewMask {
   masksByTolerance: Array<Array<number>> = [];
-  toleranceIndex = -1;
-  presentMask: Array<number> = [];
+  private toleranceIndex = -1;
+  private presentMask: Array<number> = [];
+  private isPreview = true;
 
   constructor(toleranceLimit: number) {
+    if (toleranceLimit === -1) {
+      this.isPreview = false;
+    }
     this.masksByTolerance.fill(undefined, 0, toleranceLimit + 2);
   }
 
@@ -416,7 +431,7 @@ export class PreviewMask {
    * the given 
    * @param {number} tolerance level.
    */
-  public maskAtTolerance(tolerance: number): Set<number> {
+  public changeMaskBy(tolerance: number): void {
     if (tolerance < 0) {
       throw new Error('Tolerance input must be a non-negative number...');
     }
@@ -443,7 +458,25 @@ export class PreviewMask {
         this.presentMask.push(pixelIndex);
       });
     }
+  }
 
+  public getMaskAsSet(): Set<number> {
     return new Set<number>(this.presentMask);
+  }
+
+  public getMaskAsArray(): Array<number> {
+    return this.presentMask;
+  }
+
+  public resetMask(): void {
+    this.changeMaskBy(0);
+
+    this.masksByTolerance[this.toleranceIndex--].forEach(() => {
+      this.presentMask.pop();
+    })
+  }
+
+  public getIsPreview(): boolean {
+    return this.isPreview;
   }
 }

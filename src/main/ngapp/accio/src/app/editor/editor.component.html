@@ -23,7 +23,7 @@
   (invertMaskEvent)="invertMask()"
   (undoRedoEvent)="undoRedo($event)"
   (switchImageEvent)="switchImage($event)"
-  (newToleranceEvent)="updateTolerance($event)"
+  (newToleranceEvent)="updateTolerance($event); updatePreview();"
   (newZoomEvent)="zoom($event)">
 </app-top-toolbar>
 
@@ -56,6 +56,10 @@
         (newPanEvent)="pan($event)"
         (newDestinationEvent)="setDestinationCoords($event)"
         (newZoomEvent)="zoom($event)">
+      </canvas>
+
+      <canvas #previewCanvas id="preview-layer"
+        width="100px" height="100px">
       </canvas>
 
       <canvas #cursorCanvas id="cursor-layer"

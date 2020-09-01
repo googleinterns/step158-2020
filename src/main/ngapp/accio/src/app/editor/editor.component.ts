@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { FormGroup, FormControl } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { PostBlobsService } from '../post-blobs.service';
 import { MagicWandService } from './magic-wand.service';
@@ -12,8 +13,8 @@ import { Coordinate } from './Coordinate';
 import * as $ from 'jquery';
 import { MaskAction, Action, Tool } from './mask-action';
 import { MaskControllerService } from './mask-controller.service';
+import { PreviewMask } from './magic-wand.service';
 import { Zoom, UndoRedo, SwitchImage } from '../enums';
-
 
 @Component({
   selector: 'app-editor',
@@ -29,7 +30,8 @@ export class EditorComponent implements OnInit {
     private magicWandService: MagicWandService, 
     private postBlobsService: PostBlobsService,
     private fetchImagesService: FetchImagesService,
-    private maskControllerService: MaskControllerService
+    private maskControllerService: MaskControllerService,
+    private snackBar: MatSnackBar
   ) {
     //  Tells Router to not reuse route so when url is changed,
     //    reloads component with new url info.
@@ -49,6 +51,12 @@ export class EditorComponent implements OnInit {
   // Cursor varaibles.
   cursorX = 0;
   cursorY = 0;
+
+  // Preview-floodfill variables.
+  private previewMaster: PreviewMask = new PreviewMask(0);
+  private previewImgData: ImageData;
+  private curMaskAction: MaskAction;
+  private continuePreview = false;
 
   // Display variables.
   private image: HTMLImageElement;
@@ -113,6 +121,14 @@ export class EditorComponent implements OnInit {
   @ViewChild('scaledCanvas', { static: true })
   scaledCanvas: ElementRef<HTMLCanvasElement>;
   private scaledCtx: CanvasRenderingContext2D;
+
+  // Overlays a layer just for showing the preview of the mask.
+  // Once the preview is committed, this canvas is cleared and 
+  // the chosen preview is painted on the scaledCanvas as well 
+  // as committed to the maskCanvas.
+  @ViewChild('previewCanvas', { static: true })
+  previewCanvas: ElementRef<HTMLCanvasElement>;
+  private previewCtx: CanvasRenderingContext2D;
 
   // Overlays custom "cursor" that changes based on brush size.
   @ViewChild('cursorCanvas', { static: true })
@@ -252,6 +268,11 @@ export class EditorComponent implements OnInit {
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.scaledCanvas.nativeElement.height = imgHeight * this.scaleFactor;
     this.scaledCtx = this.scaledCanvas.nativeElement.getContext('2d');
+
+    // Canvas to show preview of floodfills.
+    this.previewCanvas.nativeElement.width = imgWidth * this.scaleFactor;
+    this.previewCanvas.nativeElement.height = imgHeight * this.scaleFactor;
+    this.previewCtx = this.previewCanvas.nativeElement.getContext('2d');
 
     // Canvas to show Image (never changes unless user only wants to see Mask)
     this.imageCanvas.nativeElement.width = imgWidth * this.scaleFactor;
@@ -742,23 +763,139 @@ export class EditorComponent implements OnInit {
    *    Gives the new pixels to add to the mask
    *  Only returned when maskTool is 'magic-wand', no need to check maskTool
    */
-  floodfillMask(maskAction: MaskAction) {
+  floodfillMask(maskAction: MaskAction): void {
     this.disableSubmit = this.disableFloodFill = true;
-    //  Changes if set of pixels are added or removed from the mask depending on the tool.
-    let alphaValue = this.maskTool === MaskTool.MAGIC_WAND_ADD ? 255 : 0;
+    // Case 1: performs preview-floodfill sequence.
+    if (maskAction.previewMaster.getIsPreview()) {
+      // Pauses any other canvas-editting sequences from registering
+      // on the canvas. 
+      const previewLayer = document.getElementById('preview-layer');
+      previewLayer.style.pointerEvents = 'auto';
 
-    for (let pixel of maskAction.getChangedPixels()) {
-      this.maskImageData.data[pixel] = 255;
-      this.maskImageData.data[pixel + 2] = 255;
-      this.maskImageData.data[pixel + 3] = alphaValue;
-    }
-    if (maskAction.getActionType() === Action.SUBTRACT) {
-      this.maskControllerService.do(maskAction, this.allPixels);
+      // Remembers the maskAction for when the preview is committed.
+      this.curMaskAction = maskAction;
+
+      this.previewMaster.masksByTolerance = 
+          maskAction.previewMaster.masksByTolerance;
+          
+      // Activates updatePreview(), which is always called by a change in the 
+      // mat-slider, but only accepts the call if the floodfill preview sequence 
+      // is initiated. 
+      this.continuePreview = true;
+      this.updatePreview();
+
+      // Pops up a snackbar to tell the user what to do next.
+      this.openPreviewSnackBar();
     } else {
-      this.maskControllerService.do(maskAction);
+      // Case 2: Performs scribble floodfill sequence.
+      //  Changes if set of pixels are added or removed from the mask depending on the tool.
+      let alphaValue = this.maskTool === MaskTool.MAGIC_WAND_ADD ? 255 : 0;
+
+      for (let pixel of maskAction.getChangedPixels()) {
+        this.maskImageData.data[pixel] = 255;
+        this.maskImageData.data[pixel + 2] = 255;
+        this.maskImageData.data[pixel + 3] = alphaValue;
+      }
+      if (maskAction.getActionType() == Action.SUBTRACT) {
+        this.maskControllerService.do(maskAction, this.allPixels);
+      } else {
+        this.maskControllerService.do(maskAction);
+      }
+      this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
+      this.disableSubmit = this.disableFloodFill = false;
     }
-    this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
-    this.disableSubmit = this.disableFloodFill = false;
+  }
+
+  // User must confirm the preview and commit it to the mask before 
+  // the preview-sequence can end.
+  openPreviewSnackBar() {
+    let snackBarRef = this.snackBar.open(
+        /*message=*/'Blocking: Please confirm the floodfill on this preview!',
+        /*action-message=*/'Confirm!',
+        { horizontalPosition: 'left',
+          verticalPosition: 'top'}
+        );
+    
+    snackBarRef.afterDismissed().subscribe(() => {
+      this.endPreview();
+    });
+  }
+
+  /**Called whenever tolerance input changes. Only executes on a new 
+   * preview mask event;
+   * newMaskEvent >> floodfillMask() { execute: else block }.
+   */
+  updatePreview(): void {
+    if (this.continuePreview) {
+      this.previewImgData =  new ImageData(this.image.width, this.image.height);
+      this.previewMaster.changeMaskBy(this.tolerance);
+      
+      for (let pixel of this.previewMaster.getMaskAsArray()) {
+        this.previewImgData.data[pixel] = 255;
+        this.previewImgData.data[pixel + 2] = 255;
+        this.previewImgData.data[pixel + 3] = 255;
+      }
+
+      this.drawPreview();
+    }
+  }
+  /**Called when a new preview mask sequence and the tolerance input
+   * has been confirmed.
+   */
+  endPreview(): void {
+    if (this.continuePreview) {
+      this.continuePreview = false;
+      this.clearPreviewCanvas();
+
+      for (let pixel of this.previewMaster.getMaskAsArray()) {
+        this.maskImageData.data[pixel] = 255;
+        this.maskImageData.data[pixel + 2] = 255;
+        this.maskImageData.data[pixel + 3] = 255;
+      }
+
+      // Updates curMaskAction to hold the changedPixels,
+      // and pass them into maskController.
+      this.curMaskAction.commitPreviewPixels(
+        this.previewMaster.getMaskAsSet()
+      );
+      this.previewMaster.resetMask();
+      if (this.curMaskAction.getActionType() == Action.SUBTRACT) {
+        this.maskControllerService.do(this.curMaskAction, this.allPixels);
+      } else {
+        this.maskControllerService.do(this.curMaskAction);
+      }
+      this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
+      this.disableSubmit = this.disableFloodFill = false;
+
+      // Unpauses other canvas-editing sequences from registering
+      // on the canvas. 
+      const previewLayer = document.getElementById('preview-layer');
+      previewLayer.style.pointerEvents = 'none';
+    }
+  }
+  // Redraws the preview mask on the preview canvas.
+  private drawPreview(): void {
+    this.clearPreviewCanvas();
+    this.previewCtx.save();
+    this.previewCtx.scale(this.scaleFactor, this.scaleFactor);
+    createImageBitmap(this.previewImgData).then((renderer) => {
+      this.previewCtx.globalAlpha = this.maskAlpha / 2;
+      this.previewCtx.drawImage(
+          renderer,
+          0,
+          0,
+          this.previewCanvas.nativeElement.width,
+          this.previewCanvas.nativeElement.height);
+    });
+    this.previewCtx.restore();
+  }
+
+  private clearPreviewCanvas(): void {
+    this.previewCtx.clearRect(
+        0,
+        0,
+        this.previewCanvas.nativeElement.width,
+        this.previewCanvas.nativeElement.height);
   }
 
   /**

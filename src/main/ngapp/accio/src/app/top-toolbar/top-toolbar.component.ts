@@ -1,5 +1,6 @@
 import { HostListener, Component, OnInit } from '@angular/core';
 import { Output, EventEmitter } from '@angular/core';
+import { MatSliderChange } from '@angular/material/slider';
 import { Zoom, UndoRedo, SwitchImage } from '../enums';
 
 @Component({
@@ -74,7 +75,7 @@ export class TopToolbarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.toleranceValue = 30;
+    this.toleranceValue = 15;
   }
 
   /** Called when user clicks clear mask button. */
@@ -101,7 +102,11 @@ export class TopToolbarComponent implements OnInit {
   }
 
   /** Emits value of user inputed/slider tolerance. */
-  updateTolerance() {
+  updateTolerance(event: MatSliderChange = undefined) {
+    // Updates the toleranceValue as the slider is being moved.
+    if (event !== undefined) {
+      this.toleranceValue = event.value;
+    }
     this.newToleranceEvent.emit(this.toleranceValue);
   }
 
