@@ -50,9 +50,6 @@ export class EditorComponent implements OnInit {
   cursorX = 0;
   cursorY = 0;
 
-  ZOOM_IN: number = 2;
-  ZOOM_OUT: number = .5
-
   // Display variables.
   private image: HTMLImageElement;
   private maskImageData: ImageData;
@@ -277,7 +274,7 @@ export class EditorComponent implements OnInit {
     // If there is a mask URL passed in then draw mask.
     if (this.maskUrl != '' && this.maskUrl) {
       let maskImage = new Image();
-      const paintSet = await this.getPaintedSet();
+      const paintSet = await this.initMaskSet();
         maskImage.onload = () => {
           this.maskCtx.drawImage(maskImage, 0, 0);
           this.maskImageData = this.maskCtx.getImageData(
@@ -304,6 +301,17 @@ export class EditorComponent implements OnInit {
         }
       ),
     ]);
+  }
+
+  /** Used to initialize mask controller with image's mask if one exists. */
+  initMaskSet(): Set<number> {
+    let maskSet = new Set<number>();
+    for (let i = 0; i < this.originalImageData.data.length; i =+ 4) {
+      if (this.originalImageData[i + 3] === 255) {
+        maskSet.add(i);
+      }
+    }
+    return maskSet;
   }
 
  /**
@@ -516,7 +524,6 @@ export class EditorComponent implements OnInit {
         this.maskIndex,
       ]);
     }
-
     //  Otherwise, newImage loops through the images last fetched in the imageArray
     else {
       if (direction === SwitchImage.PREVIOUS) {
@@ -828,7 +835,7 @@ export class EditorComponent implements OnInit {
   getPaintedSet() {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
-
+    
     let leftTop = this.searchRectangle.getLeftTop();
     let rightBottom = this.searchRectangle.getRightBottom();
 

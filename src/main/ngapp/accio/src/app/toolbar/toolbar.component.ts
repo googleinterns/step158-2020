@@ -39,6 +39,7 @@ export class ToolbarComponent implements OnInit {
       case 80:
         console.log('P');
         this.updateTool('PAN');
+        break;
       case 81:
         console.log('Q');
         this.updateTool('MAGIC-WAND-SUB');
