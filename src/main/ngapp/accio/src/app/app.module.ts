@@ -22,7 +22,7 @@ import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TopBarComponent} from './top-bar/top-bar.component';
-import { ImgGalleryComponent, UpdateImageDialog } from './img-gallery/img-gallery.component';
+import { ImgGalleryComponent, UpdateImageDialog, DeleteImageDialog } from './img-gallery/img-gallery.component';
 import { EditorComponent } from './editor/editor.component';
 import { HomeComponent } from './home/home.component';
 import { MaskDirective } from './editor/mask.directive';
@@ -44,6 +44,7 @@ import { TopToolbarComponent } from './top-toolbar/top-toolbar.component';
     ToolbarComponent,
     LogoutComponent,
     UpdateImageDialog,
+    DeleteImageDialog,
     TopToolbarComponent,
     ],
   imports: [
