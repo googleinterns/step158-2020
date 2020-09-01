@@ -762,8 +762,6 @@ export class EditorComponent implements OnInit {
       this.continuePreview = false;
       this.clearPreviewCanvas();
 
-      let alphaValue = this.maskTool == MaskTool.MAGIC_WAND_ADD ? 255 : 0;
-
       for (let pixel of this.previewMaster.getMaskAsArray()) {
         this.maskImageData.data[pixel] = 255;
         this.maskImageData.data[pixel + 2] = 255;
