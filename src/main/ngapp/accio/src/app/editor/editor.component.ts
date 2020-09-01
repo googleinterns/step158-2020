@@ -274,22 +274,19 @@ export class EditorComponent implements OnInit {
     // If there is a mask URL passed in then draw mask.
     if (this.maskUrl != '' && this.maskUrl) {
       let maskImage = new Image();
-      await this.maskControllerPaint().then((response) => {
-        maskImage.onload = () => {
-          this.maskCtx.drawImage(maskImage, 0, 0);
-          this.maskImageData = this.maskCtx.getImageData(
-            0,
-            0,
-            imgWidth,
-            imgHeight
-          );
-          // Initializes controller service with old mask.
-          this.maskControllerService =  new MaskControllerService(response);
+      maskImage.onload = () => {
+        this.maskCtx.drawImage(maskImage, 0, 0);
+        this.maskImageData = this.maskCtx.getImageData(
+          0,
+          0,
+          imgWidth,
+          imgHeight
+        );
 
-          this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
-        };
-        maskImage.src = this.maskUrl;
-      });
+        this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
+        this.initMaskSet();
+      };
+      maskImage.src = this.maskUrl;
     }
 
     let totalNumPixels = this.originalImageData.data.length / 4;
@@ -302,6 +299,18 @@ export class EditorComponent implements OnInit {
         }
       ),
     ]);
+  }
+  
+    /** Used to initialize mask controller with image's mask if one exists. */
+  initMaskSet() {
+    let maskSet = new Set<number>();
+    for (let i = 0; i < this.maskImageData.data.length; i += 4) {
+      if (this.maskImageData.data[i + 3] === 255) {
+        maskSet.add(i);
+      }
+    }
+    console.log(maskSet);
+    this.maskControllerService =  new MaskControllerService(maskSet);
   }
 
  /**
@@ -784,12 +793,8 @@ export class EditorComponent implements OnInit {
 
   /**
    *  Catches emitted event from mask.directive once users mouse lifts up.
-<<<<<<< HEAD
-   *  Finds all pixels painted on paint canvas and adds to set to pass into maskCOntroller.
-=======
    *  Finds all pixels painted on paint canvas and adds to set to pass into maskController.
    *  Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes.
->>>>>>> c50b5ac4c1b1f04c92bb243a5d0b3f019a41c17a
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    *  @returns set<number> of all indicies in the mask.
    */
@@ -809,7 +814,7 @@ export class EditorComponent implements OnInit {
 
     for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
       // If the alpha value has value.
-      if (paintedImageData[i + 3] == 255) {
+      if (paintedImageData[i + 3] === 255) {
         paintedMask.add(i);
       }
 
