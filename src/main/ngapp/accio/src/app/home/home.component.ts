@@ -1,8 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import * as moment from 'moment-timezone';
 import * as $ from 'jquery';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import {
+  MatDialog,
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+} from '@angular/material/dialog';
+
+export interface StoredProject {
+  projId: string;
+  name: string;
+  visibility: string;
+  utc: string;
+  owners: string[];
+  editors: string[];
+}
 
 @Component({
   selector: 'app-home',
@@ -11,7 +24,7 @@ import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dial
 })
 export class HomeComponent implements OnInit {
   // TODO(shmcaffrey): Add filter global
-  //       Also add it as attribute in getProject's url var.
+  //    Also add it as attribute in getProject's url var.
   filterVisibility: string;
   filterRole: string;
   filterTag: string;
@@ -19,47 +32,59 @@ export class HomeComponent implements OnInit {
   filterSort: string;
 
   projectPath: string;
-  projects: Array<any>;
+  projects: Array<StoredProject>;
 
   constructor(public dialog: MatDialog, public deleteDialog: MatDialog) {}
 
   ngOnInit(): void {
     this.fetchProjects();
   }
-/*
+
   // Opens up the dialog for updating the clicked project.
-  updateButton(imageName: string, parentImageName: string): void {
-    const dialogRef = this.dialog.open(UpdateImageDialog, {
+  updateButton(
+    projectId: string,
+    projectName: string,
+    visibility: string,
+    ownersList: string[],
+    editorsList: string[]
+  ): void {
+    let ownersListString = ownersList.toString().replace(',', ', ');
+    let editorsListString =
+      editorsList !== undefined
+        ? editorsList.toString().replace(',', ', ')
+        : '';
+
+    const dialogRef = this.dialog.open(UpdateProjectDialog, {
       width: '600px',
       data: {
-        projectId: this.projectId,
-        imageName: imageName,
-        parentImageName: parentImageName,
+        projectId: projectId,
+        projectName: projectName,
+        visibility: visibility,
+        ownersList: ownersListString,
+        editorsList: editorsListString,
       },
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      console.log('UpdateImage dialog was closed...');
-      console.log('Fetching updated images...');
-      this.loadGalleryImages();
-      console.log('Fetched updated images...');
+      console.log('UpdateProject dialog was closed...');
+      console.log('Fetching updated projects...');
+      this.fetchProjects();
+      console.log('Fetched updated projects...');
     });
   }
 
-  deleteButton(imageName: string, parentImageName: string): void {
-    const dialogRef = this.deleteDialog.open(DeleteImageDialog, {
+  deleteButton(projectId: string): void {
+    const dialogRef = this.deleteDialog.open(DeleteProjectDialog, {
       width: '600px',
       data: {
-        projectId: this.projectId,
-        imageName: imageName,
-        parentImageName: parentImageName,
+        projectId: projectId,
       },
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadGalleryImages();
+      this.fetchProjects();
     });
-  }*/
+  }
 
   // Fetches a list of projects based on user's choice of filters.
   // Result is stored in this.projects
@@ -97,64 +122,102 @@ export class HomeComponent implements OnInit {
 
 export interface UpdateProjectData {
   projectId: string;
-  imageName: string;
-  parentImageName: string;
+  projectName: string;
+  visibility: string;
+  ownersList: string;
+  editorsList: string;
 }
 
 /**
- * Represents the dialog popup that appears when ImageGalleryComponent's
+ * Represents the dialog popup that appears when HomeComponent's
  * templateUrl calls the this.updateButton() function.
  */
- /*
 @Component({
-  selector: 'update-image-dialog',
-  templateUrl: 'update-image-dialog.html',
+  selector: 'update-project-dialog',
+  templateUrl: 'update-project-dialog.html',
 })
-export class UpdateImageDialog {
-  updateImageForm: FormGroup;
+export class UpdateProjectDialog {
+  updateProjectForm: FormGroup;
   formData: FormData;
 
   constructor(
-    private postBlobsService: PostBlobsService,
-    public dialogRef: MatDialogRef<UpdateImageDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: UpdateImageData
+    public dialogRef: MatDialogRef<UpdateProjectDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: UpdateProjectData
   ) {}
 
   ngOnInit(): void {
-    this.updateImageForm = new FormGroup({
-      updateImgName: new FormControl(),
-      updateTags: new FormControl(),
+    this.updateProjectForm = new FormGroup({
+      updateProjectName: new FormControl(this.data.projectName),
+      updateVis: new FormControl(this.data.visibility),
+      updateOwners: new FormControl(this.data.ownersList),
+      updateEditors: new FormControl(this.data.editorsList),
     });
     this.formData = new FormData();
-  }*/
+  }
 
-  /**Sends the form data to blobstore and then to /blobs servlet,
-   * where the update to the image is saved in the database.
-   */
-//  onUpdateProject(): void {
-//    let imageBlob = new ImageBlob(
- //     this.data.projectId,
- //     /*imageName=*/ this.data.imageName,
- //     /*mode=*/ 'update',
- //     /*image=*/ undefined,
- //     /*parentImageName=*/ this.data.parentImageName,
-//      /*newImageName=*/ this.updateImageForm.get('updateImgName').value,
- //     /*tags=*/ this.updateImageForm.get('updateTags').value,
- //     /*delete=*/ false
-/*    );
- 
-    console.log(this.updateImageForm.get('delete').value);
- 
-    this.postBlobsService.buildForm(this.formData, imageBlob, '');
- 
+  async onUpdateProject(): Promise<void> {
+    const url =
+      '/projects?' +
+      $.param({
+        'proj-id': this.data.projectId,
+        mode: 'update',
+        'proj-name': this.updateProjectForm.get('updateProjectName').value,
+        visibility: this.updateProjectForm.get('updateVis').value,
+        owners: this.updateProjectForm.get('updateOwners').value,
+        editors: this.updateProjectForm.get('updateEditors').value,
+      });
+    console.log(url);
+
+    const response = await fetch(url, { method: 'POST' });
+    console.log('finished fetch...');
+
     // Reset form values.
-    this.updateImageForm.reset;
-  }*/
- 
+    this.updateProjectForm.reset;
+  }
+
   /**Closes dialog popup without changing or saving any edited values.*/
-/*  onNoClick(): void {
+  onNoClick(): void {
     this.dialogRef.close();
   }
 }
- */
 
+/**Represents the dialog popup that appears when HomeComponent's
+ * templateUrl calls the this.updateButton() function.
+ */
+@Component({
+  selector: 'delete-project-dialog',
+  templateUrl: 'delete-project-dialog.html',
+})
+export class DeleteProjectDialog {
+  formData: FormData;
+
+  constructor(
+    public dialogRef: MatDialogRef<DeleteProjectDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: UpdateProjectData
+  ) {}
+
+  ngOnInit(): void {
+    this.formData = new FormData();
+  }
+
+  async onDeleteProject(): Promise<void> {
+    const url =
+      '/projects?' +
+      $.param({
+        'proj-id': this.data.projectId,
+        mode: 'update',
+        delete: true,
+      });
+    console.log(url);
+
+    const response = await fetch(url, { method: 'POST' });
+    console.log('finished fetch...');
+
+    this.onNoClick();
+  }
+
+  /**Closes dialog popup without changing or saving any edited values.*/
+  onNoClick(): void {
+    this.dialogRef.close();
+  }
+}

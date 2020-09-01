@@ -154,11 +154,11 @@
           </button>
           <button mat-menu-item (click)="updateButton(image['name'], '', (image['tags'] !== undefined) ? image['tags'].toString().replace(',', ', ') : '')">
             <mat-icon>update</mat-icon>
-            <span>Update Image</span>
+            <span>Update image</span>
           </button>
           <button mat-menu-item (click)="deleteButton(image['name'], '')">
             <mat-icon>delete</mat-icon>
-            <span>Delete Image</span>
+            <span>Delete image</span>
           </button>
         </mat-menu>
       </div>
@@ -220,14 +220,14 @@
               (click)="updateButton(mask['name'], image['name'], (mask['tags'] !== undefined) ? mask['tags'].toString().replace(',', ', ') : '')"
             >
               <mat-icon>update</mat-icon>
-              <span>Update Image</span>
+              <span>Update mask</span>
             </button>
             <button
               mat-menu-item
               (click)="deleteButton(mask['name'], image['name'])"
             >
               <mat-icon>delete</mat-icon>
-              <span>Delete Image</span>
+              <span>Delete mask</span>
             </button>
           </mat-menu>
         </div>

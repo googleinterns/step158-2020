@@ -50,13 +50,13 @@ a:hover {
   display: table;
 }
 
-.col-025 {
-  width: 2.5%;
+.col-05 {
+  width: 5%;
   float: right;
 }
 
-.col-975 {
-  width: 97.5%;
+.col-95 {
+  width: 95%;
   float: left;
 }
 

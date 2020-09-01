@@ -21,9 +21,9 @@ import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TopBarComponent} from './top-bar/top-bar.component';
-import { ImgGalleryComponent, UpdateImageDialog } from './img-gallery/img-gallery.component';
+import { ImgGalleryComponent, UpdateImageDialog, DeleteImageDialog } from './img-gallery/img-gallery.component';
 import { EditorComponent } from './editor/editor.component';
-import { HomeComponent } from './home/home.component';
+import { HomeComponent, UpdateProjectDialog, DeleteProjectDialog } from './home/home.component';
 import { MaskDirective } from './editor/mask.directive';
 import { CreateProjectComponent } from './create-project/create-project.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
@@ -44,6 +44,9 @@ import { EndPageComponent } from './end-page/end-page.component';
     ToolbarComponent,
     LogoutComponent,
     UpdateImageDialog,
+    UpdateProjectDialog,
+    DeleteImageDialog,
+    DeleteProjectDialog,
     TopToolbarComponent,
     EndPageComponent
   ],

@@ -57,7 +57,7 @@
     <div *ngFor="let project of projects" class="gallery-item">
       <div class="project-item row">
         <a [routerLink]="['/img-gallery', project['projId']]">
-          <div class="col-975">
+          <div class="col-95">
             <div class="project-text">
               {{ project["name"] }}
               <p class="timestamp">
@@ -66,7 +66,7 @@
             </div>
           </div>
         </a>
-        <div class="project-menu col-025" align="right">
+        <div class="project-menu col-05" align="right">
           <button
             mat-icon-button
             [matMenuTriggerFor]="menu1"
@@ -75,18 +75,25 @@
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #menu1="matMenu">
-            <button mat-menu-item>
+            <button
+              mat-menu-item
+              (click)="
+                updateButton(
+                  project['projId'],
+                  project['name'],
+                  project['visibility'],
+                  project['owners'],
+                  project['editors']
+                )
+              "
+            >
               <mat-icon>update</mat-icon>
               <span>Change project settings</span>
             </button>
-          <button mat-menu-item>
-            <mat-icon>update</mat-icon>
-            <span>Update Image</span>
-          </button>
-          <button mat-menu-item>
-            <mat-icon>delete</mat-icon>
-            <span>Delete Image</span>
-          </button>
+            <button mat-menu-item (click)="deleteButton(project['projId'])">
+              <mat-icon>delete</mat-icon>
+              <span>Delete project</span>
+            </button>
           </mat-menu>
         </div>
       </div>

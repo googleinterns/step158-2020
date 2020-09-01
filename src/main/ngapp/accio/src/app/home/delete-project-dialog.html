@@ -1,0 +1,9 @@
+<h1 mat-dialog-title>Delete {{ data.projectName }}?</h1>
+<div mat-dialog-content height="20%">
+  <form  novalidate method="POST">
+    <div mat-dialog-actions>
+      <button mat-raised-button (click)="onNoClick()">Cancel</button>
+      <button mat-raised-button (click)="onDeleteProject()" cdkFocusInitial>Delete</button>
+    </div>
+  </form>
+</div>
