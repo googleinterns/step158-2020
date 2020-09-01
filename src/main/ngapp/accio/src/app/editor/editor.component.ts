@@ -841,10 +841,15 @@ export class EditorComponent implements OnInit {
 
     for (let i = leftTopIndex; i <= rightBottomIndex; i += 4) {
       // If the alpha value has value.
+      // Due to anti aliasing, not all of the pixels in the array have an alpha
+      //    value of 0, 255/2 is an imperfect fix which doesn't change the initial
+      //    pixels drawn but does take in more pixels than searching for those equal 
+      //    to 0. TODO: fix drawing with npm js px-brush.
       if (paintedImageData[i + 3] > (255 / 2)) {
         paintedMask.add(i);
       }
 
+      // TODO: loop over (x, y) coordinates to avoid complication in error prone logic.
       if (i === currRightTopIndex) {
         // Minus 4 to account for i += 4 in loop.
         i = this.magicWandService.coordToDataArrayIndex(leftTop.x, ++newTopY, this.image.width) - 4;
