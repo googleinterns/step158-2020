@@ -316,17 +316,6 @@ export class EditorComponent implements OnInit {
     this.maskControllerService =  new MaskControllerService(maskSet);
   }
 
-  /** Used to initialize mask controller with image's mask if one exists. */
-  initMaskSet(): Set<number> {
-    let maskSet = new Set<number>();
-    for (let i = 0; i < this.originalImageData.data.length; i =+ 4) {
-      if (this.originalImageData[i + 3] === 255) {
-        maskSet.add(i);
-      }
-    }
-    return maskSet;
-  }
-
  /**
   * Creates a new scaleFactor depending on zoom and image height and width
   * @param zoom is the amount the scale should zoom in or out, if there's 
