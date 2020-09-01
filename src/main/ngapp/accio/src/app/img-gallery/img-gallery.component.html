@@ -134,9 +134,6 @@
 <div class="gallery" *ngIf="displayMasks">
   <ng-container *ngFor="let image of imageArray; index as j">
     <div *ngFor="let mask of image['masks']; index as k"  class="gallery-item">
-      <script>
-        console.log(mask['name']);
-      </script>
       <div>
         <a [routerLink]="['/editor', projectId, image['name'], image['url'], mask['name'], mask['url'], j, k]">
           <img class="gallery-img" [src]="mask['url']" />
