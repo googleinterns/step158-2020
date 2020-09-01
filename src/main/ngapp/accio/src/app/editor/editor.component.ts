@@ -812,7 +812,7 @@ export class EditorComponent implements OnInit {
 
     for (let i = leftTopIndex; i <= rightBottomIndex; i += 4) {
       // If the alpha value has value.
-      if (paintedImageData[i + 3] === 255) {
+      if (paintedImageData[i + 3] > (255 / 2)) {
         paintedMask.add(i);
       }
 
