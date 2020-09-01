@@ -718,7 +718,7 @@ export class EditorComponent implements OnInit {
       }
       this.drawMask();
       this.disableSubmit = this.disableFloodFill = false;
-      }
+    }
   }
 
   // User must confirm the preview and commit it to the mask before 
