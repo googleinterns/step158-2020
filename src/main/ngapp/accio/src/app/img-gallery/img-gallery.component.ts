@@ -109,6 +109,14 @@ export class ImgGalleryComponent implements OnInit {
     return '';
   }
 
+  getFirstMaskName(image: Object): string {
+    if (image['masks'].length === 0) {
+      return undefined;
+    }
+
+    return image['masks'][0]['name'];
+  }
+
   /** Calls the fetchImageService to get all images under parameters */
   loadGalleryImages() {
     console.log('fetching from projectId: ' + this.projectId);

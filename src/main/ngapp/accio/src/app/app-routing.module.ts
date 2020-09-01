@@ -9,8 +9,8 @@ import { TopBarComponent } from './top-bar/top-bar.component';
 const routes: Routes = [
   { path: 'img-gallery', component: ImgGalleryComponent },
   { path: 'img-gallery/:proj-id', component: ImgGalleryComponent },
-  { path: 'editor/:proj-id /:parent-img /:img-url /:mask-url /:index ', component: EditorComponent },
-  { path: 'editor/:proj-id /:parent-img /:img-url /:mask-url /:index /:mask-index', component: EditorComponent },
+  { path: 'editor/:proj-id /:parent-img /:img-url /:img-name /:mask-url /:index ', component: EditorComponent },
+  { path: 'editor/:proj-id /:parent-img /:img-url /:img-name /:mask-url /:index /:mask-index', component: EditorComponent },
   { path: 'logout', component: LogoutComponent},
   { path: 'home', component: HomeComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
