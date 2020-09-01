@@ -207,7 +207,7 @@ export class EditorComponent implements OnInit {
    *  Assumes Image has loaded, i.e. image src is set before initCanvas
    *    is called (using onload).
    */
-  private initCanvas(): void {
+  private initCanvas() {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
@@ -285,7 +285,9 @@ export class EditorComponent implements OnInit {
           maskImage.width,
           maskImage.height
         );
+        // Initializes controller service with old mask.
         this.drawMask();
+        this.initMaskSet();
       };
       maskImage.src = this.maskUrl;
     }
@@ -300,6 +302,18 @@ export class EditorComponent implements OnInit {
         }
       ),
     ]);
+  }
+
+  /** Used to initialize mask controller with image's mask if one exists. */
+  initMaskSet() {
+    let maskSet = new Set<number>();
+    for (let i = 0; i < this.maskImageData.data.length; i += 4) {
+      if (this.maskImageData[i + 3] === 255) {
+        maskSet.add(i);
+      }
+    }
+    console.log(maskSet);
+    this.maskControllerService =  new MaskControllerService(maskSet);
   }
 
   /* The following 2 functions: Handles cursor tracking and resizing. */
@@ -702,6 +716,7 @@ export class EditorComponent implements OnInit {
    *      MaskAction will determine if they're painted or erased with TOOL parameter.
    */
   startDraw(pixel: Coordinate) {
+    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
     this.startPixel = pixel;
     this.maskCtx.clearRect(0, 0, this.image.width, this.image.height);
     this.paintCtx.clearRect(0, 0, this.image.width, this.image.height);
@@ -712,7 +727,6 @@ export class EditorComponent implements OnInit {
         ? this.SOURCE_OVER
         : this.DESTINATION_OUT;
     this.paintCtx.globalCompositeOperation = this.SOURCE_OVER;
-    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
   }
 
   /**
@@ -833,7 +847,7 @@ class Rectangle {
     this.top = Math.max(coord.y - this.brushRadius, 0);
     this.bottom = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
 
-    this.left = Math.max(coord.x - this.brushRadius, 0);
+    this.left = Math.max(coord.x /*- this.brushRadius*/, 0);
     this.right = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
   }
 
