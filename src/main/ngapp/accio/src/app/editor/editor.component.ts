@@ -112,7 +112,7 @@ export class EditorComponent implements OnInit {
   // Overlays a layer just for showing the preview of the mask.
   // Once the preview is committed, this canvas is cleared and 
   // the chosen preview is painted on the scaledCanvas as well 
-  // as committed to the maskCanavs.
+  // as committed to the maskCanvas.
   @ViewChild('previewCanvas', { static: true })
   previewCanvas: ElementRef<HTMLCanvasElement>;
   private previewCtx: CanvasRenderingContext2D;
