@@ -214,7 +214,7 @@ export class EditorComponent implements OnInit {
    *  Assumes Image has loaded, i.e. image src is set before initCanvas
    *    is called (using onload).
    */
-  async initCanvas(): Promise<void> {
+  initCanvas() {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
