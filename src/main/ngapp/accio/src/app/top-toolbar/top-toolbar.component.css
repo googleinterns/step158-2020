@@ -23,7 +23,7 @@
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  padding: 10px;
+  padding: 1%;
 }
 
 #single-click-buttons {
@@ -39,3 +39,5 @@
   justify-content: center;
   color: white;
 }
+
+p { margin: 0 }

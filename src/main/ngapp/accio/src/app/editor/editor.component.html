@@ -20,7 +20,8 @@
   (invertMaskEvent)="invertMask()"
   (undoRedoEvent)="undoRedo($event)"
   (switchImageEvent)="switchImage($event)"
-  (newToleranceEvent)="updateTolerance($event)">
+  (newToleranceEvent)="updateTolerance($event)"
+  (newZoomEvent)="zoom($event)">
 </app-top-toolbar>
 
 <mat-drawer-container id="img-editor">
@@ -42,12 +43,16 @@
         [tolerance]="tolerance"
         [disableFloodFill]="disableFloodFill"
         [tool]="maskTool"
+        [translationCoords]="destinationCoords"
         (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"
-        (newPaintMaskEvent)="maskControllerPaint()"
+        (newPaintMaskEvent)="doMaskActionPaint()"
         (newMouseMoveEvent)="setCursorPosition($event)"
-        (newMouseOutEvent)="setCursorOut()">
+        (newMouseOutEvent)="setCursorOut()"
+        (newPanEvent)="pan($event)"
+        (newDestinationEvent)="setDestinationCoords($event)"
+        (newZoomEvent)="zoom($event)">
       </canvas>
 
       <canvas #cursorCanvas id="cursor-layer"
