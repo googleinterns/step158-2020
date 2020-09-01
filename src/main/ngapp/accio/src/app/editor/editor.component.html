@@ -20,7 +20,8 @@
   (invertMaskEvent)="invertMask()"
   (undoRedoEvent)="undoRedo($event)"
   (switchImageEvent)="switchImage($event)"
-  (newToleranceEvent)="updateTolerance($event); updatePreview();">
+  (newToleranceEvent)="updateTolerance($event); updatePreview();"
+  (newZoomEvent)="zoom($event)">
 </app-top-toolbar>
 
 <mat-drawer-container id="img-editor">
@@ -28,7 +29,8 @@
     <app-toolbar 
       (newMaskToolEvent)="updateMaskTool($event)"
       (newMaskAlphaEvent)="updateMaskAlpha($event)"
-      (newWidthEvent)="updateBrushWidth($event)">
+      (newWidthEvent)="updateBrushWidth($event)"
+      (newPreviewEvent)="getIsPreview($event)">
     </app-toolbar>
   </mat-drawer>
 
@@ -39,15 +41,19 @@
         width="100px" height="100px"
         [originalImageData]="originalImageData"
         [scale]="scaleFactor"
-        [tolerance]="tolerance"
         [disableFloodFill]="disableFloodFill"
         [tool]="maskTool"
-        (newMaskEvent)="floodfillMask($event)"
+        [translationCoords]="destinationCoords"
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"
-        (newMaskControllerEvent)="newMaskController($event)"
+        (newPaintMaskEvent)="doMaskActionPaint()"
         (newMouseMoveEvent)="setCursorPosition($event)"
-        (newMouseOutEvent)="setCursorOut()">
+        (newMouseOutEvent)="setCursorOut()"
+        (newPanEvent)="pan($event)"
+        (newDestinationEvent)="setDestinationCoords($event)"
+        (newZoomEvent)="zoom($event)"
+        (floodfillEvent)="getFloodfillSet($event)"
+        (scribbleFillEvent)="getScribbleSet($event)">
       </canvas>
 
       <canvas #previewCanvas id="preview-layer"
@@ -64,6 +70,10 @@
       
       <canvas #maskCanvas style="display:none">
       </canvas>
+
+      <canvas #paintCanvas style="display:none">
+      </canvas>
+
     </div>
   </mat-drawer-content>
 </mat-drawer-container>

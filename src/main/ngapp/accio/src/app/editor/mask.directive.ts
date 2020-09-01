@@ -9,7 +9,7 @@ import { MagicWandService, PreviewMask } from './magic-wand.service';
 import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
 import { Coordinate } from './Coordinate';
-import * as Mask from './mask-action';
+import { Zoom } from '../enums';
 
 @Directive({
   selector: '[appMask]',
@@ -18,17 +18,24 @@ export class MaskDirective {
   //  ImageData from image user selects, drawn at real scale.
   @Input() originalImageData: ImageData;
   @Input() scale: number;
-  @Input() tolerance: number;
   @Input() disableFloodFill: boolean;
   @Input() tool: MaskTool;
+  @Input() translationCoords: Coordinate;
 
-  @Output() newMaskEvent = new EventEmitter<Mask.MaskAction>();
   @Output() newPaintEvent = new EventEmitter<Coordinate>();
   @Output() continuePaintEvent = new EventEmitter<Coordinate>();
-  @Output() newMaskControllerEvent = new EventEmitter<Mask.MaskAction>();
+  @Output() newPaintMaskEvent = new EventEmitter<void>();
+
   @Output() newMouseMoveEvent = new EventEmitter<MouseEvent>();
   @Output() newMouseOutEvent = new EventEmitter<void>();
   @Output() newMouseDownEvent = new EventEmitter<void>();
+
+  @Output() newPanEvent = new EventEmitter<Coordinate>();
+  @Output() newDestinationEvent = new EventEmitter<Coordinate>();
+  @Output() newZoomEvent = new EventEmitter<Zoom>();
+
+  @Output() floodfillEvent = new EventEmitter<Coordinate>();
+  @Output() scribbleFillEvent = new EventEmitter<Coordinate>();
 
   // Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
@@ -75,9 +82,16 @@ export class MaskDirective {
         )
       );
 
-      console.log('drawing pixel mousedown');
       // Fire event to draw pixel
       this.newPaintEvent.emit(pixel);
+      //Draw single pixel on mouse down
+      if (this.tool == MaskTool.PAINT
+        || this.tool == MaskTool.ERASE) {
+        this.continuePaintEvent.emit(pixel);
+      }
+    } else if (this.tool == MaskTool.PAN) {
+      this.mouseDown = true;
+      this.coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
     }
   }
 
@@ -85,6 +99,7 @@ export class MaskDirective {
    * Listens for mouse movement over appMask, executes if user's mouse is clicked.
    * For each movement, the pixel is added to the paintPixels set and then painted
    *   on the canvas.
+   * If the user's tool is pan, then emits an event to redraw image given new offset.
    */
   @HostListener('mousemove', ['$event'])
   onMouseMove(e: MouseEvent) {
@@ -112,6 +127,9 @@ export class MaskDirective {
       );
       // Fire event to draw pixel
       this.continuePaintEvent.emit(pixel);
+    } else if (this.tool == MaskTool.PAN && this.mouseDown) {
+      const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
+      this.newPanEvent.emit(this.getPanDestinationCoord(offsetCoord));
     }
     this.newMouseMoveEvent.emit(e);
   }
@@ -137,101 +155,49 @@ export class MaskDirective {
   @HostListener('mouseup', ['$event'])
   onMouseUp(e: MouseEvent) {
     this.mouseDown = false;
-    // If user has paint selected, call paint to add pixels painted to master.
-    if (this.tool == MaskTool.PAINT) {
+    //  If user has paint selected, call paint to add pixels painted to master.
+    //  TODO Pass back a set of all pixels added to the mask. aka, draw paint pixels then capture then make mask action
+    if (this.tool == MaskTool.PAINT || this.tool == MaskTool.ERASE) {
       this.scribbleFill = false;
-      this.newMaskControllerEvent.emit(
-        new Mask.MaskAction(
-          Mask.Action.ADD,
-          Mask.Tool.PAINTBRUSH,
-          this.paintPixels
-        )
-      );
-    } else if (this.tool == MaskTool.ERASE) {
-      this.scribbleFill = false;
+      this.newPaintMaskEvent.emit();
+    } 
+    //  If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
+    else if ((this.tool == MaskTool.MAGIC_WAND_ADD
+        || this.tool == MaskTool.MAGIC_WAND_SUB) 
+        && this.scribbleFill) {
 
-      this.newMaskControllerEvent.emit(
-        new Mask.MaskAction(
-          Mask.Action.SUBTRACT,
-          Mask.Tool.ERASER,
-          this.paintPixels
-        )
-      );
+      this.scribbleFill = false;
+      this.scribbleFillEvent.emit(new Coordinate(this.coord[0], this.coord[1]));
     }
-    // If user has Magic wand selected and they moved the mouse, call scribbleFlood Fill.
-    else if (
-      (this.tool == MaskTool.MAGIC_WAND_ADD ||
-        this.tool == MaskTool.MAGIC_WAND_SUB) &&
-      this.scribbleFill
-    ) {
-      this.scribbleFill = false;
-      const maskPixels = this.magicWandService.scribbleFloodfill(
-        this.originalImageData,
-        this.coord[0],
-        this.coord[1],
-        this.tolerance,
-        this.paintPixels
-      );
 
-      this.newMaskEvent.emit(
-        new Mask.MaskAction(
-          this.tool == MaskTool.MAGIC_WAND_ADD
-            ? Mask.Action.ADD
-            : Mask.Action.SUBTRACT,
-          Mask.Tool.SCRIBBLE,
-          maskPixels
-        )
-      );
-    } else if (
+    else if (
       (this.tool == MaskTool.MAGIC_WAND_ADD ||
         this.tool == MaskTool.MAGIC_WAND_SUB) &&
       !this.scribbleFill
     ) {
-      if (this.tool == MaskTool.MAGIC_WAND_SUB) {
-        // Returns an array indices of each pixel in the mask.
-        const maskPixels = this.magicWandService.floodfill(
-          this.originalImageData,
-          this.coord[0],
-          this.coord[1],
-          this.tolerance
-        );
+      this.floodfillEvent.emit(new Coordinate(this.coord[0], this.coord[1]));
+    }
 
-        this.newMaskEvent.emit(
-          new Mask.MaskAction(
-            Mask.Action.SUBTRACT,
-            Mask.Tool.MAGIC_WAND,
-            maskPixels
-          )
-        );
-      } else {  // Default: does preview-style floodfill
-        // TODO: Let user decide tolerance limit
-        // (replace hardcoded val 300 with a var).
-        // TODO: Implement Quick-floodfill option (for);
-        const previewMaster: PreviewMask = 
-            this.magicWandService.getPreviews(
-              this.originalImageData,
-              this.coord[0],
-              this.coord[1],
-              /* toleranceLimit= */300
-            );
-
-        this.newMaskEvent.emit(
-          new Mask.MaskAction(
-            Mask.Action.ADD,
-            Mask.Tool.MAGIC_WAND,
-            undefined,
-            previewMaster
-          )
-        );
-      }
-
+    else if (this.tool == MaskTool.PAN) {
+      const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
+      this.newDestinationEvent.emit(this.getPanDestinationCoord(offsetCoord));
     }
   }
 
-  convertToUnscaledCoord(xIn: number, yIn: number): Array<number> {
+ /** 
+  *  Translates user inputed coordinate to appropriate corresponding 
+  *  coordinate on original image.
+  */
+  convertToUnscaledCoord(xOffset: number, yOffset: number): Array<number> {
     return new Array<number>(
-      Math.floor(xIn / this.scale),
-      Math.floor(yIn / this.scale)
+      Math.floor(xOffset / this.scale) - this.translationCoords.x,
+      Math.floor(yOffset / this.scale) - this.translationCoords.y
     );
+  }
+
+  /** Computes destination coordinate based on where the user moved their mouse to.*/
+  getPanDestinationCoord(offsetCoord: Array<number>) {
+    return new Coordinate((offsetCoord[0] - this.coord[0] + this.translationCoords.x), 
+                          (offsetCoord[1] - this.coord[1] + this.translationCoords.y))
   }
 }

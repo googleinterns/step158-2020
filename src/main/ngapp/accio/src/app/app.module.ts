@@ -18,6 +18,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { HttpClientModule } from '@angular/common/http'
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -44,8 +45,8 @@ import { TopToolbarComponent } from './top-toolbar/top-toolbar.component';
     ToolbarComponent,
     LogoutComponent,
     UpdateImageDialog,
-    TopToolbarComponent
-  ],
+    TopToolbarComponent,
+    ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -66,6 +67,7 @@ import { TopToolbarComponent } from './top-toolbar/top-toolbar.component';
     HttpClientModule,
     MatDialogModule,
     MatCheckboxModule,
+    MatToolbarModule,
     AppRoutingModule,
   ],
   providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}, Set],

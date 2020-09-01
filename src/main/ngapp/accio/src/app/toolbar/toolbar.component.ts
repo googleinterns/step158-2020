@@ -10,6 +10,7 @@ export class ToolbarComponent implements OnInit {
   @Output() newMaskToolEvent = new EventEmitter<string>();
   @Output() newMaskAlphaEvent = new EventEmitter<number>();
   @Output() newWidthEvent = new EventEmitter<number>();
+  @Output() newPreviewEvent = new EventEmitter<boolean>();
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown($event: KeyboardEvent) {
@@ -35,6 +36,10 @@ export class ToolbarComponent implements OnInit {
       case 77:
         console.log('M');
         this.updateTool('MASK-ONLY');
+        break;
+      case 80:
+        console.log('P');
+        this.updateTool('PAN');
         break;
       case 81:
         console.log('Q');
@@ -63,6 +68,7 @@ export class ToolbarComponent implements OnInit {
   maskAlphaValue: number;
   maskTool: string;
   brushWidth: number;
+  isPreview = false;
 
   constructor() {}
 
@@ -70,6 +76,7 @@ export class ToolbarComponent implements OnInit {
     this.maskAlphaValue = 1;
     this.maskTool = 'MAGIC-WAND-ADD';
     this.brushWidth = 1;
+    this.newPreviewEvent.emit(this.isPreview);
   }
 
   /** Changes selected tool value and emits change. */
@@ -85,5 +92,11 @@ export class ToolbarComponent implements OnInit {
 
   updateWidth() {
     this.newWidthEvent.emit(this.brushWidth);
+  }
+
+  doPreview() {
+    this.isPreview = this.isPreview ? false : true;
+    this.newPreviewEvent.emit(this.isPreview);
+    console.log(`Preview checkbox: ${this.isPreview}`)
   }
 }
