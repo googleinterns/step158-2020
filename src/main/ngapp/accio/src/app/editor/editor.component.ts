@@ -817,7 +817,7 @@ export class EditorComponent implements OnInit {
       }
 
       if (i === currRightTopIndex) {
-        // minus 4 to account for i += 4 in loop
+        // Minus 4 to account for i += 4 in loop.
         i = this.magicWandService.coordToDataArrayIndex(leftTop.x, ++newTopY, this.image.width) - 4;
         currRightTopIndex =  this.magicWandService.coordToDataArrayIndex(rightBottom.x, newTopY, this.image.width);
       }
