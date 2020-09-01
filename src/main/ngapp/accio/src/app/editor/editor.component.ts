@@ -218,7 +218,7 @@ export class EditorComponent implements OnInit {
    *  Assumes Image has loaded, i.e. image src is set before initCanvas
    *    is called (using onload).
    */
-  async initCanvas(): Promise<void> {
+  initCanvas() {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
@@ -278,22 +278,19 @@ export class EditorComponent implements OnInit {
     // If there is a mask URL passed in then draw mask.
     if (this.maskUrl != '' && this.maskUrl) {
       let maskImage = new Image();
-      await this.maskControllerPaint().then((response) => {
-        maskImage.onload = () => {
-          this.maskCtx.drawImage(maskImage, 0, 0);
-          this.maskImageData = this.maskCtx.getImageData(
-            0,
-            0,
-            imgWidth,
-            imgHeight
-          );
-          // Initializes controller service with old mask.
-          this.maskControllerService =  new MaskControllerService(response);
+      maskImage.onload = () => {
+        this.maskCtx.drawImage(maskImage, 0, 0);
+        this.maskImageData = this.maskCtx.getImageData(
+          0,
+          0,
+          imgWidth,
+          imgHeight
+        );
 
-          this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
-        };
-        maskImage.src = this.maskUrl;
-      });
+        this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
+        this.initMaskSet();
+      };
+      maskImage.src = this.maskUrl;
     }
 
     let totalNumPixels = this.originalImageData.data.length / 4;
@@ -306,6 +303,17 @@ export class EditorComponent implements OnInit {
         }
       ),
     ]);
+  }
+  
+    /** Used to initialize mask controller with image's mask if one exists. */
+  initMaskSet() {
+    let maskSet = new Set<number>();
+    for (let i = 0; i < this.maskImageData.data.length; i += 4) {
+      if (this.maskImageData.data[i + 3] === 255) {
+        maskSet.add(i);
+      }
+    }
+    this.maskControllerService =  new MaskControllerService(maskSet);
   }
 
  /**
@@ -835,7 +843,7 @@ export class EditorComponent implements OnInit {
 
     for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
       // If the alpha value has value.
-      if (paintedImageData[i + 3] == 255) {
+      if (paintedImageData[i + 3] === 255) {
         paintedMask.add(i);
       }
 
