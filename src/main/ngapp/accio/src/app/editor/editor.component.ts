@@ -309,7 +309,6 @@ export class EditorComponent implements OnInit {
         maskSet.add(i);
       }
     }
-    console.log(maskSet);
     this.maskControllerService =  new MaskControllerService(maskSet);
   }
 
