@@ -801,7 +801,7 @@ export class EditorComponent implements OnInit {
       } else {
         this.maskControllerService.do(maskAction);
       }
-      this.drawMask();
+      this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
       this.disableSubmit = this.disableFloodFill = false;
     }
   }
@@ -864,7 +864,7 @@ export class EditorComponent implements OnInit {
       } else {
         this.maskControllerService.do(this.curMaskAction);
       }
-      this.drawMask();
+      this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
       this.disableSubmit = this.disableFloodFill = false;
 
       // Unpauses other canvas-editing sequences from registering
