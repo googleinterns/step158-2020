@@ -1,7 +1,11 @@
 import { PriorityQueue } from './priority-queue';
 
 describe('PriorityQueue', () => {
-
+// TODO: Add tests for the following functions:
+// compareNodes(),
+// percolateUp(), percolateDown(),
+// root(), leftChild(), rightChild(), parent(),
+// hasParent(), and isNode()
  it('push() and pop()', () => {
    const pq = new PriorityQueue<PixelNode>(comparator);
    pq.push({distance: 42, index: 1});

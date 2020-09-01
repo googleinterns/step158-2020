@@ -266,16 +266,16 @@ export class MagicWandService {
 
   /* Code for 'preview' algorithm */
 
-  comparator(x: PixelNode, y: PixelNode): boolean {
-    return x.distance < y.distance;
+  comparator(pixelA: PixelNode, pixelB: PixelNode): boolean {
+    return pixelA.distance < pixelB.distance;
   }
 
-  /**Runs shortest paths algo to find shortest distance from input pixel
-   * to every other pixel.
-   * Distance is judged by the pixel's colorDistance in relation to the input 
-   * pixel.
-   * @returns Array<number> distances, with indices representing the pixel coord
-   * and values representing the shortest distance of that pixel coord.
+  /**Implements Dijkstra's algorithm to compute the shortest distance
+   * from the original, inputted pixel to every other pixel.
+   * The distance along a path's colorDistance is determined as the 
+   * maximum colorDistance(in relation to the input pixel) of all pixels
+   * in that path.
+   * @returns {Array<number>} an array of the computed distances.
    */
   getShortestPaths(imgData: ImageData, xCoord: number, yCoord: number,
       toleranceLimit: number): Array<number> {
@@ -289,21 +289,22 @@ export class MagicWandService {
     // (as opposed to coord format; for Set funcs).
     const visited: Set<number> = new Set();
 
-    const vanillaPixelColor: Color = 
+    const originalPixelColor: Color = 
         this.dataArrayToRgb(imgData, xCoord, yCoord);
 
-    const vanillaIndex: number = 
+    const originalIndex: number = 
         this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
     toVisit.push({
         distance: 0,
-        index: vanillaIndex / 4});
+        index: originalIndex / 4});
+    visited.add(originalIndex / 4);
 
-    distances[vanillaIndex / 4] = 0;
+    distances[originalIndex / 4] = 0;
 
     // Works with tolerance limit in the squared space.
     toleranceLimit *= toleranceLimit;
 
-    // Updates shortest path between neighbor pixel and vanilla node.
+    // Updates shortest path between neighbor pixel and original node.
     while (toVisit.getSize() !== 0) {
       // This if statement limits the size of the priority queue for 
       // reasonable runtime performance in the browser. Removing this 
@@ -312,8 +313,6 @@ export class MagicWandService {
         return distances;
       }
       const curPixelNode: PixelNode = toVisit.pop();
-      // A node is considered visited once popped.
-      visited.add(curPixelNode.index);
 
       // Gets coords of adjacent pixels.
       let x: number, y: number;
@@ -324,9 +323,13 @@ export class MagicWandService {
       for (const neighborPixel of neighbors) {
         const neighborX: number = neighborPixel[0];
         const neighborY: number = neighborPixel[1];
-        const neighborIndex: number =
-            this.coordToDataArrayIndex(neighborX, neighborY, imgData.width);
-        const neighborIndexReduced = neighborIndex / 4;
+        // Neigbor index is reduced because these will be used to as
+        // indices to iterate through. Reducing them by a factor of 4
+        // eliminates empty spaces caused by gaps in neigbhor index values
+        // (since these values correspond to the indexing style of 
+        // ImageData.data).
+        const neighborIndexReduced = 
+            this.coordToDataArrayIndex(neighborX, neighborY, imgData.width) / 4;
 
         // Checks if coord is in bounds and has not been visited first.
         if (visited.has(neighborIndexReduced) ||
@@ -338,7 +341,7 @@ export class MagicWandService {
         const neighborPixelColor: Color =
             this.dataArrayToRgb(imgData, neighborX, neighborY);
         const neighborColorDist: number =
-            this.rgbEuclideanDist(neighborPixelColor, vanillaPixelColor);
+            this.rgbEuclideanDist(neighborPixelColor, originalPixelColor);
 
         // Sets a limit to how far (color-wise) we search the image
         // for 'mask-pixels'.
@@ -346,6 +349,10 @@ export class MagicWandService {
           continue;
         }
 
+        // Shortest path evaluation:
+        // The shortest path from the original pixel to the current pixel's neighbor
+        // is the greater of the color distance in respect to the original pixel of 
+        // the current pixel and it's neighbor that is being evaluated.
         distances[neighborIndexReduced] =
             Math.max(curPixelNode.distance, neighborColorDist);
 
@@ -353,14 +360,16 @@ export class MagicWandService {
         toVisit.push({
           distance: distances[neighborIndexReduced],
           index: neighborIndexReduced});
+        // A node is considered visited once pushed.
+        visited.add(curPixelNode.index);
       }
     }  // End of while loop.
 
     return distances;
   }
 
-  /**Finds shortest paths to every pixel from the vanilla pixel, and 
-   * adds organizes those distances into an array within a
+  /**Finds shortest paths to every pixel from the original pixel, and 
+   * organizes those distances into an array within a
    * @returns {PreviewMask} previewMask object.
    */
   getPreviews(imgData: ImageData, xCoord: number, yCoord: number,
@@ -375,10 +384,10 @@ export class MagicWandService {
       // Reducing tolerance to the root reduces the number of iterations
       // inside PreviewMask.masksAtTolerance()
       tolerance = Math.ceil(Math.sqrt(shortestPaths[i]));
-      // Pixel index is i * 4.
       if (previewMask.masksByTolerance[tolerance] === undefined) {
         previewMask.masksByTolerance[tolerance] = [];
       }
+      // Pixel index is i * 4.
       previewMask.masksByTolerance[tolerance].push(i * 4);
     }
 
@@ -397,9 +406,9 @@ interface PixelNode {
   index: number
 }
 
-  /**Tracks all versions of masks for 'preview' of floodfill.
-   * Versions are based on different tolerance levels.
-   **/
+/**Tracks all versions of masks for 'preview' of floodfill.
+  * Versions are based on different tolerance levels.
+  **/
 export class PreviewMask {
   masksByTolerance: Array<Array<number>> = [];
   private toleranceIndex = -1;

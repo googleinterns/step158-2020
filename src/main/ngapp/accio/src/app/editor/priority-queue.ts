@@ -1,3 +1,9 @@
+/**A priority queue implementation with a linear binary heap approach.
+ * push() in O(logn) time
+ * pop() in O(logn) time
+ * top(); peek at the next-to-be-popped(without actually popping) element 
+ * in O(1) time.
+ */
 export class PriorityQueue<T> {
  private _comparator;
  private _items: Array<T> = [];
