@@ -400,8 +400,7 @@ export class EditorComponent implements OnInit {
   }
 
   /**
-   *  Makes a pewtopg of mask so the the background is transparent.
-   *  Clears canvas, draws the original image and draws the mask.
+   *  Makes a bitmap of mask, clears canvas, draws the original image and draws the mask.
    *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
    *  Disables Flood fill before maskUrl is being set so new data isn't added
    *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
@@ -933,7 +932,7 @@ class Rectangle {
     this.top = Math.max(coord.y - this.brushRadius, 0);
     this.bottom = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
 
-    this.left = Math.max(coord.x /*- this.brushRadius*/, 0);
+    this.left = Math.max(coord.x - this.brushRadius, 0);
     this.right = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
   }
 
