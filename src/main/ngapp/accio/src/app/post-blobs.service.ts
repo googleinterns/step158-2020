@@ -19,9 +19,6 @@ export class PostBlobsService {
     let response = await fetch('/blob-upload');
     let blobUploadUrl = await response.json();
     this.actionUrl = blobUploadUrl;
-
-    console.log('actionURL: ' + this.actionUrl);
-    console.log('upload ready');
   }
 
   /** 
@@ -29,19 +26,25 @@ export class PostBlobsService {
    */
   private onUpload(formData: FormData) {
     this.http.post<any>(this.actionUrl, formData).subscribe(
-      (res) => console.log('SUCCESS: Image uploaded to server. ' + res),
-      (err) => console.log('err ' + err)
+      (res) => {
+        console.log('SUCCESS: Image uploaded to server.');
+        if (formData.get('delete') == 'true') {
+          window.alert('Image was deleted!');
+        }
+        else if (formData.get('mode') == 'update') {
+          window.alert('Image was updated!');
+        }
+        else {
+          window.alert('Image was saved!');
+        }
+        window.location.reload();
+      },
+      (err) => {
+        console.log('err ' + err);
+        window.alert(err);
+        window.location.reload();
+      }
     );
-    console.log('SUCCESS: Image uploaded to server.');
-    if (formData.get('delete') == 'true') {
-      window.alert('Image was deleted!');
-    }
-    else if (formData.get('mode') == 'update') {
-      window.alert('Image was updated!');
-    }
-    else {
-      window.alert('Image was saved!');
-    }
   }
 
   /** 
@@ -53,7 +56,7 @@ export class PostBlobsService {
     try {
       deleteString = imageBlob.delete.toString()
     }
-    catch (error){
+    catch (error) {
       console.log(imageBlob.delete + ' could not be converted into a string, returning \'false\'');
       deleteString = 'false';
     }
@@ -66,13 +69,11 @@ export class PostBlobsService {
     if (imageBlob.image) {
       formData.append('image', imageBlob.image, fileName);
     }
+
     formData.append('parent-img', imageBlob.parentImageName);
     formData.append('new-name', imageBlob.newImageName);
     formData.append('tags', tags);
     formData.append('delete', deleteString);
-
-    console.log('formData:');
-    console.log(formData);
     
     this.onUpload(formData);
   }

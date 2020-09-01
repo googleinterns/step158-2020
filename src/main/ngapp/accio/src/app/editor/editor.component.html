@@ -11,7 +11,10 @@
     <input matInput formControlName="tags" placeholder="Tags (optional)"/>
     <mat-hint>Enter list seperated by commas: "tag 1, tag 2, tag 3"</mat-hint>
   </mat-form-field>
-  <button [disabled]="disableSubmit" type="submit" mat-raised-button id="save-button">Save Mask</button>
+  <button [disabled]="disableSubmit" type="submit" mat-raised-button id="save-button">Save Mask As</button>
+  <!-- Save(Update) Image-->
+  <button mat-raised-button type="click" (click)="onClickSaveButton()">Save Mask</button>
+  <!-- Save(Update) Image-->
 </form>
 
 <!-- Editor -->
@@ -20,7 +23,8 @@
   (invertMaskEvent)="invertMask()"
   (undoRedoEvent)="undoRedo($event)"
   (switchImageEvent)="switchImage($event)"
-  (newToleranceEvent)="updateTolerance($event); updatePreview();">
+  (newToleranceEvent)="updateTolerance($event); updatePreview();"
+  (newZoomEvent)="zoom($event)">
 </app-top-toolbar>
 
 <mat-drawer-container id="img-editor">
@@ -42,12 +46,16 @@
         [tolerance]="tolerance"
         [disableFloodFill]="disableFloodFill"
         [tool]="maskTool"
+        [translationCoords]="destinationCoords"
         (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"
-        (newMaskControllerEvent)="newMaskController($event)"
+        (newPaintMaskEvent)="doMaskActionPaint()"
         (newMouseMoveEvent)="setCursorPosition($event)"
-        (newMouseOutEvent)="setCursorOut()">
+        (newMouseOutEvent)="setCursorOut()"
+        (newPanEvent)="pan($event)"
+        (newDestinationEvent)="setDestinationCoords($event)"
+        (newZoomEvent)="zoom($event)">
       </canvas>
 
       <canvas #previewCanvas id="preview-layer"
@@ -64,6 +72,10 @@
       
       <canvas #maskCanvas style="display:none">
       </canvas>
+
+      <canvas #paintCanvas style="display:none">
+      </canvas>
+
     </div>
   </mat-drawer-content>
 </mat-drawer-container>
