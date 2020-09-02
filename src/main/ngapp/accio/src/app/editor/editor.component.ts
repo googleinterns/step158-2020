@@ -914,6 +914,8 @@ export class EditorComponent implements OnInit {
     ));
   }
 
+  // TODO: tolerance over 5/6 tends to add to much to the set and causes 
+  //        the program to lag when using scribblefloodfill with user brush size.
   async getScribbleSet(coord: Coordinate): Promise<void> {
     const paintedSet = await this.getPaintedSet();
     const maskSet = this.magicWandService.scribbleFloodfill (
