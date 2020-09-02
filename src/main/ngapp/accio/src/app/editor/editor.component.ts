@@ -234,7 +234,7 @@ export class EditorComponent implements OnInit {
    *  Assumes Image has loaded, i.e. image src is set before initCanvas
    *    is called (using onload).
    */
-  initCanvas() {
+  private initCanvas() {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
@@ -421,8 +421,7 @@ export class EditorComponent implements OnInit {
   }
 
   /**
-   *  Makes a png of mask so the the background is transparent.
-   *  Clears canvas, draws the original image and draws the mask.
+   *  Makes a bitmap of mask, clears canvas, draws the original image and draws the mask.
    *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
    *  Disables Flood fill before maskUrl is being set so new data isn't added
    *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
@@ -908,6 +907,7 @@ export class EditorComponent implements OnInit {
    *      MaskAction will determine if they're painted or erased with TOOL parameter.
    */
   startDraw(pixel: Coordinate) {
+    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
     this.startPixel = pixel;
     this.maskCtx.clearRect(0, 0, this.image.width, this.image.height);
     this.paintCtx.clearRect(0, 0, this.image.width, this.image.height);
@@ -918,7 +918,6 @@ export class EditorComponent implements OnInit {
         ? this.SOURCE_OVER
         : this.DESTINATION_OUT;
     this.paintCtx.globalCompositeOperation = this.SOURCE_OVER;
-    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
   }
 
   /**
@@ -964,7 +963,6 @@ export class EditorComponent implements OnInit {
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    *  @returns set<number> of all indicies in the mask.
    */
-
   async maskControllerPaint() {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
@@ -974,18 +972,26 @@ export class EditorComponent implements OnInit {
 
     const leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
     const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, rightBottom.y, this.image.width);
-   
     let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
+
     let newTopY = leftTop.y;
 
-    for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
+    for (let i = leftTopIndex; i <= rightBottomIndex; i += 4) {
       // If the alpha value has value.
-      if (paintedImageData[i + 3] === 255) {
+      // Due to anti aliasing, not all of the pixels in the array have an alpha
+      //    value of 0, 255/2 is an imperfect fix which doesn't change the initial
+      //    pixels drawn but does take in more pixels than searching for those equal 
+      //    to 0. TODO: fix drawing with npm js px-brush.
+      if (paintedImageData[i + 3] > (255 / 2)) {
         paintedMask.add(i);
       }
 
-      // TODO(SHMCAFFREY) loop through only the indicies in the rectangle.
-
+      // TODO: loop over (x, y) coordinates to avoid complication in error prone logic.
+      if (i === currRightTopIndex) {
+        // Minus 4 to account for i += 4 in loop.
+        i = this.magicWandService.coordToDataArrayIndex(leftTop.x, ++newTopY, this.image.width) - 4;
+        currRightTopIndex =  this.magicWandService.coordToDataArrayIndex(rightBottom.x, newTopY, this.image.width);
+      }
     }
     return paintedMask;
   }
@@ -1094,10 +1100,22 @@ class Rectangle {
     }
   }
 
-  getLeftTop() {
-    return new Coordinate(this.left, this.top);
+ /**  
+  *  @returns {Coordinate} the floored (x,y) of the combination of the left
+  *    most and top most coordinate the users brush touched.
+  *  Floor is needed to calculate the proper index in the data array.
+  *    It allows the index to be a valid (x,y) coordinate
+  */
+  getLeftTop(): Coordinate {
+    return new Coordinate(Math.floor(this.left), Math.floor(this.top));
   }
-  getRightBottom() {
-    return new Coordinate(this.right, this.bottom);
+ /** 
+  *  @returns {Coordinate} the ceiling of the (x,y) combination from the 
+  *    right most and bottom most coordinate the users brush touched.
+  *  Ceil is needed to calculate the proper index in the data array.
+  *    It allows the index to be a valid (x,y) coordinate.
+  */
+  getRightBottom(): Coordinate {
+    return new Coordinate(Math.ceil(this.right), Math.ceil(this.bottom));
   }
 }
