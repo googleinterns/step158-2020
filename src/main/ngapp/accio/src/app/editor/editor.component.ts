@@ -966,8 +966,8 @@ class Rectangle {
  /**  
   *  @returns {Coordinate} the floored (x,y) of the combination of the left
   *    most and top most coordinate the users brush touched.
-  *  Floor is needed to calculate the propper index in the data array.
-  *    It allows the iindex to be a valid (x,y) coordinate
+  *  Floor is needed to calculate the proper index in the data array.
+  *    It allows the index to be a valid (x,y) coordinate
   */
   getLeftTop(): Coordinate {
     return new Coordinate(Math.floor(this.left), Math.floor(this.top));
@@ -975,8 +975,8 @@ class Rectangle {
  /** 
   *  @returns {Coordinate} the ceiling of the (x,y) combination from the 
   *    right most and bottom most coordinate the users brush touched.
-  *  Ceil is needed to calculate the propper index in the data array.
-  *    It allows the iindex to be a valid (x,y) coordinate.
+  *  Ceil is needed to calculate the proper index in the data array.
+  *    It allows the index to be a valid (x,y) coordinate.
   */
   getRightBottom(): Coordinate {
     return new Coordinate(Math.ceil(this.right), Math.ceil(this.bottom));
