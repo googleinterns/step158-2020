@@ -104,6 +104,7 @@
 <div class="gallery" *ngIf="displayImages">
   <div *ngFor="let image of imageArray; index as i" class="gallery-item">
     <div>
+
       <div title="Existing Mask" id="mask-tab" [hidden]="!hasMask(image)">
         <span>MASK</span>
       </div>
@@ -113,6 +114,7 @@
           projectId,
           image['name'],
           image['url'],
+          getFirstMaskName(image),
           getFirstMask(image['masks']),
           i
         ]"
@@ -128,6 +130,7 @@
             projectId,
             image['name'],
             image['url'],
+            getFirstMaskName(image),
             getFirstMask(image['masks']),
             i
           ]"
@@ -178,6 +181,7 @@
             projectId,
             image['name'],
             image['url'],
+            mask['name'],
             mask['url'],
             j,
             k
@@ -194,6 +198,7 @@
               projectId,
               image['name'],
               image['url'],
+              mask['name'],
               mask['url'],
               j,
               k
@@ -222,7 +227,7 @@
               <mat-icon>update</mat-icon>
               <span>Update Image</span>
             </button>
-            <button
+            <button  mat-menu-item
               (click)="deleteButton(mask['name'], image['name'])"
             >
               <mat-icon>delete</mat-icon>
