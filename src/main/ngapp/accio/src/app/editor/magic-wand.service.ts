@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
 import { SetOperator } from './set-operator';
 import * as KdTree from './kdTree.js';
+import { PriorityQueue } from './priority-queue';
 
 @Injectable({
  providedIn: 'root'
 })
 export class MagicWandService {
   /**4-Way floodfill (left, right, up, down):
-  * @returns {Set<number>} set of coordinates(formatted as a 1-D array).
-  * Coordinates correspond to pixels considered part of the mask.
-  */
+   * @returns {Set<number>} set of coordinates(formatted as a 1-D array).
+   * Coordinates correspond to pixels considered part of the mask.
+   */
   /* tslint:disable */
   floodfill(imgData: ImageData, xCoord: number, yCoord: number,
             tolerance: number): Set<number> {
@@ -47,12 +48,11 @@ export class MagicWandService {
     return !visited.has(index);
   }
 
-
   /**@returns {Color} color attributes of the pixel at
-  * @param {number} xCoord and
-  * @param {number} yCoord based off of the original image supplied by
-  * @param {ImageData} imgData
-  */
+   * @param {number} xCoord and
+   * @param {number} yCoord based off of the original image supplied by
+   * @param {ImageData} imgData
+   */
   dataArrayToRgb(imgData: ImageData, xCoord: number, yCoord: number): Color {
     // Unpacks imgData for readability.
     const data: Uint8ClampedArray = imgData.data;
@@ -70,10 +70,10 @@ export class MagicWandService {
 
   // Converts coord [@x, @y] (2-D) to indexing style of DataArray (1-D)
   /**@returns {number} index of the start of the pixel at
-  * @param {number} x and
-  * @param {number} y
-  * (which represents the red attribute of that pixel)
-  */
+   * @param {number} x and
+   * @param {number} y
+   * (which represents the red attribute of that pixel)
+   */
   coordToDataArrayIndex(x: number, y: number, width: number): number {
     return (x + (y * width)) * 4;
   }
@@ -81,18 +81,18 @@ export class MagicWandService {
   /* -----Additional Tools----- */
 
   /**@returns {Set<number>} mask that excludes the
-  * @param {Set<number>} mistake from original
-  * @param {Set<number>} mask
-  */
+   * @param {Set<number>} mistake from original
+   * @param {Set<number>} mask
+   */
   erase(mask: Set<number>, mistake: Set<number>): Set<number> {
     return SetOperator.difference(mask, mistake);
   }
 
-  /**@returns {Set<number>} mask that excludes the current 
+  /**@returns {Set<number>} mask that excludes the current
    * @param {Set<number>} originalMask
    * Relative container that encompasses @originalMask is based on
-   * @param {number} height and 
-   * @param {number} width 
+   * @param {number} height and
+   * @param {number} width
    */
   invert(originalMask: Set<number>, width: number, height: number)
     : Set<number> {
@@ -114,25 +114,26 @@ export class MagicWandService {
 
 
   /**Smarter flood fill tool:
-  *
-  * Compares the tolerance against a set of
-  * reference pixels' colors as opposed to just an initial pixel's color.
-  * The user supplies a
-  * @param {Set<number>} scribbles set of pixels that is used to essentailly
-  * expand the range of the tolerance threshold as the floodfill
-  * percolates from the first-selected pixel.
-  */
+   *
+   * Compares the tolerance against a set of
+   * reference pixels' colors as opposed to just an initial pixel's color.
+   * The user supplies a
+   * @param {Set<number>} scribbles set of pixels that is used to essentailly
+   * expand the range of the tolerance threshold as the floodfill
+   * percolates from the first-selected pixel.
+   */
   scribbleFloodfill(imgData: ImageData, xCoord: number, yCoord: number,
                     tolerance: number, scribbles: Set<number>): Set<number> {
     return this.doFloodfill(imgData, xCoord, yCoord, tolerance, scribbles);
   }
 
   /**@returns {Array<object> [{red, green, blue}]} an array of color objects
-  * with attributes 'red', 'green', and 'blue'.
-  * @param {Set<number>} scribbles contains pixel indices, which are used
-  * to produce cooresponding color objects.
-  * @param {Set<number>} imgData is used with the 'scribbles' to extract the
-  * color values at the pixel indices.*/
+   * with attributes 'red', 'green', and 'blue'.
+   * @param {Set<number>} scribbles contains pixel indices, which are used
+   * to produce cooresponding color objects.
+   * @param {Set<number>} imgData is used with the 'scribbles' to extract the
+   * color values at the pixel indices.
+   */
   scribblesToColors(scribbles: Set<number>, imgData: ImageData)
     : Array<Color> {
     let colors: Array<Color> = [];
@@ -158,10 +159,10 @@ export class MagicWandService {
   }
 
   /**@returns {Array<number> [x, y]} a 2-D coordinate by converting
-  * @param {number} pixelIndex into the coordsponding [x, y] coordinate.
-  * @param {number} width should be the pixel width of the image that the
-  * pixelIndex belongs to.
-  */
+   * @param {number} pixelIndex into the coordsponding [x, y] coordinate.
+   * @param {number} width should be the pixel width of the image that the
+   * pixelIndex belongs to.
+   */
   pixelIndexToXYCoord(pixelIndex: number, width: number): Array<number> {
     return [((pixelIndex / 4) % width), (Math.floor((pixelIndex / 4) / width))];
   }
@@ -174,8 +175,8 @@ export class MagicWandService {
               tolerance: number, scribbles: Set<number>): Set<number> {
     // Creates an array of color objects from the indices in 'scribbles'.
     // Color object: {red: number, green: number, blue: number}
-    const thresholdColors: Array<Color> = 
-        this.scribblesToColors(scribbles, imgData);
+    const thresholdColors: Array<Color> =
+      this.scribblesToColors(scribbles, imgData);
     // Stores a queue of coords for pixels that we need to visit in "visit".
     const visit: Array<Array<number>> = new Array();
     // Stores already-visited pixels in "visited" as index formatted numbers
@@ -235,13 +236,13 @@ export class MagicWandService {
   }
 
   /**@returns {number} the straight line distance between the two colors
-  * @param {Array<number> [R, G, B]} basisColor and
-  * @param {Array<number> [R, G, B]} secondColor
-  * @IMPORTANT
-  * Does not sqrt distance to complete Euclidean dist formula b/c sqrt is
-  * an expense operation. Instead, can compare against tolerance in the
-  * squared space.
-  */
+   * @param {Array<number> [R, G, B]} basisColor and
+   * @param {Array<number> [R, G, B]} secondColor
+   * @IMPORTANT
+   * Does not sqrt distance to complete Euclidean dist formula b/c sqrt is
+   * an expense operation. Instead, can compare against tolerance in the
+   * squared space.
+   */
   rgbEuclideanDist(colorA: Color, colorB: Color): number {
     const dr = colorA.red - colorB.red;
     const dg = colorA.green - colorB.green;
@@ -251,9 +252,9 @@ export class MagicWandService {
   }
 
   /**@license MIT License <http://www.opensource.org/licenses/mit-license.php>
-  * Pretty good color distance from
-  * http://www.compuphase.com/cmetric.htm
-  */
+   * Pretty good color distance from
+   * http://www.compuphase.com/cmetric.htm
+   */
   colorDistance(a: Color, b: Color): number {
     const dr = a.red - b.red;
     const dg = a.green - b.green;
@@ -261,10 +262,221 @@ export class MagicWandService {
     const redMean = (a.red + b.red)/2;
     return (2+redMean/256)*dr*dr + 4*dg*dg + (2 + (255 - redMean)/256)*db*db;
   }
+
+
+  /* Code for 'preview' algorithm */
+
+  comparator(pixelA: PixelNode, pixelB: PixelNode): boolean {
+    return pixelA.distance < pixelB.distance;
+  }
+
+  /**Implements Dijkstra's algorithm to compute the shortest distance
+   * from the original, inputted pixel to every other pixel.
+   * The distance along a path's colorDistance is determined as the 
+   * maximum colorDistance(in relation to the input pixel) of all pixels
+   * in that path.
+   * @returns {Array<number>} an array of the computed distances.
+   */
+  getShortestPaths(imgData: ImageData, xCoord: number, yCoord: number,
+      toleranceLimit: number): Array<number> {
+    // Stores a queue of coords for pixels that we need to visit in "visit".
+    const toVisit: PriorityQueue<PixelNode> = 
+        new PriorityQueue(this.comparator);
+    const distances: Array<number> = [];
+    distances.fill(undefined, 0, imgData.data.length / 4 + 1);
+
+    // Stores already-visited pixels in "visited" as index formatted numbers
+    // (as opposed to coord format; for Set funcs).
+    const visited: Set<number> = new Set();
+
+    const originalPixelColor: Color = 
+        this.dataArrayToRgb(imgData, xCoord, yCoord);
+
+    const originalIndex: number = 
+        this.coordToDataArrayIndex(xCoord, yCoord, imgData.width);
+    toVisit.push({
+        distance: 0,
+        index: originalIndex / 4});
+    visited.add(originalIndex / 4);
+
+    distances[originalIndex / 4] = 0;
+
+    // Works with tolerance limit in the squared space.
+    toleranceLimit *= toleranceLimit;
+
+    // Updates shortest path between neighbor pixel and original node.
+    while (toVisit.getSize() !== 0) {
+      // This if statement limits the size of the priority queue for 
+      // reasonable runtime performance in the browser. Removing this 
+      // may cause the browser to become unresponsive for big previews.
+      // When the limit is reached, the algorithm returns the 
+      // shortest distances that it has calculated so far. If the user
+      // changes the tolerance input to a higher tolerance than what was 
+      // calcualted within this limit, then the distances up to the highest 
+      // calculated tolerance will be returned.
+      if (toVisit.getSize() > 600000) {
+        return distances;
+      }
+      const curPixelNode: PixelNode = toVisit.pop();
+
+      // Gets coords of adjacent pixels.
+      let x: number, y: number;
+      [x, y] = this.pixelIndexToXYCoord(curPixelNode.index * 4, imgData.width);
+      const neighbors: Array<Array<number>> =
+          [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
+
+      for (const neighborPixel of neighbors) {
+        const neighborX: number = neighborPixel[0];
+        const neighborY: number = neighborPixel[1];
+        // Neigbor index is reduced because these will be used to as
+        // indices to iterate through. Reducing them by a factor of 4
+        // eliminates empty spaces caused by gaps in neigbhor index values
+        // (since these values correspond to the indexing style of 
+        // ImageData.data).
+        const neighborIndexReduced = 
+            this.coordToDataArrayIndex(neighborX, neighborY, imgData.width) / 4;
+
+        // Checks if coord is in bounds and has not been visited first.
+        if (visited.has(neighborIndexReduced) ||
+            !this.isInBounds(
+            imgData.width, imgData.height, neighborX, neighborY)) {
+          continue;
+        }
+
+        const neighborPixelColor: Color =
+            this.dataArrayToRgb(imgData, neighborX, neighborY);
+        const neighborColorDist: number =
+            this.rgbEuclideanDist(neighborPixelColor, originalPixelColor);
+
+        // Sets a limit to how far (color-wise) we search the image
+        // for 'mask-pixels'.
+        if (neighborColorDist > toleranceLimit) {
+          continue;
+        }
+
+        // Shortest path evaluation:
+        // The shortest path from the original pixel to the current pixel's neighbor
+        // is the greater of the color distance in respect to the original pixel of 
+        // the current pixel and it's neighbor that is being evaluated.
+        distances[neighborIndexReduced] =
+            Math.max(curPixelNode.distance, neighborColorDist);
+
+        // Continues lifespan of the loop.
+        toVisit.push({
+          distance: distances[neighborIndexReduced],
+          index: neighborIndexReduced});
+        // A node is considered visited once pushed.
+        visited.add(curPixelNode.index);
+      }
+    }  // End of while loop.
+
+    return distances;
+  }
+
+  /**Finds shortest paths to every pixel from the original pixel, and 
+   * organizes those distances into an array within a
+   * @returns {PreviewMask} previewMask object.
+   */
+  getPreviews(imgData: ImageData, xCoord: number, yCoord: number,
+      toleranceLimit: number): PreviewMask {
+    const shortestPaths: Array<number> =
+        this.getShortestPaths(imgData, xCoord, yCoord, toleranceLimit);
+    const previewMask: PreviewMask = new PreviewMask(toleranceLimit);
+
+    let tolerance: number;
+
+    for (let i = 0; i < imgData.data.length / 4; i++) {
+      // Reducing tolerance to the root reduces the number of iterations
+      // inside PreviewMask.changeMaskBy()
+      tolerance = Math.ceil(Math.sqrt(shortestPaths[i]));
+      if (previewMask.masksByTolerance[tolerance] === undefined) {
+        previewMask.masksByTolerance[tolerance] = [];
+      }
+      // Pixel index is i * 4.
+      previewMask.masksByTolerance[tolerance].push(i * 4);
+    }
+
+    return previewMask;
+  }
 }
 
 interface Color {
- red: number,
- green: number,
- blue: number
+  red: number,
+  green: number,
+  blue: number
+}
+
+interface PixelNode {
+  distance: number,
+  index: number
+}
+
+/**Tracks all versions of masks for 'preview' of floodfill.
+  * Versions are based on different tolerance levels.
+  **/
+export class PreviewMask {
+  masksByTolerance: Array<Array<number>> = [];
+  private toleranceIndex = -1;
+  private presentMask: Array<number> = [];
+  private isPreview = true;
+
+  constructor(toleranceLimit: number) {
+    if (toleranceLimit === -1) {
+      this.isPreview = false;
+    }
+    this.masksByTolerance.fill(undefined, 0, toleranceLimit + 2);
+  }
+
+  /**@returns {Set<number>} the complete floodfilled mask for
+   * the given 
+   * @param {number} tolerance level.
+   */
+  public changeMaskBy(tolerance: number): void {
+    if (tolerance < 0) {
+      throw new Error('Tolerance input must be a non-negative number...');
+    }
+    let action: Array<number>;
+
+    while (this.toleranceIndex > tolerance) {
+      action = this.masksByTolerance[this.toleranceIndex--];
+
+      if (action === undefined) {
+        continue;
+      }
+      action.forEach(() => {
+        this.presentMask.pop();
+      });
+    }
+
+    while (this.toleranceIndex < tolerance) {
+      action = this.masksByTolerance[++this.toleranceIndex];
+
+      if (action === undefined) {
+        continue;
+      }
+      action.forEach(pixelIndex => {
+        this.presentMask.push(pixelIndex);
+      });
+    }
+  }
+
+  public getMaskAsSet(): Set<number> {
+    return new Set<number>(this.presentMask);
+  }
+
+  public getMaskAsArray(): Array<number> {
+    return this.presentMask;
+  }
+
+  public resetMask(): void {
+    this.changeMaskBy(0);
+
+    this.masksByTolerance[this.toleranceIndex--].forEach(() => {
+      this.presentMask.pop();
+    })
+  }
+
+  public getIsPreview(): boolean {
+    return this.isPreview;
+  }
 }

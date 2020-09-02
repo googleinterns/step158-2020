@@ -4,6 +4,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,6 +18,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { HttpClientModule } from '@angular/common/http'
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -49,13 +51,13 @@ import { EndPageComponent } from './end-page/end-page.component';
     DeleteProjectDialog,
     TopToolbarComponent,
     EndPageComponent
-  ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     MatIconModule,
     MatSliderModule,
     MatSidenavModule,
+    MatSnackBarModule,
     MatButtonToggleModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -69,6 +71,7 @@ import { EndPageComponent } from './end-page/end-page.component';
     HttpClientModule,
     MatDialogModule,
     MatCheckboxModule,
+    MatToolbarModule,
     AppRoutingModule,
   ],
   providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}, Set],

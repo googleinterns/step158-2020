@@ -19,3 +19,7 @@ h1 {
 mat-raised-button {
   padding: 10%;
 }
+
+body.busy-cursor {
+  cursor: progress;
+}
