@@ -5,8 +5,8 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { PostBlobsService } from '../post-blobs.service';
-import { MagicWandService } from './magic-wand.service';
 import { FetchImagesService } from '../fetch-images.service';
+import { MagicWandService } from './magic-wand.service';
 import { ImageBlob } from '../ImageBlob';
 import { MaskTool } from './MaskToolEnum';
 import { Coordinate } from './Coordinate';
@@ -27,7 +27,7 @@ export class EditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private magicWandService: MagicWandService, 
+    private magicWandService: MagicWandService,
     private postBlobsService: PostBlobsService,
     private fetchImagesService: FetchImagesService,
     private maskControllerService: MaskControllerService,
@@ -57,6 +57,7 @@ export class EditorComponent implements OnInit {
   private previewImgData: ImageData;
   private curMaskAction: MaskAction;
   private continuePreview = false;
+  isPreview = false;
 
   // Display variables.
   private image: HTMLImageElement;
@@ -234,7 +235,7 @@ export class EditorComponent implements OnInit {
    *  Assumes Image has loaded, i.e. image src is set before initCanvas
    *    is called (using onload).
    */
-  initCanvas() {
+  private initCanvas() {
     let imgWidth = this.image.width;
     let imgHeight = this.image.height;
 
@@ -421,8 +422,7 @@ export class EditorComponent implements OnInit {
   }
 
   /**
-   *  Makes a png of mask so the the background is transparent.
-   *  Clears canvas, draws the original image and draws the mask.
+   *  Makes a bitmap of mask, clears canvas, draws the original image and draws the mask.
    *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
    *  Disables Flood fill before maskUrl is being set so new data isn't added
    *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
@@ -787,7 +787,7 @@ export class EditorComponent implements OnInit {
       // Pops up a snackbar to tell the user what to do next.
       this.openPreviewSnackBar();
     } else {
-      // Case 2: Performs scribble floodfill sequence.
+      // Case 2: Performs basic floodfill sequence.
       //  Changes if set of pixels are added or removed from the mask depending on the tool.
       let alphaValue = this.maskTool === MaskTool.MAGIC_WAND_ADD ? 255 : 0;
 
@@ -839,6 +839,7 @@ export class EditorComponent implements OnInit {
       this.drawPreview();
     }
   }
+
   /**Called when a new preview mask sequence and the tolerance input
    * has been confirmed.
    */
@@ -898,6 +899,70 @@ export class EditorComponent implements OnInit {
         this.previewCanvas.nativeElement.height);
   }
 
+  getIsPreview(isPreview: boolean) {
+    this.isPreview = isPreview;
+  }
+
+  getFloodfillSet(coord: Coordinate) {
+    // Initiates preview-floodfills sequence if preview checkbox is checked
+    // and magic wand floodfill('add' option) is selected.
+    if (this.isPreview && this.maskTool === MaskTool.MAGIC_WAND_ADD) {
+      // TODO: Let user decide tolerance limit
+      // (replace hardcoded val 300 with a var).
+      const previewMaster: PreviewMask = 
+          this.magicWandService.getPreviews(
+            this.originalImageData,
+            coord.x,
+            coord.y,
+            /* toleranceLimit= */300
+          );
+
+      this.floodfillMask(
+        new MaskAction(
+          Action.ADD,
+          Tool.MAGIC_WAND,
+          undefined,
+          previewMaster
+        )
+      );
+    } else {
+      // Initiates basic-floodfill sequence.
+      const maskSet = this.magicWandService.floodfill(
+        this.originalImageData,
+        coord.x,
+        coord.y, 
+        this.tolerance
+      )
+      this.floodfillMask(
+        new MaskAction(          
+          this.maskTool == MaskTool.MAGIC_WAND_ADD
+              ? Action.ADD
+              : Action.SUBTRACT,
+            Tool.MAGIC_WAND,
+            maskSet
+      ));
+    }
+  }
+
+  async getScribbleSet(coord: Coordinate): Promise<void> {
+    const paintedSet = await this.getPaintedSet();
+    const maskSet = this.magicWandService.scribbleFloodfill (
+      this.originalImageData,
+      coord.x,
+      coord.y, 
+      this.tolerance,
+      paintedSet
+    )
+    this.floodfillMask(
+      new MaskAction(
+        this.maskTool == MaskTool.MAGIC_WAND_ADD
+          ? Action.ADD
+          : Action.SUBTRACT,
+        Tool.SCRIBBLE,
+        maskSet
+    ));
+  }
+
   /**
    *  Sets the start pixel where the users initially clicks the canvas to draw.
    *  @param pixel is the (x,y) coordinate the user first clicks on.
@@ -908,6 +973,7 @@ export class EditorComponent implements OnInit {
    *      MaskAction will determine if they're painted or erased with TOOL parameter.
    */
   startDraw(pixel: Coordinate) {
+    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
     this.startPixel = pixel;
     this.maskCtx.clearRect(0, 0, this.image.width, this.image.height);
     this.paintCtx.clearRect(0, 0, this.image.width, this.image.height);
@@ -918,7 +984,6 @@ export class EditorComponent implements OnInit {
         ? this.SOURCE_OVER
         : this.DESTINATION_OUT;
     this.paintCtx.globalCompositeOperation = this.SOURCE_OVER;
-    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
   }
 
   /**
@@ -933,11 +998,7 @@ export class EditorComponent implements OnInit {
     this.maskCtx.beginPath();
     this.paintCtx.beginPath();
 
-    this.maskCtx.lineWidth = this.paintCtx.lineWidth =
-      this.maskTool === MaskTool.MAGIC_WAND_ADD ||
-      this.maskTool === MaskTool.MAGIC_WAND_SUB
-        ? 1
-        : this.brushWidth;
+    this.maskCtx.lineWidth = this.paintCtx.lineWidth = this.brushWidth;
 
     this.maskCtx.moveTo(this.startPixel.x, this.startPixel.y);
     this.maskCtx.lineTo(pixel.x, pixel.y);
@@ -964,35 +1025,42 @@ export class EditorComponent implements OnInit {
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    *  @returns set<number> of all indicies in the mask.
    */
-
-  async maskControllerPaint() {
+  async getPaintedSet(): Promise<Set<number>> {
     let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
     let paintedMask = new Set<number>();
-
+    
     let leftTop = this.searchRectangle.getLeftTop();
     let rightBottom = this.searchRectangle.getRightBottom();
 
     const leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
     const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, rightBottom.y, this.image.width);
-   
     let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
+
     let newTopY = leftTop.y;
 
-    for (let i = leftTopIndex; i < paintedImageData.length; i += 4) {
+    for (let i = leftTopIndex; i <= rightBottomIndex; i += 4) {
       // If the alpha value has value.
-      if (paintedImageData[i + 3] === 255) {
+      // Due to anti aliasing, not all of the pixels in the array have an alpha
+      //    value of 0, 255/2 is an imperfect fix which doesn't change the initial
+      //    pixels drawn but does take in more pixels than searching for those equal 
+      //    to 0. TODO: fix drawing with npm js px-brush.
+      if (paintedImageData[i + 3] > (255 / 2)) {
         paintedMask.add(i);
       }
 
-      // TODO(SHMCAFFREY) loop through only the indicies in the rectangle.
-
+      // TODO: loop over (x, y) coordinates to avoid complication in error prone logic.
+      if (i === currRightTopIndex) {
+        // Minus 4 to account for i += 4 in loop.
+        i = this.magicWandService.coordToDataArrayIndex(leftTop.x, ++newTopY, this.image.width) - 4;
+        currRightTopIndex =  this.magicWandService.coordToDataArrayIndex(rightBottom.x, newTopY, this.image.width);
+      }
     }
     return paintedMask;
   }
   
   /** Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes. */
   async doMaskActionPaint(): Promise<void> {
-    let paintedMask = await this.maskControllerPaint();
+    let paintedMask = await this.getPaintedSet();
     let maskAction = new MaskAction(
         ((this.maskTool === MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
         ((this.maskTool === MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
@@ -1094,10 +1162,22 @@ class Rectangle {
     }
   }
 
-  getLeftTop() {
-    return new Coordinate(this.left, this.top);
+ /**  
+  *  @returns {Coordinate} the floored (x,y) of the combination of the left
+  *    most and top most coordinate the users brush touched.
+  *  Floor is needed to calculate the proper index in the data array.
+  *    It allows the index to be a valid (x,y) coordinate
+  */
+  getLeftTop(): Coordinate {
+    return new Coordinate(Math.floor(this.left), Math.floor(this.top));
   }
-  getRightBottom() {
-    return new Coordinate(this.right, this.bottom);
+ /** 
+  *  @returns {Coordinate} the ceiling of the (x,y) combination from the 
+  *    right most and bottom most coordinate the users brush touched.
+  *  Ceil is needed to calculate the proper index in the data array.
+  *    It allows the index to be a valid (x,y) coordinate.
+  */
+  getRightBottom(): Coordinate {
+    return new Coordinate(Math.ceil(this.right), Math.ceil(this.bottom));
   }
 }

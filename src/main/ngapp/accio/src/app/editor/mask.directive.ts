@@ -9,7 +9,6 @@ import { MagicWandService, PreviewMask } from './magic-wand.service';
 import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
 import { Coordinate } from './Coordinate';
-import * as Mask from './mask-action';
 import { Zoom } from '../enums';
 
 @Directive({
@@ -19,12 +18,10 @@ export class MaskDirective {
   //  ImageData from image user selects, drawn at real scale.
   @Input() originalImageData: ImageData;
   @Input() scale: number;
-  @Input() tolerance: number;
   @Input() disableFloodFill: boolean;
   @Input() tool: MaskTool;
   @Input() translationCoords: Coordinate;
 
-  @Output() newMaskEvent = new EventEmitter<Mask.MaskAction>();
   @Output() newPaintEvent = new EventEmitter<Coordinate>();
   @Output() continuePaintEvent = new EventEmitter<Coordinate>();
   @Output() newPaintMaskEvent = new EventEmitter<void>();
@@ -36,6 +33,9 @@ export class MaskDirective {
   @Output() newPanEvent = new EventEmitter<Coordinate>();
   @Output() newDestinationEvent = new EventEmitter<Coordinate>();
   @Output() newZoomEvent = new EventEmitter<Zoom>();
+
+  @Output() floodfillEvent = new EventEmitter<Coordinate>();
+  @Output() scribbleFillEvent = new EventEmitter<Coordinate>();
 
   // Set containing pixels converted to their red index in ImageData. Used for paint and scribble
   paintPixels: Set<number>;
@@ -92,7 +92,6 @@ export class MaskDirective {
     } else if (this.tool == MaskTool.PAN) {
       this.mouseDown = true;
       this.coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
-
     }
   }
 
@@ -112,7 +111,6 @@ export class MaskDirective {
       this.mouseDown
     ) {
       const coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
-
       // User moved mouse, use scribble fill.
       this.scribbleFill = true;
 
@@ -168,66 +166,18 @@ export class MaskDirective {
         && this.scribbleFill) {
 
       this.scribbleFill = false;
-      const maskPixels = this.magicWandService.scribbleFloodfill(
-        this.originalImageData,
-        this.coord[0],
-        this.coord[1],
-        this.tolerance,
-        this.paintPixels
-      );
+      this.scribbleFillEvent.emit(new Coordinate(this.coord[0], this.coord[1]));
+    }
 
-      this.newMaskEvent.emit(
-        new Mask.MaskAction(
-          this.tool == MaskTool.MAGIC_WAND_ADD
-            ? Mask.Action.ADD
-            : Mask.Action.SUBTRACT,
-          Mask.Tool.SCRIBBLE,
-          maskPixels
-        )
-      );
-    } else if (
+    else if (
       (this.tool == MaskTool.MAGIC_WAND_ADD ||
-        this.tool == MaskTool.MAGIC_WAND_SUB) &&
-      !this.scribbleFill
+       this.tool == MaskTool.MAGIC_WAND_SUB) &&
+       !this.scribbleFill
     ) {
-      if (this.tool == MaskTool.MAGIC_WAND_SUB) {
-        // Returns an array indices of each pixel in the mask.
-        const maskPixels = this.magicWandService.floodfill(
-          this.originalImageData,
-          this.coord[0],
-          this.coord[1],
-          this.tolerance
-        );
+      this.floodfillEvent.emit(new Coordinate(this.coord[0], this.coord[1]));
+    }
 
-        this.newMaskEvent.emit(
-          new Mask.MaskAction(
-            Mask.Action.SUBTRACT,
-            Mask.Tool.MAGIC_WAND,
-            maskPixels
-          )
-        );
-      } else {  // Default: does preview-style floodfill
-        // TODO: Let user decide tolerance limit
-        // (replace hardcoded val 300 with a var).
-        // TODO: Implement Quick-floodfill option (for);
-        const previewMaster: PreviewMask = 
-            this.magicWandService.getPreviews(
-              this.originalImageData,
-              this.coord[0],
-              this.coord[1],
-              /* toleranceLimit= */300
-            );
-
-        this.newMaskEvent.emit(
-          new Mask.MaskAction(
-            Mask.Action.ADD,
-            Mask.Tool.MAGIC_WAND,
-            undefined,
-            previewMaster
-          )
-        );
-      }
-    } else if (this.tool == MaskTool.PAN) {
+    else if (this.tool == MaskTool.PAN) {
       const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
       this.newDestinationEvent.emit(this.getPanDestinationCoord(offsetCoord));
     }
