@@ -40,8 +40,8 @@ export class PostBlobsService {
         window.location.reload();
       },
       (err) => {
-        console.log('err ' + err);
-        window.alert(err);
+        console.log('error');
+        console.log(err);  
         window.location.reload();
       }
     );
@@ -54,7 +54,7 @@ export class PostBlobsService {
     let deleteString: string;
 
     try {
-      deleteString = imageBlob.delete.toString()
+      deleteString = imageBlob.delete.toString();
     }
     catch (error) {
       console.log(imageBlob.delete + ' could not be converted into a string, returning \'false\'');

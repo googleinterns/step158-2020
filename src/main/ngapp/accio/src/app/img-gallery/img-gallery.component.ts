@@ -449,7 +449,7 @@ export class DeleteImageDialog {
       /*imageName=*/this.data.imageName,
       /*mode=*/'update',
       /*image=*/undefined,
-      /*parentImageName=*/'', 
+      /*parentImageName=*/this.data.parentImageName, 
       /*newImageName=*/'',
       /*tags=*/'',
       /*delete=*/true
