@@ -27,7 +27,7 @@
   <div class="icon">
     <mat-icon
       class="button"
-      title="Undo    Ctrl+Z    undo {{ getUndoRedoToolName(UndoRedo.UNDO) }}"
+      title="Undo    Ctrl+Z    undo: {{ getUndoRedoToolName(UndoRedo.UNDO) }}"
       (click)="undoRedo(UndoRedo.UNDO)"
       >undo</mat-icon
     >
@@ -36,7 +36,7 @@
   <div class="icon">
     <mat-icon
       class="button"
-      title="Redo    Ctrl+Y    redo {{ getUndoRedoToolName(UndoRedo.REDO) }}"
+      title="Redo    Ctrl+Y    redo: {{ getUndoRedoToolName(UndoRedo.REDO) }}"
       (click)="undoRedo(UndoRedo.REDO)"
       >redo</mat-icon
     >
@@ -83,4 +83,4 @@
     }}</mat-icon>
     <p>{{ getSaveState().text }}</p>
   </div>
-</div>
+</mat-toolbar>

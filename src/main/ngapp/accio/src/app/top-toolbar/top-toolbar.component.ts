@@ -154,7 +154,8 @@ export class TopToolbarComponent implements OnInit {
       return maskAction.getActionType() + ' with ' + maskAction.getToolName();
     }
     return maskAction.getToolName();
-
+  }
+  
   zoom(zoomType: Zoom) {
     this.newZoomEvent.emit(zoomType);
   }

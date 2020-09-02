@@ -51,6 +51,7 @@ import { EndPageComponent } from './end-page/end-page.component';
     DeleteProjectDialog,
     TopToolbarComponent,
     EndPageComponent
+  ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
