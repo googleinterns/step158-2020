@@ -166,17 +166,13 @@ export class MaskDirective {
 
       this.scribbleFill = false;
       this.scribbleFillEvent.emit(new Coordinate(this.coord[0], this.coord[1]));
-    }
-
-    else if (
+    } else if (
       (this.tool == MaskTool.MAGIC_WAND_ADD ||
         this.tool == MaskTool.MAGIC_WAND_SUB) &&
       !this.scribbleFill
     ) {
       this.floodfillEvent.emit(new Coordinate(this.coord[0], this.coord[1]));
-    }
-
-    else if (this.tool == MaskTool.PAN) {
+    } else if (this.tool == MaskTool.PAN) {
       const offsetCoord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
       this.newDestinationEvent.emit(this.getPanDestinationCoord(offsetCoord));
     }

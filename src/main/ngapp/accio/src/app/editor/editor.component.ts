@@ -967,7 +967,7 @@ class Rectangle {
     this.right = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
   }
 
-  /** Compares the index's left, right, top, and bottom most pixel based on the brush radius to the current max and mins of all members */
+  /** Compares the indiex's left, right, top, and bottom most pixel based on the brush radius to the current max and mins of all members */
   compareCoordinateToCurrentRectangle(coord: Coordinate) {
     const topY = Math.max(coord.y - this.brushRadius, 0);
     const bottomY = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
