@@ -124,7 +124,6 @@ public class BlobServlet extends HttpServlet {
         throw new IOException("Only owners can delete assets.");
       } else {
         DataUtils.deleteImageAndChildren(imgEntity.getKey());
-        response.sendRedirect("/");
         return;
       }
     }

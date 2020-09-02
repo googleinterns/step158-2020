@@ -1,5 +1,5 @@
-.material-icons { 
-  font-size: 48px; 
+.material-icons {
+  font-size: 48px;
 }
 
 .button {
@@ -13,12 +13,22 @@
   margin: 0;
 }
 
+.indicator {
+  color: white;
+  border: none;
+  height: 100%;
+  width: 50px;
+  padding: 10px;
+  left: 5%;
+}
+
 .button:hover {
   background-color: #28292b;
   color: #cdd1d3;
 }
 
 .icon {
+  text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -29,7 +39,7 @@
 #single-click-buttons {
   position: sticky;
   top: 0;
-  height: 100px;
+  height: auto;
   z-index: 100;
   padding: 10px;
   background-color: #3f4143;

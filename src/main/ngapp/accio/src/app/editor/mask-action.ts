@@ -6,7 +6,7 @@ export enum Action {
   ADD = 'add',
   SUBTRACT = 'subtract',
   INVERT = 'invert',
-  CLEAR = 'clear,',
+  CLEAR = 'clear',
 }
 
 export enum Tool {
@@ -16,6 +16,8 @@ export enum Tool {
   ERASER = 'erase',
   INVERT = 'invert',
   CLEAR = 'clear',
+  NOTHING_REDO = 'nothing to redo',
+  NOTHING_UNDO = 'nothing to undo',
 }
 
 export class MaskAction {

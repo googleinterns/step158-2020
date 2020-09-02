@@ -1,27 +1,51 @@
 <!-- Single use buttons -->
 <mat-toolbar id="single-click-buttons">
   <div class="icon">
-    <mat-icon class="button" title="Previous Image    ←" (click)="switchImage(SwitchImage.PREVIOUS)">navigate_before</mat-icon>
+    <mat-icon
+      class="button"
+      title="Previous Image    ←"
+      (click)="switchImage(SwitchImage.PREVIOUS)"
+      >navigate_before</mat-icon
+    >
     <p>Previous Image</p>
   </div>
   <div class="icon">
-    <mat-icon class="button" title="Next Image    →" (click)="switchImage(SwitchImage.NEXT)">navigate_next</mat-icon>
+    <mat-icon
+      class="button"
+      title="Next Image    →"
+      (click)="switchImage(SwitchImage.NEXT)"
+      >navigate_next</mat-icon
+    >
     <p>Next Image</p>
   </div>
   <div class="icon">
-    <mat-icon class="button" title="Invert Mask    I" (click)="invertMask()">invert_colors</mat-icon>
+    <mat-icon class="button" title="Invert Mask    I" (click)="invertMask()"
+      >invert_colors</mat-icon
+    >
     <p>Invert Mask</p>
   </div>
   <div class="icon">
-    <mat-icon class="button" title="Undo    Ctrl+Z" (click)="undoRedo(UndoRedo.UNDO)">undo</mat-icon>
+    <mat-icon
+      class="button"
+      title="Undo    Ctrl+Z    undo: {{ getUndoRedoToolName(UndoRedo.UNDO) }}"
+      (click)="undoRedo(UndoRedo.UNDO)"
+      >undo</mat-icon
+    >
     <p>Undo</p>
   </div>
   <div class="icon">
-    <mat-icon class="button" title="Redo    Ctrl+Y" (click)="undoRedo(UndoRedo.REDO)">redo</mat-icon>
+    <mat-icon
+      class="button"
+      title="Redo    Ctrl+Y    redo: {{ getUndoRedoToolName(UndoRedo.REDO) }}"
+      (click)="undoRedo(UndoRedo.REDO)"
+      >redo</mat-icon
+    >
     <p>Redo</p>
   </div>
   <div class="icon">
-    <mat-icon class="button" title="Clear Mask    C" (click)="clearMask()">clear</mat-icon>
+    <mat-icon class="button" title="Clear Mask    C" (click)="clearMask()"
+      >clear</mat-icon
+    >
     <p>Clear Mask</p>
   </div>
   <div class="icon">
@@ -32,19 +56,31 @@
     <mat-icon class="button" title="Zoom Out    ]" (click)="zoom(Zoom.OUT)">zoom_out</mat-icon>
     <p>Zoom Out</p>
   </div>
-  <span style="display: inline; width:100%; height:100%; color:white left:5%"> 
-    <mat-slider 
-      title="Mask Tolerance    ↓1  2↑"  
+  <span style="display: inline; width:100%; height:100%; color:white left:5%">
+    Tolerance
+    <mat-slider
+      title="Mask Tolerance    ↓1  2↑"
       (input)="updateTolerance($event)"
-      [(ngModel)]="toleranceValue" 
-      min="1" max="420" step="1">
+      min="1"
+      max="420"
+      step="1"
+      [(ngModel)]="toleranceValue"
+    >
     </mat-slider>
     <mat-form-field class="slider-value">
       <mat-label style="color:white">Tolerance</mat-label>
       <input
-        (change)="updateTolerance()" 
-        matInput type="number" 
-        [(ngModel)]="toleranceValue">
+        (change)="updateTolerance()"
+        matInput
+        type="number"
+        [(ngModel)]="toleranceValue"
+      />
     </mat-form-field>
   </span>
+  <div class="icon">
+    <mat-icon class="indicator" title="{{ getSaveState().text }}">{{
+      getSaveState().icon
+    }}</mat-icon>
+    <p>{{ getSaveState().text }}</p>
+  </div>
 </mat-toolbar>

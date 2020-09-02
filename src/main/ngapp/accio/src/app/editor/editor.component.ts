@@ -111,7 +111,7 @@ export class EditorComponent implements OnInit {
   //  Array<any> because info comes from survlet as json array
   imageArray: Array<Object>;
 
-  // The coordinates in the destination canvas at which to place 
+  // The coordinates in the destination canvas at which to place
   //   the top-left corner of the source image. inputed from maskDirective
   destinationCoords: Coordinate;
 
@@ -124,8 +124,8 @@ export class EditorComponent implements OnInit {
   private scaledCtx: CanvasRenderingContext2D;
 
   // Overlays a layer just for showing the preview of the mask.
-  // Once the preview is committed, this canvas is cleared and 
-  // the chosen preview is painted on the scaledCanvas as well 
+  // Once the preview is committed, this canvas is cleared and
+  // the chosen preview is painted on the scaledCanvas as well
   // as committed to the maskCanvas.
   @ViewChild('previewCanvas', { static: true })
   previewCanvas: ElementRef<HTMLCanvasElement>;
@@ -153,13 +153,13 @@ export class EditorComponent implements OnInit {
 
   ngOnInit() {
     this.image = new Image();
-    this.scaleFactor = .9
+    this.scaleFactor = 0.9;
     this.tolerance = 30;
     this.maskAlpha = 1;
     this.disableFloodFill = false;
     this.maskTool = MaskTool.MAGIC_WAND_ADD;
     this.brushWidth = 5;
-    this.destinationCoords = new Coordinate(0,0);
+    this.destinationCoords = new Coordinate(0, 0);
     document.body.classList.remove('busy-cursor');
 
     //  Gets last image array that user sorted on img-gallery page. Saves to session storage to keep through refresh.
@@ -180,8 +180,8 @@ export class EditorComponent implements OnInit {
     } else {
       this.imageArray = JSON.parse(window.sessionStorage.getItem('imageArray'));
     }
-    
-    this.route.paramMap.subscribe(params => {
+
+    this.route.paramMap.subscribe((params) => {
       this.imgName = params.get('img-name ');
       this.projectId = params.get('proj-id ');
       this.parentName = params.get('parent-img ');
@@ -219,6 +219,17 @@ export class EditorComponent implements OnInit {
     // Fetch blob for mask upload and show maskUploadForm.
     this.postBlobsService.fetchBlob();
     this.displayMaskForm = true;
+
+    // Alert user before they leave page if they modified a mask.
+    window.addEventListener('beforeunload', (e) => {
+      if (this.maskControllerService.isSaved()) {
+        return undefined;
+      }
+      let confirmationMessage = 'Changes you made may not be saved';
+
+      (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+      return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+    });
   }
 
   /** Unsubscribe from subscription when component reloaded */
@@ -244,7 +255,7 @@ export class EditorComponent implements OnInit {
 
     // Set initial canvas height based on the window and image height and scaleFactor
     //   of .9 to make the image smaller than the screen.
-    this.scaleFactor *= (window.innerHeight / this.image.height);
+    this.scaleFactor *= window.innerHeight / this.image.height;
     // Updates canvas scale initially so the entire image is on the canvas, zoom = 1.
     this.setScaleFactor();
     // if scale is < .01, just set the scale manually
@@ -264,7 +275,7 @@ export class EditorComponent implements OnInit {
     this.paintCtx = this.paintCanvas.nativeElement.getContext('2d');
     this.paintCtx.lineCap = this.paintCtx.lineJoin = 'round';
     this.paintCtx.strokeStyle = this.MAGENTA;
-    
+
     // Canvas to show mask scaled.
     this.scaledCanvas.nativeElement.width = imgWidth * this.scaleFactor;
     this.scaledCanvas.nativeElement.height = imgHeight * this.scaleFactor;
@@ -292,7 +303,12 @@ export class EditorComponent implements OnInit {
     this.maskCtx.drawImage(this.image, 0, 0);
 
     //  Only gets the image data from (0,0) to (width,height) of image.
-    this.originalImageData = this.maskCtx.getImageData(0, 0, imgWidth, imgHeight);
+    this.originalImageData = this.maskCtx.getImageData(
+      0,
+      0,
+      imgWidth,
+      imgHeight
+    );
     this.maskCtx.clearRect(0, 0, imgWidth, imgHeight);
 
     this.drawScaledImage(this.destinationCoords.x, this.destinationCoords.y);
@@ -317,17 +333,17 @@ export class EditorComponent implements OnInit {
 
     let totalNumPixels = this.originalImageData.data.length / 4;
     this.allPixels = new Set([
-      ...Array.from(Array(totalNumPixels).keys()).map(  
+      ...Array.from(Array(totalNumPixels).keys()).map(
         // Multiplies every value in the pixel array by 4 to obtain
         // the indices of the pixels within the RBGA array
-        function (x) { 
+        function (x) {
           return x * 4;
         }
       ),
     ]);
   }
-  
-    /** Used to initialize mask controller with image's mask if one exists. */
+
+  /** Used to initialize mask controller with image's mask if one exists. */
   initMaskSet() {
     let maskSet = new Set<number>();
     for (let i = 0; i < this.maskImageData.data.length; i += 4) {
@@ -335,14 +351,14 @@ export class EditorComponent implements OnInit {
         maskSet.add(i);
       }
     }
-    this.maskControllerService =  new MaskControllerService(maskSet);
+    this.maskControllerService = new MaskControllerService(maskSet);
   }
 
- /**
-  * Creates a new scaleFactor depending on zoom and image height and width
-  * @param zoom is the amount the scale should zoom in or out, if there's 
-  *   no value given, then zoom defaults to none. 
-  */ 
+  /**
+   * Creates a new scaleFactor depending on zoom and image height and width
+   * @param zoom is the amount the scale should zoom in or out, if there's
+   *   no value given, then zoom defaults to none.
+   */
 
   setScaleFactor(zoom: number = 1) {
     this.scaleFactor *= zoom;
@@ -359,7 +375,7 @@ export class EditorComponent implements OnInit {
   }
 
   /* The following 2 functions: Handles cursor tracking and resizing. */
-  
+
   // Draws/Redraws 'cursor' at the current position of user's mouse.
   setCursorPosition(e: MouseEvent): void {
     // These are the coordinates used to paint.
@@ -388,9 +404,9 @@ export class EditorComponent implements OnInit {
     this.cursorCtx.clearRect(0, 0, this.stageWidth, this.stageHeight);
   }
 
- /**
-  * Clears full canvas.
-  */
+  /**
+   * Clears full canvas.
+   */
   private clearScaledCanvas() {
     this.scaledCtx.clearRect(
       0,
@@ -402,13 +418,18 @@ export class EditorComponent implements OnInit {
 
   /**
    *  Draws user's image scaled to canvas and restores ctx.
-   *  @param dx The x-axis coordinate in the destination canvas 
+   *  @param dx The x-axis coordinate in the destination canvas
    *    at which to place the top-left corner of the source image.
    *  @param dy The y-axis coordinate in the destination canvas
    *    at which to place the top-left corner of the source image.
    */
   private drawScaledImage(dx: number, dy: number) {
-    this.imageCtx.clearRect(0,0,this.imageCanvas.nativeElement.width, this.imageCanvas.nativeElement.height);
+    this.imageCtx.clearRect(
+      0,
+      0,
+      this.imageCanvas.nativeElement.width,
+      this.imageCanvas.nativeElement.height
+    );
     this.imageCtx.save();
     this.imageCtx.scale(this.scaleFactor, this.scaleFactor);
     this.imageCtx.drawImage(
@@ -426,7 +447,7 @@ export class EditorComponent implements OnInit {
    *  Executes all three functions after image loads so 'jolt' of canvas erase and draw is less extreme.
    *  Disables Flood fill before maskUrl is being set so new data isn't added
    *  class @param this.disableSubmit set to true before mask loaded because maskUrl is being updated.
-   *  @param dx The x-axis coordinate in the destination canvas 
+   *  @param dx The x-axis coordinate in the destination canvas
    *    at which to place the top-left corner of the source image.
    *  @param dy The y-axis coordinate in the destination canvas
    *    at which to place the top-left corner of the source image.
@@ -497,13 +518,13 @@ export class EditorComponent implements OnInit {
     await this.getMaskBlob();
 
     let imageBlob = new ImageBlob(
-      this.projectId, 
-      /*imageName=*/this.imgName,
-      /*mode=*/'update', 
-      /*image=*/this.blobMask,
-      /*parentImageName=*/this.parentName,
-      /*newImageName=*/undefined,
-      /*tags=*/undefined
+      this.projectId,
+      /*imageName=*/ this.imgName,
+      /*mode=*/ 'update',
+      /*image=*/ this.blobMask,
+      /*parentImageName=*/ this.parentName,
+      /*newImageName=*/ undefined,
+      /*tags=*/ undefined
     );
 
     this.postBlobsService.buildForm(
@@ -561,16 +582,16 @@ export class EditorComponent implements OnInit {
           : ++this.maskIndex;
       }
       let nextMask = this.imageArray[this.index]['masks'][this.maskIndex];
-      this.router.navigate(
-        ['/editor', 
-        this.projectId, 
-        this.parentName, 
-        this.imageUrl, 
-        this.imgName, 
-        nextMask['url'], 
-        this.index, 
-        this.maskIndex]
-      );
+      this.router.navigate([
+        '/editor',
+        this.projectId,
+        this.parentName,
+        this.imageUrl,
+        this.imgName,
+        nextMask['url'],
+        this.index,
+        this.maskIndex,
+      ]);
     }
     //  Otherwise, newImage loops through the images last fetched in the imageArray
     else {
@@ -584,15 +605,15 @@ export class EditorComponent implements OnInit {
           : ++this.index;
       }
       let nextImage = this.imageArray[this.index];
-      this.router.navigate(
-        ['/editor', 
-        this.projectId, 
-        nextImage['name'], 
-        nextImage['url'], 
-        this.imgName, 
-        this.getFirstMask(nextImage['masks']), 
-        this.index]
-      );
+      this.router.navigate([
+        '/editor',
+        this.projectId,
+        nextImage['name'],
+        nextImage['url'],
+        this.imgName,
+        this.getFirstMask(nextImage['masks']),
+        this.index,
+      ]);
     }
   }
 
@@ -667,7 +688,7 @@ export class EditorComponent implements OnInit {
    */
   undoRedo(direction: UndoRedo): void {
     this.disableSubmit = this.disableFloodFill = true;
-    (direction === UndoRedo.UNDO)
+    direction === UndoRedo.UNDO
       ? this.maskControllerService.undo()
       : this.maskControllerService.redo();
     this.setMaskTo(this.maskControllerService.getMask());
@@ -768,19 +789,19 @@ export class EditorComponent implements OnInit {
     // Case 1: performs preview-floodfill sequence.
     if (maskAction.previewMaster.getIsPreview()) {
       // Pauses any other canvas-editting sequences from registering
-      // on the canvas. 
+      // on the canvas.
       const previewLayer = document.getElementById('preview-layer');
       previewLayer.style.pointerEvents = 'auto';
 
       // Remembers the maskAction for when the preview is committed.
       this.curMaskAction = maskAction;
 
-      this.previewMaster.masksByTolerance = 
-          maskAction.previewMaster.masksByTolerance;
-          
-      // Activates updatePreview(), which is always called by a change in the 
-      // mat-slider, but only accepts the call if the floodfill preview sequence 
-      // is initiated. 
+      this.previewMaster.masksByTolerance =
+        maskAction.previewMaster.masksByTolerance;
+
+      // Activates updatePreview(), which is always called by a change in the
+      // mat-slider, but only accepts the call if the floodfill preview sequence
+      // is initiated.
       this.continuePreview = true;
       this.updatePreview();
 
@@ -806,30 +827,29 @@ export class EditorComponent implements OnInit {
     }
   }
 
-  // User must confirm the preview and commit it to the mask before 
+  // User must confirm the preview and commit it to the mask before
   // the preview-sequence can end.
   openPreviewSnackBar() {
     let snackBarRef = this.snackBar.open(
-        /*message=*/'Blocking: Please confirm the floodfill on this preview!',
-        /*action-message=*/'Confirm!',
-        { horizontalPosition: 'left',
-          verticalPosition: 'top'}
-        );
-    
+      /*message=*/ 'Blocking: Please confirm the floodfill on this preview!',
+      /*action-message=*/ 'Confirm!',
+      { horizontalPosition: 'left', verticalPosition: 'top' }
+    );
+
     snackBarRef.afterDismissed().subscribe(() => {
       this.endPreview();
     });
   }
 
-  /**Called whenever tolerance input changes. Only executes on a new 
+  /**Called whenever tolerance input changes. Only executes on a new
    * preview mask event;
    * newMaskEvent >> floodfillMask() { execute: else block }.
    */
   updatePreview(): void {
     if (this.continuePreview) {
-      this.previewImgData =  new ImageData(this.image.width, this.image.height);
+      this.previewImgData = new ImageData(this.image.width, this.image.height);
       this.previewMaster.changeMaskBy(this.tolerance);
-      
+
       for (let pixel of this.previewMaster.getMaskAsArray()) {
         this.previewImgData.data[pixel] = 255;
         this.previewImgData.data[pixel + 2] = 255;
@@ -856,9 +876,7 @@ export class EditorComponent implements OnInit {
 
       // Updates curMaskAction to hold the changedPixels,
       // and pass them into maskController.
-      this.curMaskAction.commitPreviewPixels(
-        this.previewMaster.getMaskAsSet()
-      );
+      this.curMaskAction.commitPreviewPixels(this.previewMaster.getMaskAsSet());
       this.previewMaster.resetMask();
       if (this.curMaskAction.getActionType() == Action.SUBTRACT) {
         this.maskControllerService.do(this.curMaskAction, this.allPixels);
@@ -869,7 +887,7 @@ export class EditorComponent implements OnInit {
       this.disableSubmit = this.disableFloodFill = false;
 
       // Unpauses other canvas-editing sequences from registering
-      // on the canvas. 
+      // on the canvas.
       const previewLayer = document.getElementById('preview-layer');
       previewLayer.style.pointerEvents = 'none';
     }
@@ -882,21 +900,23 @@ export class EditorComponent implements OnInit {
     createImageBitmap(this.previewImgData).then((renderer) => {
       this.previewCtx.globalAlpha = this.maskAlpha / 2;
       this.previewCtx.drawImage(
-          renderer,
-          0,
-          0,
-          this.previewCanvas.nativeElement.width,
-          this.previewCanvas.nativeElement.height);
+        renderer,
+        0,
+        0,
+        this.previewCanvas.nativeElement.width,
+        this.previewCanvas.nativeElement.height
+      );
     });
     this.previewCtx.restore();
   }
 
   private clearPreviewCanvas(): void {
     this.previewCtx.clearRect(
-        0,
-        0,
-        this.previewCanvas.nativeElement.width,
-        this.previewCanvas.nativeElement.height);
+      0,
+      0,
+      this.previewCanvas.nativeElement.width,
+      this.previewCanvas.nativeElement.height
+    );
   }
 
   getIsPreview(isPreview: boolean) {
@@ -909,38 +929,33 @@ export class EditorComponent implements OnInit {
     if (this.isPreview && this.maskTool === MaskTool.MAGIC_WAND_ADD) {
       // TODO: Let user decide tolerance limit
       // (replace hardcoded val 300 with a var).
-      const previewMaster: PreviewMask = 
-          this.magicWandService.getPreviews(
-            this.originalImageData,
-            coord.x,
-            coord.y,
-            /* toleranceLimit= */300
-          );
+      const previewMaster: PreviewMask = this.magicWandService.getPreviews(
+        this.originalImageData,
+        coord.x,
+        coord.y,
+        /* toleranceLimit= */ 300
+      );
 
       this.floodfillMask(
-        new MaskAction(
-          Action.ADD,
-          Tool.MAGIC_WAND,
-          undefined,
-          previewMaster
-        )
+        new MaskAction(Action.ADD, Tool.MAGIC_WAND, undefined, previewMaster)
       );
     } else {
       // Initiates basic-floodfill sequence.
       const maskSet = this.magicWandService.floodfill(
         this.originalImageData,
         coord.x,
-        coord.y, 
+        coord.y,
         this.tolerance
-      )
+      );
       this.floodfillMask(
-        new MaskAction(          
+        new MaskAction(
           this.maskTool == MaskTool.MAGIC_WAND_ADD
-              ? Action.ADD
-              : Action.SUBTRACT,
-            Tool.MAGIC_WAND,
-            maskSet
-      ));
+            ? Action.ADD
+            : Action.SUBTRACT,
+          Tool.MAGIC_WAND,
+          maskSet
+        )
+      );
     }
   }
 
@@ -948,21 +963,20 @@ export class EditorComponent implements OnInit {
   //        the program to lag when using scribblefloodfill with user brush size.
   async getScribbleSet(coord: Coordinate): Promise<void> {
     const paintedSet = await this.getPaintedSet();
-    const maskSet = this.magicWandService.scribbleFloodfill (
+    const maskSet = this.magicWandService.scribbleFloodfill(
       this.originalImageData,
       coord.x,
-      coord.y, 
+      coord.y,
       this.tolerance,
       paintedSet
-    )
+    );
     this.floodfillMask(
       new MaskAction(
-        this.maskTool == MaskTool.MAGIC_WAND_ADD
-          ? Action.ADD
-          : Action.SUBTRACT,
+        this.maskTool == MaskTool.MAGIC_WAND_ADD ? Action.ADD : Action.SUBTRACT,
         Tool.SCRIBBLE,
         maskSet
-    ));
+      )
+    );
   }
 
   /**
@@ -971,11 +985,16 @@ export class EditorComponent implements OnInit {
    *  The global composition changes depending on whether the user is painting or erasing.
    *  DESTINATION_OUT for erase, SOURCE_OVER for draw.
    *  Also initializes the paint canvas to paint ONLY the new mask being added for maskController.
-   *  We need to capture the pixels erased or painted, paint ctx paints in color, 
+   *  We need to capture the pixels erased or painted, paint ctx paints in color,
    *      MaskAction will determine if they're painted or erased with TOOL parameter.
    */
   startDraw(pixel: Coordinate) {
-    this.searchRectangle = new Rectangle(this.image.width, this.image.height, this.brushWidth, pixel);
+    this.searchRectangle = new Rectangle(
+      this.image.width,
+      this.image.height,
+      this.brushWidth,
+      pixel
+    );
     this.startPixel = pixel;
     this.maskCtx.clearRect(0, 0, this.image.width, this.image.height);
     this.paintCtx.clearRect(0, 0, this.image.width, this.image.height);
@@ -1026,15 +1045,32 @@ export class EditorComponent implements OnInit {
    *  @returns set<number> of all indicies in the mask.
    */
   async getPaintedSet(): Promise<Set<number>> {
-    let paintedImageData = this.paintCtx.getImageData(0, 0,this.image.width, this.image.height).data;
+    let paintedImageData = this.paintCtx.getImageData(
+      0,
+      0,
+      this.image.width,
+      this.image.height
+    ).data;
     let paintedMask = new Set<number>();
-    
+
     let leftTop = this.searchRectangle.getLeftTop();
     let rightBottom = this.searchRectangle.getRightBottom();
 
-    const leftTopIndex = this.magicWandService.coordToDataArrayIndex(leftTop.x, leftTop.y, this.image.width);
-    const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, rightBottom.y, this.image.width);
-    let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(rightBottom.x, leftTop.y, this.image.width);
+    const leftTopIndex = this.magicWandService.coordToDataArrayIndex(
+      leftTop.x,
+      leftTop.y,
+      this.image.width
+    );
+    const rightBottomIndex = this.magicWandService.coordToDataArrayIndex(
+      rightBottom.x,
+      rightBottom.y,
+      this.image.width
+    );
+    let currRightTopIndex = this.magicWandService.coordToDataArrayIndex(
+      rightBottom.x,
+      leftTop.y,
+      this.image.width
+    );
 
     let newTopY = leftTop.y;
 
@@ -1042,28 +1078,38 @@ export class EditorComponent implements OnInit {
       // If the alpha value has value.
       // Due to anti aliasing, not all of the pixels in the array have an alpha
       //    value of 0, 255/2 is an imperfect fix which doesn't change the initial
-      //    pixels drawn but does take in more pixels than searching for those equal 
+      //    pixels drawn but does take in more pixels than searching for those equal
       //    to 0. TODO: fix drawing with npm js px-brush.
-      if (paintedImageData[i + 3] > (255 / 2)) {
+      if (paintedImageData[i + 3] > 255 / 2) {
         paintedMask.add(i);
       }
       // TODO: loop over (x, y) coordinates to avoid complication in error prone logic.
       if (i === currRightTopIndex) {
         // Minus 4 to account for i += 4 in loop.
-        i = this.magicWandService.coordToDataArrayIndex(leftTop.x, ++newTopY, this.image.width) - 4;
-        currRightTopIndex =  this.magicWandService.coordToDataArrayIndex(rightBottom.x, newTopY, this.image.width);
+        i =
+          this.magicWandService.coordToDataArrayIndex(
+            leftTop.x,
+            ++newTopY,
+            this.image.width
+          ) - 4;
+        currRightTopIndex = this.magicWandService.coordToDataArrayIndex(
+          rightBottom.x,
+          newTopY,
+          this.image.width
+        );
       }
     }
     return paintedMask;
   }
-  
+
   /** Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes. */
   async doMaskActionPaint(): Promise<void> {
     let paintedMask = await this.getPaintedSet();
     let maskAction = new MaskAction(
-        ((this.maskTool === MaskTool.PAINT) ? Action.ADD : Action.SUBTRACT), 
-        ((this.maskTool === MaskTool.PAINT) ? Tool.PAINTBRUSH : Tool.ERASER), 
-        paintedMask)
+      this.maskTool === MaskTool.PAINT ? Action.ADD : Action.SUBTRACT,
+      this.maskTool === MaskTool.PAINT ? Tool.PAINTBRUSH : Tool.ERASER,
+      paintedMask
+    );
 
     if (maskAction.getActionType() === Action.SUBTRACT) {
       this.maskControllerService.do(maskAction, this.allPixels);
@@ -1072,35 +1118,35 @@ export class EditorComponent implements OnInit {
     }
   }
 
- /** 
-  * Catches the emitted zoom event and scales canvas based on user preference, in or out.
-  * @param zoomIn boolean to determine if user would like to zoom in or out. 
-  * TODO: MAKE ZOOM A TOGGLE FEATURE AND ZOOM WHERE USER CLICKS
-  */
+  /**
+   * Catches the emitted zoom event and scales canvas based on user preference, in or out.
+   * @param zoomIn boolean to determine if user would like to zoom in or out.
+   * TODO: MAKE ZOOM A TOGGLE FEATURE AND ZOOM WHERE USER CLICKS
+   */
   zoom(zoom: Zoom) {
     this.setScaleFactor(zoom);
     this.drawScaledImage(this.destinationCoords.x, this.destinationCoords.y);
     this.drawMask(this.destinationCoords.x, this.destinationCoords.y);
-  } 
+  }
 
- /** 
-  *  Inputs the offset of the user's click to where they pan to.
-  *  @param destination : Coordinate of the offset from where to user clicked on
-  *  the image to where they moved the mouse.
-  *  TODO: Adjust destination so the user cannot pan past the edge of the image.
-  */
+  /**
+   *  Inputs the offset of the user's click to where they pan to.
+   *  @param destination : Coordinate of the offset from where to user clicked on
+   *  the image to where they moved the mouse.
+   *  TODO: Adjust destination so the user cannot pan past the edge of the image.
+   */
   pan(destination: Coordinate) {
     this.drawScaledImage(destination.x, destination.y);
     this.drawMask(destination.x, destination.y);
   }
 
- /** 
-  *  Inputs the offset of the user's click to where they pan to and sets the 
-  *  new x & y destination parameters to draw the image at.
-  *  @param destination : Coordinate of the offset from where to user clicked on
-  *  the image to where they lifted the mouse.
-  *  TODO: Adjust destination so the user cannot pan past the edge of the image.
-  */
+  /**
+   *  Inputs the offset of the user's click to where they pan to and sets the
+   *  new x & y destination parameters to draw the image at.
+   *  @param destination : Coordinate of the offset from where to user clicked on
+   *  the image to where they lifted the mouse.
+   *  TODO: Adjust destination so the user cannot pan past the edge of the image.
+   */
   setDestinationCoords(destination: Coordinate) {
     this.destinationCoords = destination;
     this.pan(this.destinationCoords);
@@ -1120,14 +1166,19 @@ class Rectangle {
   brushRadius: number;
   // Lowest y touched by the brush.
   top: number;
-  // Highest y touched by the brush. 
+  // Highest y touched by the brush.
   bottom: number;
   // Lowest x touched by the brush.
   left: number;
   // Highest x touched by the brush.
   right: number;
-  
-  constructor(imageWidth: number, imageHeight: number, brushWidth: number, coord: Coordinate) {
+
+  constructor(
+    imageWidth: number,
+    imageHeight: number,
+    brushWidth: number,
+    coord: Coordinate
+  ) {
     this.imageWidth = imageWidth;
     this.imageHeight = imageHeight;
     this.brushRadius = brushWidth / 2;
@@ -1143,7 +1194,7 @@ class Rectangle {
   compareCoordinateToCurrentRectangle(coord: Coordinate) {
     const topY = Math.max(coord.y - this.brushRadius, 0);
     const bottomY = Math.min(coord.y + this.brushRadius, this.imageHeight - 1);
-    
+
     const leftX = Math.max(coord.x - this.brushRadius, 0);
     const rightX = Math.min(coord.x + this.brushRadius, this.imageWidth - 1);
 
@@ -1161,21 +1212,21 @@ class Rectangle {
     }
   }
 
- /**  
-  *  @returns {Coordinate} the floored (x,y) of the combination of the left
-  *    most and top most coordinate the users brush touched.
-  *  Floor is needed to calculate the proper index in the data array.
-  *    It allows the index to be a valid (x,y) coordinate
-  */
+  /**
+   *  @returns {Coordinate} the floored (x,y) of the combination of the left
+   *    most and top most coordinate the users brush touched.
+   *  Floor is needed to calculate the proper index in the data array.
+   *    It allows the index to be a valid (x,y) coordinate
+   */
   getLeftTop(): Coordinate {
     return new Coordinate(Math.floor(this.left), Math.floor(this.top));
   }
- /** 
-  *  @returns {Coordinate} the ceiling of the (x,y) combination from the 
-  *    right most and bottom most coordinate the users brush touched.
-  *  Ceil is needed to calculate the proper index in the data array.
-  *    It allows the index to be a valid (x,y) coordinate.
-  */
+  /**
+   *  @returns {Coordinate} the ceiling of the (x,y) combination from the
+   *    right most and bottom most coordinate the users brush touched.
+   *  Ceil is needed to calculate the proper index in the data array.
+   *    It allows the index to be a valid (x,y) coordinate.
+   */
   getRightBottom(): Coordinate {
     return new Coordinate(Math.ceil(this.right), Math.ceil(this.bottom));
   }

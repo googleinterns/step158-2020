@@ -91,7 +91,7 @@ export class ImgGalleryComponent implements OnInit {
       });
     }
 
-    //  Get the blobstore url initalized and show the form.
+    // Get the blobstore url initalized and show the form.
     this.postBlobsService.fetchBlob();
     this.displayUpload = true;
     this.loadGalleryImages();
@@ -173,12 +173,13 @@ export class ImgGalleryComponent implements OnInit {
   }
 
   // Opens up the dialog for updating the clicked image.
-  updateButton(imageName: string, parentImageName: string): void {
+  updateButton(imageName: string, parentImageName: string, tags:string): void {
     const dialogRef = this.dialog.open(UpdateImageDialog, {
       width: '600px',
       data: {projectId: this.projectId,
           imageName: imageName,
-          parentImageName: parentImageName}
+          parentImageName: parentImageName,
+          tags: tags}
     });
 
     dialogRef.afterClosed().subscribe(() => {
@@ -215,7 +216,7 @@ export class ImgGalleryComponent implements OnInit {
         'with-masks': this.withMasks,
         'sort-img': this.sortImg,
         'sort-mask': this.sortMask,
-        tag: this.tag,
+        'tag': this.tag,
       });
 
     // fetchUrl returns a list of image objects: 'url', 'name', 'type',
@@ -233,6 +234,7 @@ export class ImgGalleryComponent implements OnInit {
     console.log('fetching from projectId: ' + this.projectId);
 
     this.imageArray = await this.fetchImages();
+    console.log(this.imageArray);
 
     if (this.imageArray.length > 0) {
       this.displayImages = true;
@@ -364,6 +366,7 @@ export interface UpdateImageData {
   projectId: string;
   imageName: string;
   parentImageName: string;
+  tags: string;
 }
 
 /**Represents the dialog popup that appears when ImageGalleryComponent's
@@ -384,8 +387,8 @@ export class UpdateImageDialog {
 
   ngOnInit(): void {
     this.updateImageForm = new FormGroup({
-      updateImgName: new FormControl(),
-      updateTags: new FormControl()
+      updateImgName: new FormControl(this.data.imageName),
+      updateTags: new FormControl(this.data.tags)
     });
     this.formData = new FormData();
   }
@@ -446,7 +449,7 @@ export class DeleteImageDialog {
       /*imageName=*/this.data.imageName,
       /*mode=*/'update',
       /*image=*/undefined,
-      /*parentImageName=*/'', 
+      /*parentImageName=*/this.data.parentImageName, 
       /*newImageName=*/'',
       /*tags=*/'',
       /*delete=*/true

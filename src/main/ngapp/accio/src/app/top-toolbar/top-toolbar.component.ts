@@ -1,7 +1,13 @@
 import { HostListener, Component, OnInit } from '@angular/core';
+import { MaskControllerService } from '../editor/mask-controller.service';
+import { MaskAction, Tool, Action } from '../editor/mask-action';
 import { Output, EventEmitter } from '@angular/core';
 import { MatSliderChange } from '@angular/material/slider';
 import { Zoom, UndoRedo, SwitchImage } from '../enums';
+
+export class SaveState {
+  constructor(public text: string, public icon: string) {}
+}
 
 @Component({
   selector: 'app-top-toolbar',
@@ -15,6 +21,13 @@ export class TopToolbarComponent implements OnInit {
   @Output() switchImageEvent = new EventEmitter<SwitchImage>();
   @Output() newToleranceEvent = new EventEmitter<number>();
   @Output() newZoomEvent = new EventEmitter();
+
+  readonly SAVED_STATE: SaveState = new SaveState('up to date', 'check');
+  readonly UNSAVED_STATE: SaveState = new SaveState(
+    'unsaved changes',
+    'history'
+  );
+
   toleranceValue: number;
   // To use enum in html
   Zoom = Zoom;
@@ -74,6 +87,8 @@ export class TopToolbarComponent implements OnInit {
     }
   }
 
+  constructor(private maskControllerService: MaskControllerService) {}
+
   ngOnInit(): void {
     this.toleranceValue = 15;
   }
@@ -88,8 +103,8 @@ export class TopToolbarComponent implements OnInit {
     this.invertMaskEvent.emit();
   }
 
-  undoRedo(direction: UndoRedo) {
-    this.undoRedoEvent.emit(direction);
+  undoRedo(undoRedo: UndoRedo) {
+    this.undoRedoEvent.emit(undoRedo);
   }
 
   switchImage(direction: SwitchImage) {
@@ -110,6 +125,37 @@ export class TopToolbarComponent implements OnInit {
     this.newToleranceEvent.emit(this.toleranceValue);
   }
 
+
+  /**
+   * Return the SaveState based on the maskControllerService state including
+   * the text and icon to display.
+   */
+  getSaveState(): SaveState {
+    if (this.maskControllerService.isSaved()) {
+      return this.SAVED_STATE;
+    }
+    return this.UNSAVED_STATE;
+  }
+
+  /**
+   * Return the tool name of the last or next action for hover preview.
+   */
+  getUndoRedoToolName(undoRedo: UndoRedo): string {
+    let maskAction: MaskAction;
+    if (undoRedo === UndoRedo.UNDO) {
+      maskAction = this.maskControllerService.prevAction();
+    } else {
+      maskAction = this.maskControllerService.nextAction();
+    }
+    if (
+      maskAction.getActionType() === Action.ADD ||
+      maskAction.getActionType() === Action.SUBTRACT
+    ) {
+      return maskAction.getActionType() + ' with ' + maskAction.getToolName();
+    }
+    return maskAction.getToolName();
+  }
+  
   zoom(zoomType: Zoom) {
     this.newZoomEvent.emit(zoomType);
   }

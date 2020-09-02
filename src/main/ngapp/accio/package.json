@@ -26,6 +26,8 @@
     "file-saver": "^2.0.2",
     "jquery": "^3.5.1",
     "jszip": "^3.5.0",
+    "moment": "^2.27.0",
+    "moment-timezone": "^0.5.31",
     "ngx-material-file-input": "^2.1.1",
     "rxjs": "~6.5.5",
     "symbol-observable": "^1.2.0",

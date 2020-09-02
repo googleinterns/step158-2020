@@ -314,7 +314,7 @@ export class MagicWandService {
       // changes the tolerance input to a higher tolerance than what was 
       // calcualted within this limit, then the distances up to the highest 
       // calculated tolerance will be returned.
-      if (toVisit.getSize() > 600000) {
+      if (toVisit.getSize() > 400000) {
         return distances;
       }
       const curPixelNode: PixelNode = toVisit.pop();

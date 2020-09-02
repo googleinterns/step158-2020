@@ -1,23 +1,31 @@
 <h1 mat-dialog-title>Update {{ data.imageName }}</h1>
 <div mat-dialog-content height="20%">
-  <form  novalidate [formGroup]="updateImageForm" 
-        method="POST" enctype="multipart/form-data">
-    
+  <form
+    novalidate
+    [formGroup]="updateImageForm"
+    method="POST"
+    enctype="multipart/form-data"
+  >
     <mat-form-field appearance="fill" class="user-input">
       <mat-label>Update Name</mat-label>
-      <input matInput formControlName="updateImgName" placeholder="Untitled"/>
+      <input matInput formControlName="updateImgName" placeholder="Untitled" />
     </mat-form-field>
-  
+
     <mat-form-field appearance="fill" class="user-input">
       <mat-label>Tag(s)</mat-label>
-      <input matInput formControlName="updateTags"/>
-      <mat-hint>Enter list seperated by commas: "tag 1, tag 2, tag 3"</mat-hint>
+      <input
+        matInput
+        formControlName="updateTags"
+        placeholder="Ex. tag1, tag2, tag3"
+      />
+      <mat-hint>Add tags as a list separated by commas</mat-hint>
     </mat-form-field>
 
     <div mat-dialog-actions>
       <button mat-raised-button (click)="onNoClick()">Cancel</button>
-      <button mat-raised-button (click)="onUpdateImage()" cdkFocusInitial>Update</button>
+      <button mat-raised-button (click)="onUpdateImage()" cdkFocusInitial>
+        Update
+      </button>
     </div>
   </form>
 </div>
-

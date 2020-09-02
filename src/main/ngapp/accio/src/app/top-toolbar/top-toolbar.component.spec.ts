@@ -8,9 +8,8 @@ describe('TopToolbarComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ TopToolbarComponent ]
-    })
-    .compileComponents();
+      declarations: [TopToolbarComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

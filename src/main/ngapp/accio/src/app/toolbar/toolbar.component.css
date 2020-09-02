@@ -55,3 +55,7 @@ p {
 .slider-value {
   width: 50px;
 }
+
+.custom-icon {
+  transform: scale(2);
+}
