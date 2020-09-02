@@ -5,7 +5,7 @@ import {
   Input,
   SimpleChanges,
 } from '@angular/core';
-import { MagicWandService } from './magic-wand.service';
+import { MagicWandService, PreviewMask } from './magic-wand.service';
 import { Output, EventEmitter } from '@angular/core';
 import { MaskTool } from './MaskToolEnum';
 import { Coordinate } from './Coordinate';
@@ -28,6 +28,7 @@ export class MaskDirective {
 
   @Output() newMouseMoveEvent = new EventEmitter<MouseEvent>();
   @Output() newMouseOutEvent = new EventEmitter<void>();
+  @Output() newMouseDownEvent = new EventEmitter<void>();
 
   @Output() newPanEvent = new EventEmitter<Coordinate>();
   @Output() newDestinationEvent = new EventEmitter<Coordinate>();
@@ -57,6 +58,7 @@ export class MaskDirective {
    */
   @HostListener('mousedown', ['$event'])
   onMouseDown(e: MouseEvent) {
+    this.newMouseDownEvent.emit();
     if (
       this.tool == MaskTool.PAINT ||
       this.tool == MaskTool.ERASE ||
