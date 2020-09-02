@@ -111,7 +111,6 @@ export class MaskDirective {
       this.mouseDown
     ) {
       const coord = this.convertToUnscaledCoord(e.offsetX, e.offsetY);
-
       // User moved mouse, use scribble fill.
       this.scribbleFill = true;
 
@@ -172,8 +171,8 @@ export class MaskDirective {
 
     else if (
       (this.tool == MaskTool.MAGIC_WAND_ADD ||
-        this.tool == MaskTool.MAGIC_WAND_SUB) &&
-      !this.scribbleFill
+       this.tool == MaskTool.MAGIC_WAND_SUB) &&
+       !this.scribbleFill
     ) {
       this.floodfillEvent.emit(new Coordinate(this.coord[0], this.coord[1]));
     }
