@@ -3,6 +3,9 @@
   #group="matButtonToggleGroup" 
   vertical style="border:none" 
   [value]="maskTool" (change)="updateTool(group.value)">
+  <mat-checkbox (change)="doPreview()">
+    Preview Floodfill
+  </mat-checkbox>
   <mat-button-toggle mat-icon-button value="MAGIC-WAND-ADD" title="Add Mask with floodfill    W">
     <mat-icon>format_color_fill</mat-icon>
     <p>Floodfill</p>

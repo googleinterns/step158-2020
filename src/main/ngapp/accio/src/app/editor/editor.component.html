@@ -32,7 +32,8 @@
     <app-toolbar 
       (newMaskToolEvent)="updateMaskTool($event)"
       (newMaskAlphaEvent)="updateMaskAlpha($event)"
-      (newWidthEvent)="updateBrushWidth($event)">
+      (newWidthEvent)="updateBrushWidth($event)"
+      (newPreviewEvent)="getIsPreview($event)">
     </app-toolbar>
   </mat-drawer>
 

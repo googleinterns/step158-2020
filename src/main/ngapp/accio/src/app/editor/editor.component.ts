@@ -57,6 +57,7 @@ export class EditorComponent implements OnInit {
   private previewImgData: ImageData;
   private curMaskAction: MaskAction;
   private continuePreview = false;
+  isPreview = false;
 
   // Display variables.
   private image: HTMLImageElement;
@@ -786,7 +787,7 @@ export class EditorComponent implements OnInit {
       // Pops up a snackbar to tell the user what to do next.
       this.openPreviewSnackBar();
     } else {
-      // Case 2: Performs scribble floodfill sequence.
+      // Case 2: Performs basic floodfill sequence.
       //  Changes if set of pixels are added or removed from the mask depending on the tool.
       let alphaValue = this.maskTool === MaskTool.MAGIC_WAND_ADD ? 255 : 0;
 
@@ -838,6 +839,7 @@ export class EditorComponent implements OnInit {
       this.drawPreview();
     }
   }
+
   /**Called when a new preview mask sequence and the tolerance input
    * has been confirmed.
    */
@@ -897,21 +899,49 @@ export class EditorComponent implements OnInit {
         this.previewCanvas.nativeElement.height);
   }
 
+  getIsPreview(isPreview: boolean) {
+    this.isPreview = isPreview;
+  }
+
   getFloodfillSet(coord: Coordinate) {
-    const maskSet = this.magicWandService.floodfill(
-      this.originalImageData,
-      coord.x,
-      coord.y, 
-      this.tolerance
-    )
-    this.floodfillMask(
-      new MaskAction(          
-        this.maskTool == MaskTool.MAGIC_WAND_ADD
-            ? Action.ADD
-            : Action.SUBTRACT,
+    // Initiates preview-floodfills sequence if preview checkbox is checked
+    // and magic wand floodfill('add' option) is selected.
+    if (this.isPreview && this.maskTool === MaskTool.MAGIC_WAND_ADD) {
+      // TODO: Let user decide tolerance limit
+      // (replace hardcoded val 300 with a var).
+      const previewMaster: PreviewMask = 
+          this.magicWandService.getPreviews(
+            this.originalImageData,
+            coord.x,
+            coord.y,
+            /* toleranceLimit= */300
+          );
+
+      this.floodfillMask(
+        new MaskAction(
+          Action.ADD,
           Tool.MAGIC_WAND,
-          maskSet
-    ));
+          undefined,
+          previewMaster
+        )
+      );
+    } else {
+      // Initiates basic-floodfill sequence.
+      const maskSet = this.magicWandService.floodfill(
+        this.originalImageData,
+        coord.x,
+        coord.y, 
+        this.tolerance
+      )
+      this.floodfillMask(
+        new MaskAction(          
+          this.maskTool == MaskTool.MAGIC_WAND_ADD
+              ? Action.ADD
+              : Action.SUBTRACT,
+            Tool.MAGIC_WAND,
+            maskSet
+      ));
+    }
   }
 
   // TODO: tolerance over 5/6 tends to add to much to the set and causes 
