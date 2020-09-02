@@ -32,7 +32,8 @@
     <app-toolbar 
       (newMaskToolEvent)="updateMaskTool($event)"
       (newMaskAlphaEvent)="updateMaskAlpha($event)"
-      (newWidthEvent)="updateBrushWidth($event)">
+      (newWidthEvent)="updateBrushWidth($event)"
+      (newPreviewEvent)="getIsPreview($event)">
     </app-toolbar>
   </mat-drawer>
 
@@ -43,11 +44,9 @@
         width="100px" height="100px"
         [originalImageData]="originalImageData"
         [scale]="scaleFactor"
-        [tolerance]="tolerance"
         [disableFloodFill]="disableFloodFill"
         [tool]="maskTool"
         [translationCoords]="destinationCoords"
-        (newMaskEvent)="floodfillMask($event)"
         (newPaintEvent)="startDraw($event)"
         (continuePaintEvent)="drawPixel($event)"
         (newPaintMaskEvent)="doMaskActionPaint()"
@@ -55,7 +54,9 @@
         (newMouseOutEvent)="setCursorOut()"
         (newPanEvent)="pan($event)"
         (newDestinationEvent)="setDestinationCoords($event)"
-        (newZoomEvent)="zoom($event)">
+        (newZoomEvent)="zoom($event)"
+        (floodfillEvent)="getFloodfillSet($event)"
+        (scribbleFillEvent)="getScribbleSet($event)">
       </canvas>
 
       <canvas #previewCanvas id="preview-layer"
