@@ -944,6 +944,8 @@ export class EditorComponent implements OnInit {
     }
   }
 
+  // TODO: tolerance over 5/6 tends to add to much to the set and causes 
+  //        the program to lag when using scribblefloodfill with user brush size.
   async getScribbleSet(coord: Coordinate): Promise<void> {
     const paintedSet = await this.getPaintedSet();
     const maskSet = this.magicWandService.scribbleFloodfill (
@@ -1019,8 +1021,6 @@ export class EditorComponent implements OnInit {
   }
 
   /**
-   *  Catches emitted event from mask.directive once users mouse lifts up.
-   *  Finds all pixels painted on paint canvas and adds to set to pass into maskController.
    *  Calls the undo/redo 'do' function with paintedMask: Set of imageData indexes.
    *  TODO: Pass in four pixels that represent the <X, >X, <Y, >Y to not traverse over entire data array
    *  @returns set<number> of all indicies in the mask.
@@ -1047,7 +1047,6 @@ export class EditorComponent implements OnInit {
       if (paintedImageData[i + 3] > (255 / 2)) {
         paintedMask.add(i);
       }
-
       // TODO: loop over (x, y) coordinates to avoid complication in error prone logic.
       if (i === currRightTopIndex) {
         // Minus 4 to account for i += 4 in loop.
