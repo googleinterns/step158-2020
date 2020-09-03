@@ -17,7 +17,7 @@ export class ToolbarComponent implements OnInit {
     switch ($event.keyCode) {
       case 51:
         console.log('3');
-        this.brushWidth = Math.max(this.brushWidth - 1, 0.0);
+        this.brushWidth = Math.max(this.brushWidth - 1, 1.0);
         this.updateWidth();
         break;
       case 52:
